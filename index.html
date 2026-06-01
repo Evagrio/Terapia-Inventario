@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FarmaciaCRA — Cascina Germoglio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inconsolata:wght@400;500;600&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0F1117; --surface: #181C27; --surface2: #1E2333;
+  --border: #2A3045; --border-hi: #3A4560;
+  --text: #E8EAF0; --muted: #7A8099; --dim: #4A5270;
+  --gold: #E8B84B; --gold-bg: rgba(232,184,75,0.08);
+  --red: #E05252; --red-bg: #2A1515;
+  --amber: #E8913A; --amber-bg: #2A1E0E;
+  --green: #4DB87A; --green-bg: #0E2018;
+  --blue: #5B9BD5; --blue-bg: rgba(91,155,213,0.1);
+  --violet: #9B7FD4; --violet-bg: rgba(155,127,212,0.1);
+  --r: 12px;
+}
+body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+
+/* HEADER */
+header { background:var(--surface); border-bottom:1px solid var(--border); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; gap:12px; }
+.logo { font-family:'Playfair Display',serif; font-size:1.4rem; color:var(--gold); white-space:nowrap; }
+.logo em { font-style:italic; color:var(--text); font-size:1rem; }
+.hdr-right { display:flex; align-items:center; gap:10px; }
+.clock { font-family:'Inconsolata',monospace; font-size:0.72rem; color:var(--muted); text-align:right; line-height:1.7; }
+
+/* NAV TABS */
+.nav-tabs { background:var(--surface); border-bottom:1px solid var(--border); padding:0 24px; display:flex; gap:0; }
+.tab { padding:12px 20px; font-size:0.82rem; font-weight:700; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; white-space:nowrap; }
+.tab:hover { color:var(--text); }
+.tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+
+/* CONTAINER */
+.container { max-width:1200px; margin:0 auto; padding:22px 24px; flex:1; }
+
+/* TOOLBAR */
+.toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px; }
+.toolbar h2 { font-family:'Playfair Display',serif; font-size:1.15rem; }
+.toolbar p  { font-size:0.75rem; color:var(--muted); margin-top:2px; }
+.tbar-right { display:flex; gap:8px; flex-wrap:wrap; }
+
+/* BUTTONS */
+.btn { display:inline-flex; align-items:center; gap:5px; padding:8px 15px; border-radius:8px; border:none; cursor:pointer; font-family:'Nunito',sans-serif; font-size:0.83rem; font-weight:700; transition:all .15s; white-space:nowrap; }
+.btn-gold  { background:var(--gold); color:#0F1117; }
+.btn-gold:hover { filter:brightness(1.1); }
+.btn-ghost { background:var(--surface2); color:var(--text); border:1px solid var(--border-hi); }
+.btn-ghost:hover { background:var(--border); }
+.btn-red   { background:var(--red-bg); color:var(--red); border:1px solid var(--red); }
+.btn-red:hover { background:var(--red); color:#fff; }
+.btn-blue  { background:var(--blue-bg); color:var(--blue); border:1px solid var(--blue); }
+.btn-blue:hover { background:var(--blue); color:#fff; }
+.btn-sm { padding:5px 10px; font-size:0.75rem; }
+
+/* GRID PAZIENTI */
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; }
+
+/* PATIENT CARD */
+.pcard { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; transition:box-shadow .2s, border-color .2s; cursor:pointer; }
+.pcard:hover { border-color:var(--gold); box-shadow:0 8px 32px rgba(0,0,0,.4); }
+.pcard-head { padding:14px 16px 12px; display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border); }
+.pname { font-family:'Playfair Display',serif; font-size:1.05rem; }
+.pmeta { font-family:'Inconsolata',monospace; font-size:0.65rem; color:var(--dim); margin-top:3px; }
+.pcard-body { padding:12px 16px; }
+.pcard-stats { display:flex; gap:14px; }
+.pstat { text-align:center; }
+.pstat-n { font-family:'Inconsolata',monospace; font-size:1.1rem; font-weight:600; color:var(--gold); }
+.pstat-l { font-size:0.65rem; color:var(--muted); margin-top:2px; }
+.pcard-actions { padding:10px 16px; border-top:1px solid var(--border); display:flex; gap:6px; }
+
+/* BADGE GRUPPO */
+.badge { font-family:'Inconsolata',monospace; font-size:0.62rem; font-weight:600; padding:2px 8px; border-radius:20px; letter-spacing:.06em; text-transform:uppercase; }
+.badge-cra { background:var(--gold-bg); color:var(--gold); border:1px solid rgba(232,184,75,.3); }
+.badge-cd  { background:var(--blue-bg); color:var(--blue); border:1px solid rgba(91,155,213,.3); }
+.badge-dim { background:var(--red-bg); color:var(--red); border:1px solid rgba(224,82,82,.3); }
+
+/* BADGE FONTE FARMACO */
+.fonte-cra  { background:var(--gold-bg); color:var(--gold); border:1px solid rgba(232,184,75,.25); font-size:0.6rem; padding:1px 6px; border-radius:10px; font-family:'Inconsolata',monospace; }
+.fonte-pers { background:var(--blue-bg); color:var(--blue); border:1px solid rgba(91,155,213,.25); font-size:0.6rem; padding:1px 6px; border-radius:10px; font-family:'Inconsolata',monospace; }
+
+/* MODAL */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:200; display:none; align-items:flex-start; justify-content:center; padding:24px; overflow-y:auto; }
+.overlay.open { display:flex; }
+.modal { background:var(--surface); border:1px solid var(--border-hi); border-radius:var(--r); width:100%; max-width:680px; margin:auto; }
+.modal-head { padding:18px 22px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.modal-title { font-family:'Playfair Display',serif; font-size:1.1rem; }
+.modal-body { padding:22px; display:flex; flex-direction:column; gap:16px; }
+.modal-foot { padding:14px 22px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end; }
+.close-btn { background:none; border:none; color:var(--muted); font-size:1.4rem; cursor:pointer; line-height:1; padding:2px 6px; }
+.close-btn:hover { color:var(--text); }
+
+/* FORM */
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+.form-group { display:flex; flex-direction:column; gap:5px; }
+.form-group.full { grid-column:1/-1; }
+label { font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+input, select, textarea {
+  background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+  color:var(--text); font-family:'Nunito',sans-serif; font-size:0.87rem;
+  padding:9px 12px; transition:border-color .15s; width:100%;
+}
+input:focus, select:focus, textarea:focus { outline:none; border-color:var(--gold); }
+textarea { resize:vertical; min-height:70px; }
+select option { background:var(--surface2); }
+
+/* SCHEDA TERAPEUTICA */
+.scheda-wrap { max-width:900px; }
+.scheda-header { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:16px 20px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+.scheda-pname { font-family:'Playfair Display',serif; font-size:1.3rem; }
+.scheda-meta { font-family:'Inconsolata',monospace; font-size:0.7rem; color:var(--muted); margin-top:4px; }
+.foglio-num { font-family:'Inconsolata',monospace; font-size:0.75rem; color:var(--gold); background:var(--gold-bg); border:1px solid rgba(232,184,75,.3); padding:4px 12px; border-radius:20px; }
+
+/* SEZIONI TERAPIA */
+.sezione { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); margin-bottom:14px; overflow:hidden; }
+.sezione-head { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.sezione-title { font-family:'Inconsolata',monospace; font-size:0.72rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; }
+.sezione-title.orale    { color:var(--gold); }
+.sezione-title.topica   { color:var(--amber); }
+.sezione-title.bisogno  { color:var(--violet); }
+.sezione-title.longact  { color:var(--green); }
+
+/* TABELLA FARMACI */
+.drug-table { width:100%; border-collapse:collapse; font-size:0.8rem; }
+.drug-table th { font-family:'Inconsolata',monospace; font-size:0.62rem; color:var(--muted); font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:8px 10px; border-bottom:1px solid var(--border); text-align:left; white-space:nowrap; }
+.drug-table td { padding:9px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.drug-table tr:last-child td { border-bottom:none; }
+.drug-table tr:hover td { background:var(--surface2); }
+.orario-dot { width:28px; height:28px; border-radius:50%; border:1px solid var(--border-hi); display:inline-flex; align-items:center; justify-content:center; font-family:'Inconsolata',monospace; font-size:0.65rem; color:var(--muted); }
+.orario-dot.attivo { background:var(--gold-bg); border-color:var(--gold); color:var(--gold); }
+.drug-nome { font-weight:700; }
+.drug-dose { font-family:'Inconsolata',monospace; font-size:0.75rem; color:var(--gold); }
+.drug-date { font-family:'Inconsolata',monospace; font-size:0.68rem; color:var(--muted); }
+.drug-sosp { font-family:'Inconsolata',monospace; font-size:0.68rem; color:var(--red); }
+.empty-row { text-align:center; padding:20px; color:var(--dim); font-size:0.8rem; font-style:italic; }
+
+/* LONG ACTING TABLE */
+.la-table { width:100%; border-collapse:collapse; font-size:0.8rem; }
+.la-table th { font-family:'Inconsolata',monospace; font-size:0.62rem; color:var(--muted); font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:8px 10px; border-bottom:1px solid var(--border); text-align:left; }
+.la-table td { padding:9px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.la-table tr:last-child td { border-bottom:none; }
+.prossima-ok   { color:var(--green); font-family:'Inconsolata',monospace; font-size:0.75rem; }
+.prossima-warn { color:var(--amber); font-family:'Inconsolata',monospace; font-size:0.75rem; }
+.prossima-late { color:var(--red); font-family:'Inconsolata',monospace; font-size:0.75rem; }
+
+/* AGGIORNAMENTO FOOTER */
+.scheda-footer { text-align:right; font-family:'Inconsolata',monospace; font-size:0.68rem; color:var(--dim); margin-top:8px; padding:10px 16px; }
+
+/* EMPTY STATE */
+.empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
+.empty-state .icon { font-size:3rem; margin-bottom:12px; opacity:.4; }
+.empty-state p { font-size:0.9rem; }
+
+/* MODAL GRANDE */
+.modal-lg { max-width:860px; }
+
+/* ORARI CHECKBOX */
+.orari-group { display:flex; gap:10px; flex-wrap:wrap; margin-top:4px; }
+.orario-check { display:flex; align-items:center; gap:5px; cursor:pointer; }
+.orario-check input { width:auto; }
+.orario-check span { font-family:'Inconsolata',monospace; font-size:0.82rem; }
+
+/* PRINT STYLES */
+@media print {
+  body { background:#fff; color:#000; font-family:'Times New Roman',serif; }
+  .no-print { display:none !important; }
+  .print-only { display:block !important; }
+  .print-page { padding:15mm 15mm 10mm; }
+  .print-header { text-align:center; margin-bottom:8mm; border-bottom:2px solid #000; padding-bottom:4mm; }
+  .print-header h1 { font-size:14pt; font-weight:bold; }
+  .print-header h2 { font-size:11pt; margin-top:2mm; }
+  .print-header .foglio-info { font-size:9pt; margin-top:3mm; display:flex; justify-content:space-between; }
+  .print-section { margin-top:6mm; }
+  .print-section-title { font-size:9pt; font-weight:bold; text-transform:uppercase; border-bottom:1px solid #000; padding-bottom:1mm; margin-bottom:2mm; }
+  .print-table { width:100%; border-collapse:collapse; font-size:8pt; }
+  .print-table th { border:1px solid #000; padding:2mm 3mm; text-align:left; background:#f0f0f0; font-size:7pt; }
+  .print-table td { border:1px solid #000; padding:2mm 3mm; min-height:7mm; }
+  .print-table .firma-cell { width:28mm; }
+  .print-table .data-cell { width:22mm; }
+  .print-table .orario-cell { width:12mm; text-align:center; }
+  .print-footer { margin-top:8mm; border-top:1px solid #aaa; padding-top:3mm; font-size:7pt; color:#555; display:flex; justify-content:space-between; }
+  .print-ente { font-size:7pt; color:#555; text-align:center; margin-top:4mm; }
+  @page { size:A4 landscape; margin:10mm; }
+}
+.print-only { display:none; }
+
+/* SEARCH */
+.search-bar { position:relative; }
+.search-bar input { padding-left:32px; width:220px; }
+.search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:0.85rem; pointer-events:none; }
+
+/* TOAST */
+.toast { position:fixed; bottom:24px; right:24px; background:var(--surface); border:1px solid var(--green); border-radius:10px; padding:12px 18px; font-size:0.83rem; color:var(--green); z-index:999; display:none; animation:slideUp .2s; }
+.toast.show { display:block; }
+@keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+/* PILL SEZIONE */
+.sezione-pill { font-size:0.62rem; padding:2px 8px; border-radius:10px; font-family:'Inconsolata',monospace; font-weight:600; text-transform:uppercase; }
+.pill-orale   { background:var(--gold-bg); color:var(--gold); }
+.pill-topica  { background:var(--amber-bg); color:var(--amber); }
+.pill-bisogno { background:var(--violet-bg); color:var(--violet); }
+.pill-longact { background:var(--green-bg); color:var(--green); }
+
+/* BACK BTN */
+.back-btn { display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:0.8rem; cursor:pointer; margin-bottom:16px; transition:color .15s; background:none; border:none; font-family:'Nunito',sans-serif; }
+.back-btn:hover { color:var(--text); }
+
+/* INVENTARIO */
+.inv-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:16px; }
+.inv-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; transition:border-color .2s, box-shadow .2s; }
+.inv-card.stato-ok     { border-left:4px solid var(--green); }
+.inv-card.stato-warn   { border-left:4px solid var(--amber); }
+.inv-card.stato-urgent { border-left:4px solid var(--red); }
+.inv-card-head { padding:14px 16px 10px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start; }
+.inv-nome { font-weight:700; font-size:0.95rem; }
+.inv-forma { font-family:'Inconsolata',monospace; font-size:0.65rem; color:var(--muted); margin-top:2px; }
+.inv-card-body { padding:12px 16px; display:flex; flex-direction:column; gap:10px; }
+.inv-row { display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; }
+.inv-label { color:var(--muted); }
+.inv-val { font-family:'Inconsolata',monospace; font-weight:600; }
+.inv-val.green  { color:var(--green); }
+.inv-val.amber  { color:var(--amber); }
+.inv-val.red    { color:var(--red); }
+.progress-bar { width:100%; height:6px; background:var(--surface2); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:3px; transition:width .4s; }
+.fill-green  { background:var(--green); }
+.fill-amber  { background:var(--amber); }
+.fill-red    { background:var(--red); }
+.inv-card-foot { padding:10px 16px; border-top:1px solid var(--border); display:flex; gap:6px; flex-wrap:wrap; }
+
+/* ALERT BANNER INVENTARIO */
+.inv-alert { margin-bottom:18px; border-radius:var(--r); padding:13px 17px; }
+.inv-alert.urgent { background:var(--red-bg); border:1px solid var(--red); }
+.inv-alert.warn   { background:var(--amber-bg); border:1px solid var(--amber); }
+.inv-alert-ttl { font-family:'Inconsolata',monospace; font-size:0.68rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; margin-bottom:7px; }
+.inv-alert.urgent .inv-alert-ttl { color:var(--red); }
+.inv-alert.warn   .inv-alert-ttl { color:var(--amber); }
+.inv-chips { display:flex; flex-wrap:wrap; gap:5px; }
+.chip-urgent { font-size:0.78rem; padding:3px 10px; border-radius:20px; background:rgba(224,82,82,.15); border:1px solid rgba(224,82,82,.3); color:var(--text); }
+.chip-warn   { font-size:0.78rem; padding:3px 10px; border-radius:20px; background:rgba(232,145,58,.15); border:1px solid rgba(232,145,58,.3); color:var(--text); }
+
+/* MOVIMENTO LOG */
+.mov-list { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+.mov-row { display:flex; justify-content:space-between; align-items:center; background:var(--surface2); border-radius:8px; padding:8px 12px; font-size:0.78rem; }
+.mov-tipo { font-family:'Inconsolata',monospace; font-size:0.65rem; font-weight:600; text-transform:uppercase; }
+.mov-tipo.carico    { color:var(--green); }
+.mov-tipo.rettifica { color:var(--amber); }
+.mov-q { font-family:'Inconsolata',monospace; font-weight:700; }
+.mov-q.pos { color:var(--green); }
+.mov-q.neg { color:var(--red); }
+.mov-data { color:var(--dim); font-size:0.7rem; font-family:'Inconsolata',monospace; }
+
+/* SOMMARIO INVENTARIO */
+.inv-summary { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+.inv-stat { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 20px; flex:1; min-width:140px; }
+.inv-stat-n { font-family:'Inconsolata',monospace; font-size:1.4rem; font-weight:600; }
+.inv-stat-l { font-size:0.7rem; color:var(--muted); margin-top:3px; }
+</style>
+</head>
+<body>
+
+<header class="no-print">
+  <div class="logo">Farmacia<em>CRA</em></div>
+  <div class="hdr-right">
+    <div class="clock" id="clock"></div>
+  </div>
+</header>
+
+<nav class="nav-tabs no-print">
+  <div class="tab active" onclick="showTab('pazienti')">Pazienti</div>
+  <div class="tab" onclick="showTab('inventario')">Inventario CRA <span style="font-size:.65rem;color:var(--dim)">(sessione 2)</span></div>
+  <div class="tab" onclick="showTab('report')">Report <span style="font-size:.65rem;color:var(--dim)">(sessione 3)</span></div>
+</nav>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ===================== TAB PAZIENTI ===================== -->
+<div id="tab-pazienti" class="container">
+
+  <!-- VISTA LISTA PAZIENTI -->
+  <div id="vista-lista">
+    <div class="toolbar">
+      <div>
+        <h2>Pazienti</h2>
+        <p id="pz-count"></p>
+      </div>
+      <div class="tbar-right">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-pz" placeholder="Cerca paziente…" oninput="renderLista()">
+        </div>
+        <select id="filtro-gruppo" onchange="renderLista()" style="width:auto;padding:8px 12px;">
+          <option value="">Tutti i gruppi</option>
+          <option value="CRA">Pz CRA</option>
+          <option value="CD">Pz CD</option>
+        </select>
+        <button class="btn btn-gold" onclick="openModalPaziente()">+ Nuovo paziente</button>
+        <button class="btn btn-ghost btn-sm" onclick="importaRicettaManager()" title="Importa pazienti da RicettaManager JSON">📥 Importa RM</button>
+      </div>
+    </div>
+    <div class="grid" id="grid-pazienti"></div>
+  </div>
+
+  <!-- VISTA SCHEDA PAZIENTE -->
+  <div id="vista-scheda" style="display:none;">
+    <button class="back-btn no-print" onclick="tornaLista()">← Torna all'elenco</button>
+    <div class="scheda-wrap" id="scheda-content"></div>
+  </div>
+
+</div>
+
+<!-- ===================== TAB INVENTARIO ===================== -->
+<div id="tab-inventario" class="container" style="display:none;">
+
+  <div id="inv-alert-urgent" class="inv-alert urgent" style="display:none;">
+    <div class="inv-alert-ttl">⚠ Scorte esaurite / critiche</div>
+    <div class="inv-chips" id="inv-chips-urgent"></div>
+  </div>
+  <div id="inv-alert-warn" class="inv-alert warn" style="display:none;">
+    <div class="inv-alert-ttl">⬇ Scorte in esaurimento</div>
+    <div class="inv-chips" id="inv-chips-warn"></div>
+  </div>
+
+  <div class="inv-summary" id="inv-summary"></div>
+
+  <div class="toolbar">
+    <div>
+      <h2>Farmaci CRA — Magazzino</h2>
+      <p id="inv-count"></p>
+    </div>
+    <div class="tbar-right">
+      <input type="text" id="search-inv" placeholder="Cerca farmaco…" style="width:200px" oninput="renderInventario()">
+      <button class="btn btn-gold" onclick="openModalFarmacioCRA()">+ Nuovo farmaco</button>
+      <button class="btn btn-ghost btn-sm" onclick="openModalMovimenti()">📋 Log movimenti</button>
+    </div>
+  </div>
+
+  <div class="inv-grid" id="inv-grid"></div>
+</div>
+
+<!-- MODAL FARMACO CRA -->
+<div class="overlay" id="modal-farmaco-cra">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-fcra-title">Nuovo farmaco CRA</span>
+      <button class="close-btn" onclick="closeModal('modal-farmaco-cra')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nome farmaco *</label>
+          <input type="text" id="fcra-nome" placeholder="es. Aloperidolo 2mg">
+        </div>
+        <div class="form-group">
+          <label>Forma farmaceutica</label>
+          <select id="fcra-forma">
+            <option>Compresse</option><option>Capsule</option><option>Gocce</option>
+            <option>Fiala IM</option><option>Fiala EV</option><option>Cerotto</option>
+            <option>Soluzione orale</option><option>Sospensione</option><option>Altro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Unità per confezione *</label>
+          <input type="number" id="fcra-xconf" min="1" placeholder="es. 30">
+        </div>
+        <div class="form-group">
+          <label>Unità di misura</label>
+          <input type="text" id="fcra-udm" placeholder="es. cp, fl, ml…">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Scorta attuale (unità) *</label>
+          <input type="number" id="fcra-scorta" min="0" placeholder="es. 120">
+        </div>
+        <div class="form-group">
+          <label>Data riferimento scorta *</label>
+          <input type="date" id="fcra-lastsync">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Soglia alert (unità)</label>
+          <input type="number" id="fcra-warn" min="0" placeholder="es. 30">
+        </div>
+        <div class="form-group">
+          <label>Soglia urgente (unità)</label>
+          <input type="number" id="fcra-urgent" min="0" placeholder="es. 10">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Note</label>
+        <textarea id="fcra-note" placeholder="Note sul farmaco…" style="min-height:50px"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-farmaco-cra')">Annulla</button>
+      <button class="btn btn-gold" onclick="salvaFarmacioCRA()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CARICO SCORTE -->
+<div class="overlay" id="modal-carico">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Carico scorte</span>
+      <button class="close-btn" onclick="closeModal('modal-carico')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.82rem;color:var(--muted)" id="carico-farm-label"></p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Numero confezioni ricevute *</label>
+          <input type="number" id="carico-nconf" min="1" placeholder="es. 3" oninput="aggiornaTotaleCarico()">
+        </div>
+        <div class="form-group">
+          <label>Unità per confezione</label>
+          <input type="number" id="carico-xconf" min="1" readonly style="opacity:.6">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Totale unità in arrivo</label>
+        <input type="text" id="carico-totale" readonly style="opacity:.6;font-family:Inconsolata,monospace;font-weight:700;color:var(--green)">
+      </div>
+      <div class="form-group">
+        <label>Note (es. numero DDT, fornitore)</label>
+        <input type="text" id="carico-note" placeholder="DDT n° …">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-carico')">Annulla</button>
+      <button class="btn btn-gold" onclick="eseguiCarico()">Conferma carico</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RETTIFICA -->
+<div class="overlay" id="modal-rettifica">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Rettifica inventario</span>
+      <button class="close-btn" onclick="closeModal('modal-rettifica')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.82rem;color:var(--muted)" id="rett-farm-label"></p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Scorta reale contata (unità) *</label>
+          <input type="number" id="rett-scorta" min="0" placeholder="Unità effettivamente presenti">
+        </div>
+        <div class="form-group">
+          <label>Scorta calcolata dall'app</label>
+          <input type="text" id="rett-calcolata" readonly style="opacity:.6;font-family:Inconsolata,monospace;">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Motivazione rettifica *</label>
+        <input type="text" id="rett-note" placeholder="es. conta fisica mensile, farmaco scaduto…">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-rettifica')">Annulla</button>
+      <button class="btn btn-red" onclick="eseguiRettifica()">Applica rettifica</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LOG MOVIMENTI -->
+<div class="overlay" id="modal-movimenti">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <span class="modal-title">Log movimenti magazzino</span>
+      <button class="close-btn" onclick="closeModal('modal-movimenti')">×</button>
+    </div>
+    <div class="modal-body" style="max-height:65vh;overflow-y:auto;">
+      <div id="log-movimenti-content"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="stampaMovimenti()">🖨 Stampa log</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-movimenti')">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB REPORT (placeholder) ===================== -->
+<div id="tab-report" class="container" style="display:none;">
+  <div class="empty-state">
+    <div class="icon">📊</div>
+    <p>Report consumi — disponibile nella Sessione 3</p>
+  </div>
+</div>
+
+<!-- ===================== MODAL PAZIENTE ===================== -->
+<div class="overlay" id="modal-paziente">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-pz-title">Nuovo paziente</span>
+      <button class="close-btn" onclick="closeModal('modal-paziente')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cognome *</label>
+          <input type="text" id="pz-cognome" placeholder="Cognome">
+        </div>
+        <div class="form-group">
+          <label>Nome *</label>
+          <input type="text" id="pz-nome" placeholder="Nome">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Gruppo *</label>
+          <select id="pz-gruppo">
+            <option value="CRA">Pz CRA</option>
+            <option value="CD">Pz CD</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Stato</label>
+          <select id="pz-attivo">
+            <option value="true">Attivo</option>
+            <option value="false">Dimesso</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Note</label>
+        <textarea id="pz-note" placeholder="Note cliniche generali…"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-paziente')">Annulla</button>
+      <button class="btn btn-gold" onclick="salvaPaziente()">Salva paziente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL FARMACO ===================== -->
+<div class="overlay" id="modal-farmaco">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-farm-title">Aggiungi farmaco</span>
+      <button class="close-btn" onclick="closeModal('modal-farmaco')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nome farmaco *</label>
+          <input type="text" id="farm-nome" placeholder="es. Aloperidolo 2mg">
+        </div>
+        <div class="form-group">
+          <label>Sezione *</label>
+          <select id="farm-sezione" onchange="aggiornaCampiSezione()">
+            <option value="orale">Terapia Orale</option>
+            <option value="topica">Topica / IM / SC / EV / Varie</option>
+            <option value="bisogno">Al Bisogno</option>
+            <option value="longacting">Long Acting</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Dose / Posologia *</label>
+          <input type="text" id="farm-dose" placeholder="es. 1 cp, 2 mg, 5 gocce…">
+        </div>
+        <div class="form-group" id="grp-via">
+          <label>Via di somministrazione</label>
+          <select id="farm-via">
+            <option value="">— seleziona —</option>
+            <option>Orale</option>
+            <option>IM</option>
+            <option>SC</option>
+            <option>EV</option>
+            <option>Topica</option>
+            <option>Sublinguale</option>
+            <option>Transdermica</option>
+            <option>Inalatoria</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Orari (solo per orale e topica) -->
+      <div class="form-group" id="grp-orari">
+        <label>Orari di somministrazione</label>
+        <div class="orari-group">
+          <label class="orario-check"><input type="checkbox" value="8" id="or8"> <span>ore 8</span></label>
+          <label class="orario-check"><input type="checkbox" value="13" id="or13"> <span>ore 13</span></label>
+          <label class="orario-check"><input type="checkbox" value="15" id="or15"> <span>ore 15</span></label>
+          <label class="orario-check"><input type="checkbox" value="20" id="or20"> <span>ore 20</span></label>
+        </div>
+      </div>
+
+      <!-- Long Acting date -->
+      <div id="grp-longacting" style="display:none;">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Data ultima somministrazione</label>
+            <input type="date" id="farm-la-eseguita">
+          </div>
+          <div class="form-group">
+            <label>Data prossima somministrazione</label>
+            <input type="date" id="farm-la-prossima">
+          </div>
+        </div>
+      </div>
+
+      <!-- Al bisogno indicazione -->
+      <div class="form-group" id="grp-indicazione" style="display:none;">
+        <label>Indicazione / condizione d'uso</label>
+        <input type="text" id="farm-indicazione" placeholder="es. in caso di agitazione…">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Data inizio prescrizione *</label>
+          <input type="date" id="farm-data-inizio">
+        </div>
+        <div class="form-group">
+          <label>Data sospensione</label>
+          <input type="date" id="farm-data-fine">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fonte farmaco</label>
+          <select id="farm-fonte" onchange="aggiornaCRAselect()">
+            <option value="CRA">Farmaci CRA (magazzino istituzione)</option>
+            <option value="personale">Farmaco personale (RicettaManager)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Note</label>
+          <input type="text" id="farm-note" placeholder="Note aggiuntive…">
+        </div>
+      </div>
+      <div class="form-group" id="grp-cra-link">
+        <label>Collega a farmaco in magazzino CRA</label>
+        <select id="farm-cra-link">
+          <option value="">— seleziona farmaco dal magazzino —</option>
+        </select>
+        <small style="color:var(--muted);font-size:0.7rem;margin-top:3px;display:block">Il consumo di questo farmaco scalerà dall'inventario CRA</small>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-farmaco')">Annulla</button>
+      <button class="btn btn-gold" onclick="salvaFarmaco()">Aggiungi farmaco</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL IMPORTA RM ===================== -->
+<div class="overlay" id="modal-import">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Importa da RicettaManager</span>
+      <button class="close-btn" onclick="closeModal('modal-import')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.85rem;color:var(--muted);">Seleziona il file di backup JSON esportato da RicettaManager. I pazienti non ancora presenti verranno aggiunti automaticamente.</p>
+      <div class="form-group">
+        <label>File backup RicettaManager (.json)</label>
+        <input type="file" id="rm-file" accept=".json">
+      </div>
+      <div id="rm-preview" style="display:none; font-family:'Inconsolata',monospace; font-size:0.78rem; color:var(--muted); background:var(--surface2); border-radius:8px; padding:12px; margin-top:4px;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-import')">Annulla</button>
+      <button class="btn btn-gold" onclick="eseguiImport()">Importa pazienti</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== AREA DI STAMPA ===================== -->
+<div id="print-area" class="print-only"></div>
+
+<script>
+// ============================================================
+// STORAGE
+// ============================================================
+const SK = {
+  pazienti:   'fcra_pazienti',
+  terapie:    'fcra_terapie',
+  contatori:  'fcra_contatori',
+  movimenti:  'fcra_movimenti',
+};
+
+const load  = k => JSON.parse(localStorage.getItem(k) || '[]');
+const loadO = k => JSON.parse(localStorage.getItem(k) || '{}');
+const save  = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+const uid   = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+// ============================================================
+// STATO
+// ============================================================
+let pazienteAperto = null;   // id paziente nella vista scheda
+let farmacoEditId  = null;   // null = nuovo, stringa = modifica
+let farmacoEditPzId = null;
+
+// ============================================================
+// CLOCK
+// ============================================================
+(function tick() {
+  const d = new Date();
+  document.getElementById('clock').innerHTML =
+    d.toLocaleDateString('it-IT',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) +
+    '<br>' + d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  setTimeout(tick, 1000);
+})();
+
+// ============================================================
+// TAB NAVIGATION
+// ============================================================
+function showTab(t) {
+  ['pazienti','inventario','report'].forEach(x => {
+    document.getElementById('tab-'+x).style.display = x===t ? '' : 'none';
+    document.querySelectorAll('.nav-tabs .tab')[['pazienti','inventario','report'].indexOf(x)]
+      .classList.toggle('active', x===t);
+  });
+  if (t==='inventario') renderInventario();
+}
+
+// ============================================================
+// RENDER LISTA PAZIENTI
+// ============================================================
+function renderLista() {
+  const pazienti = load(SK.pazienti);
+  const q = (document.getElementById('search-pz').value||'').toLowerCase();
+  const g = document.getElementById('filtro-gruppo').value;
+  const terapie = load(SK.terapie);
+
+  let lista = pazienti.filter(p => {
+    const nm = (p.cognome+' '+p.nome).toLowerCase();
+    return nm.includes(q) && (!g || p.gruppo===g);
+  });
+
+  const count = document.getElementById('pz-count');
+  count.textContent = lista.length + ' pazient' + (lista.length===1?'e':'i');
+
+  const grid = document.getElementById('grid-pazienti');
+  if (!lista.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">👤</div><p>Nessun paziente trovato</p></div>';
+    return;
+  }
+
+  grid.innerHTML = lista.map(p => {
+    const tt = terapie.filter(t => t.pazienteId===p.id && !t.dataFine);
+    const nOrale   = tt.filter(t=>t.sezione==='orale').length;
+    const nAltro   = tt.filter(t=>t.sezione!=='orale').length;
+    const badge = p.attivo==='false'||p.attivo===false
+      ? '<span class="badge badge-dim">Dimesso</span>'
+      : p.gruppo==='CD'
+        ? '<span class="badge badge-cd">Pz CD</span>'
+        : '<span class="badge badge-cra">Pz CRA</span>';
+    return `
+    <div class="pcard" onclick="apriScheda('${p.id}')">
+      <div class="pcard-head">
+        <div>
+          <div class="pname">${p.cognome} ${p.nome}</div>
+          <div class="pmeta">${p.gruppo} · ${p.attivo==='false'||p.attivo===false?'Dimesso':'Attivo'}</div>
+        </div>
+        ${badge}
+      </div>
+      <div class="pcard-body">
+        <div class="pcard-stats">
+          <div class="pstat"><div class="pstat-n">${tt.length}</div><div class="pstat-l">farmaci attivi</div></div>
+          <div class="pstat"><div class="pstat-n">${nOrale}</div><div class="pstat-l">orali</div></div>
+          <div class="pstat"><div class="pstat-n">${nAltro}</div><div class="pstat-l">altri</div></div>
+        </div>
+      </div>
+      <div class="pcard-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-blue btn-sm" onclick="apriScheda('${p.id}')">📋 Scheda terapia</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModalPaziente('${p.id}')">✏️</button>
+        <button class="btn btn-red btn-sm" onclick="eliminaPaziente('${p.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// APRI SCHEDA PAZIENTE
+// ============================================================
+function apriScheda(pid) {
+  pazienteAperto = pid;
+  document.getElementById('vista-lista').style.display = 'none';
+  document.getElementById('vista-scheda').style.display = '';
+  renderScheda(pid);
+}
+
+function tornaLista() {
+  pazienteAperto = null;
+  document.getElementById('vista-scheda').style.display = 'none';
+  document.getElementById('vista-lista').style.display = '';
+  renderLista();
+}
+
+function renderScheda(pid) {
+  const pazienti = load(SK.pazienti);
+  const pz = pazienti.find(p=>p.id===pid);
+  if (!pz) return;
+
+  const terapie = load(SK.terapie);
+  const tt = terapie.filter(t=>t.pazienteId===pid);
+  const attive = tt.filter(t=>!t.dataFine);
+
+  const contatori = loadO(SK.contatori);
+  const nFoglio = contatori[pid] || 1;
+
+  const oggi = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  const badge = pz.gruppo==='CD'
+    ? '<span class="badge badge-cd">Pz CD</span>'
+    : '<span class="badge badge-cra">Pz CRA</span>';
+
+  const ORARI = ['8','13','15','20'];
+
+  const buildRow = (t) => {
+    const orari = ORARI.map(o => {
+      const on = t.orari && t.orari.includes(o);
+      return `<td style="text-align:center"><span class="orario-dot ${on?'attivo':''}">${on?o:'—'}</span></td>`;
+    }).join('');
+    const fonteBadge = t.fonte==='personale'
+      ? '<span class="fonte-pers">PERS</span>'
+      : '<span class="fonte-cra">CRA</span>';
+    const sospCell = t.dataFine
+      ? `<td class="drug-sosp">${t.dataFine}<br><small style="color:var(--dim)">firma: ___</small></td>`
+      : `<td class="drug-date">—</td>`;
+    return `
+      <tr>
+        <td class="drug-date">${t.dataInizio||'—'}<br><small style="color:var(--dim)">firma: ___</small></td>
+        <td><span class="drug-nome">${t.farmaco}</span> ${fonteBadge}<br><span class="drug-dose">${t.dose}</span>${t.via?`<br><small style="color:var(--muted)">${t.via}</small>`:''}</td>
+        ${orari}
+        ${sospCell}
+        <td style="text-align:right">
+          <button class="btn btn-ghost btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
+        </td>
+      </tr>`;
+  };
+
+  const buildTableOrale = (sezione, label, colorClass) => {
+    const rows = attive.filter(t=>t.sezione===sezione);
+    return `
+    <div class="sezione">
+      <div class="sezione-head">
+        <span class="sezione-title ${colorClass}">${label}</span>
+        <button class="btn btn-ghost btn-sm no-print" onclick="openModalFarmaco('${pid}','${sezione}')">+ Aggiungi</button>
+      </div>
+      <table class="drug-table">
+        <thead><tr>
+          <th style="width:90px">Data inizio<br>Firma medico</th>
+          <th>Farmaco / Dose</th>
+          <th style="width:38px;text-align:center">8</th>
+          <th style="width:38px;text-align:center">13</th>
+          <th style="width:38px;text-align:center">15</th>
+          <th style="width:38px;text-align:center">20</th>
+          <th style="width:90px">Data sosp.<br>Firma medico</th>
+          <th class="no-print" style="width:40px"></th>
+        </tr></thead>
+        <tbody>
+          ${rows.length ? rows.map(buildRow).join('') : `<tr><td colspan="8" class="empty-row">Nessuna terapia ${label.toLowerCase()} attiva</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+  };
+
+  // Sezione al bisogno (senza orari)
+  const buildTableBisogno = () => {
+    const rows = attive.filter(t=>t.sezione==='bisogno');
+    return `
+    <div class="sezione">
+      <div class="sezione-head">
+        <span class="sezione-title bisogno">Terapia al Bisogno</span>
+        <button class="btn btn-ghost btn-sm no-print" onclick="openModalFarmaco('${pid}','bisogno')">+ Aggiungi</button>
+      </div>
+      <table class="drug-table">
+        <thead><tr>
+          <th style="width:90px">Data inizio<br>Firma medico</th>
+          <th>Farmaco / Dose / Via</th>
+          <th>Indicazione</th>
+          <th style="width:90px">Data sosp.<br>Firma medico</th>
+          <th class="no-print" style="width:40px"></th>
+        </tr></thead>
+        <tbody>
+          ${rows.length ? rows.map(t => {
+            const fonteBadge = t.fonte==='personale'
+              ? '<span class="fonte-pers">PERS</span>'
+              : '<span class="fonte-cra">CRA</span>';
+            const sospCell = t.dataFine
+              ? `<td class="drug-sosp">${t.dataFine}<br><small style="color:var(--dim)">firma: ___</small></td>`
+              : `<td class="drug-date">—</td>`;
+            return `<tr>
+              <td class="drug-date">${t.dataInizio||'—'}<br><small style="color:var(--dim)">firma: ___</small></td>
+              <td><span class="drug-nome">${t.farmaco}</span> ${fonteBadge}<br><span class="drug-dose">${t.dose}</span>${t.via?`<br><small style="color:var(--muted)">${t.via}</small>`:''}</td>
+              <td style="font-size:0.78rem;color:var(--muted)">${t.indicazione||'—'}</td>
+              ${sospCell}
+              <td style="text-align:right"><button class="btn btn-ghost btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button></td>
+            </tr>`;
+          }).join('') : `<tr><td colspan="5" class="empty-row">Nessuna terapia al bisogno</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+  };
+
+  // Sezione Long Acting
+  const buildTableLongActing = () => {
+    const rows = attive.filter(t=>t.sezione==='longacting');
+    const oggi2 = new Date(); oggi2.setHours(0,0,0,0);
+    return `
+    <div class="sezione">
+      <div class="sezione-head">
+        <span class="sezione-title longact">Terapia Long Acting</span>
+        <button class="btn btn-ghost btn-sm no-print" onclick="openModalFarmaco('${pid}','longacting')">+ Aggiungi</button>
+      </div>
+      <table class="la-table">
+        <thead><tr>
+          <th>Farmaco / Dose</th>
+          <th>Data eseguita</th>
+          <th>Firma I.P.</th>
+          <th>Data prossima</th>
+          <th style="width:90px">Data sosp.<br>Firma medico</th>
+          <th class="no-print" style="width:40px"></th>
+        </tr></thead>
+        <tbody>
+          ${rows.length ? rows.map(t => {
+            const fonteBadge = t.fonte==='personale'
+              ? '<span class="fonte-pers">PERS</span>'
+              : '<span class="fonte-cra">CRA</span>';
+            let prossimaClass = 'prossima-ok';
+            if (t.laProssima) {
+              const dp = new Date(t.laProssima); dp.setHours(0,0,0,0);
+              const diff = (dp-oggi2)/(86400000);
+              if (diff < 0) prossimaClass = 'prossima-late';
+              else if (diff <= 7) prossimaClass = 'prossima-warn';
+            }
+            const sospCell = t.dataFine
+              ? `<td class="drug-sosp">${t.dataFine}</td>`
+              : `<td class="drug-date">—</td>`;
+            return `<tr>
+              <td><span class="drug-nome">${t.farmaco}</span> ${fonteBadge}<br><span class="drug-dose">${t.dose}</span></td>
+              <td class="drug-date">${t.laEseguita||'—'}</td>
+              <td style="width:80px;color:var(--dim);font-size:0.75rem">___________</td>
+              <td class="${prossimaClass}">${t.laProssima||'—'}</td>
+              ${sospCell}
+              <td style="text-align:right"><button class="btn btn-ghost btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button></td>
+            </tr>`;
+          }).join('') : `<tr><td colspan="6" class="empty-row">Nessuna terapia long acting</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+  };
+
+  const html = `
+    <div class="scheda-header">
+      <div>
+        <div class="scheda-pname">${pz.cognome} ${pz.nome}</div>
+        <div class="scheda-meta">${pz.gruppo} · ${pz.attivo==='false'||pz.attivo===false?'Dimesso':'Attivo'} · ${attive.length} farmaci attivi</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        ${badge}
+        <span class="foglio-num">Foglio n° ${nFoglio}</span>
+        <button class="btn btn-blue btn-sm no-print" onclick="stampaFoglioB('${pid}')">🖨 Stampa foglio B</button>
+        <button class="btn btn-ghost btn-sm no-print" onclick="openModalPaziente('${pid}')">✏️ Modifica</button>
+      </div>
+    </div>
+
+    ${buildTableOrale('orale','Terapia Orale','orale')}
+    ${buildTableOrale('topica','Terapia Topica / IM / SC / EV / Varie','topica')}
+    ${buildTableBisogno()}
+    ${buildTableLongActing()}
+
+    <div class="scheda-footer">Aggiornata al: ${oggi}</div>
+  `;
+
+  document.getElementById('scheda-content').innerHTML = html;
+}
+
+// ============================================================
+// STAMPA FOGLIO B
+// ============================================================
+function stampaFoglioB(pid) {
+  const pazienti = load(SK.pazienti);
+  const pz = pazienti.find(p=>p.id===pid);
+  if (!pz) return;
+
+  const terapie = load(SK.terapie);
+  const attive = terapie.filter(t=>t.pazienteId===pid && !t.dataFine);
+  const contatori = loadO(SK.contatori);
+  const nFoglio = contatori[pid] || 1;
+  const oggi = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const ORARI = ['8','13','15','20'];
+
+  const buildPrintRows = (sezione) => {
+    const rows = attive.filter(t=>t.sezione===sezione);
+    if (!rows.length) {
+      return `<tr><td colspan="8" style="color:#aaa;font-style:italic;text-align:center;padding:4mm">—</td></tr>`;
+    }
+    return rows.map(t => {
+      const orariCells = ORARI.map(o => {
+        const on = t.orari && t.orari.includes(o);
+        return `<td class="orario-cell">${on ? o : ''}</td>`;
+      }).join('');
+      return `<tr>
+        <td class="data-cell">${t.dataInizio||''}<br><br></td>
+        <td class="firma-cell"></td>
+        <td>${t.farmaco} — ${t.dose}${t.via?' ('+t.via+')':''}<br><small style="color:#555">${t.fonte==='personale'?'[farmaco personale]':'[farmaci CRA]'}</small></td>
+        ${orariCells}
+        <td class="data-cell">${t.dataFine||''}<br><br></td>
+        <td class="firma-cell"></td>
+      </tr>`;
+    }).join('');
+  };
+
+  const buildBisognoPrint = () => {
+    const rows = attive.filter(t=>t.sezione==='bisogno');
+    if (!rows.length) return `<tr><td colspan="5" style="color:#aaa;font-style:italic;text-align:center;padding:4mm">—</td></tr>`;
+    return rows.map(t => `<tr>
+      <td class="data-cell">${t.dataInizio||''}<br><br></td>
+      <td class="firma-cell"></td>
+      <td>${t.farmaco} — ${t.dose}${t.via?' ('+t.via+')':''}</td>
+      <td>${t.indicazione||''}</td>
+      <td class="data-cell">${t.dataFine||''}<br><br></td>
+      <td class="firma-cell"></td>
+    </tr>`).join('');
+  };
+
+  const buildLAPrint = () => {
+    const rows = attive.filter(t=>t.sezione==='longacting');
+    if (!rows.length) return `<tr><td colspan="4" style="color:#aaa;font-style:italic;text-align:center;padding:4mm">—</td></tr>`;
+    return rows.map(t => `<tr>
+      <td>${t.farmaco} — ${t.dose}</td>
+      <td class="data-cell">${t.laEseguita||''}</td>
+      <td class="firma-cell"></td>
+      <td class="data-cell">${t.laProssima||''}</td>
+    </tr>`).join('');
+  };
+
+  const printHTML = `
+    <div class="print-page">
+      <div class="print-header">
+        <h1>FOGLIO TERAPIA</h1>
+        <h2>${pz.cognome} ${pz.nome}</h2>
+        <div class="foglio-info">
+          <span>Foglio n° ${nFoglio}</span>
+          <span>Gruppo: ${pz.gruppo}</span>
+          <span>Aggiornato al: ${oggi}</span>
+        </div>
+      </div>
+
+      <div class="print-section">
+        <div class="print-section-title">Terapia Orale</div>
+        <table class="print-table">
+          <thead><tr>
+            <th class="data-cell">Data inizio</th>
+            <th class="firma-cell">Firma medico</th>
+            <th>Farmaco / Dose</th>
+            <th class="orario-cell">8</th>
+            <th class="orario-cell">13</th>
+            <th class="orario-cell">15</th>
+            <th class="orario-cell">20</th>
+            <th class="data-cell">Data sosp.</th>
+            <th class="firma-cell">Firma medico</th>
+          </tr></thead>
+          <tbody>${buildPrintRows('orale')}</tbody>
+        </table>
+      </div>
+
+      <div class="print-section">
+        <div class="print-section-title">Terapia Topica / IM / SC / EV / Varie</div>
+        <table class="print-table">
+          <thead><tr>
+            <th class="data-cell">Data inizio</th>
+            <th class="firma-cell">Firma medico</th>
+            <th>Farmaco / Dose / Via</th>
+            <th class="orario-cell">8</th>
+            <th class="orario-cell">13</th>
+            <th class="orario-cell">15</th>
+            <th class="orario-cell">20</th>
+            <th class="data-cell">Data sosp.</th>
+            <th class="firma-cell">Firma medico</th>
+          </tr></thead>
+          <tbody>${buildPrintRows('topica')}</tbody>
+        </table>
+      </div>
+
+      <div class="print-section">
+        <div class="print-section-title">Terapia al Bisogno</div>
+        <table class="print-table">
+          <thead><tr>
+            <th class="data-cell">Data inizio</th>
+            <th class="firma-cell">Firma medico</th>
+            <th>Farmaco / Dose / Via</th>
+            <th>Indicazione</th>
+            <th class="data-cell">Data sosp.</th>
+            <th class="firma-cell">Firma medico</th>
+          </tr></thead>
+          <tbody>${buildBisognoPrint()}</tbody>
+        </table>
+      </div>
+
+      <div class="print-section">
+        <div class="print-section-title">Terapia Long Acting</div>
+        <table class="print-table">
+          <thead><tr>
+            <th>Farmaco / Dose</th>
+            <th class="data-cell">Data eseguita</th>
+            <th class="firma-cell">Firma I.P.</th>
+            <th class="data-cell">Data prossima</th>
+          </tr></thead>
+          <tbody>${buildLAPrint()}</tbody>
+        </table>
+      </div>
+
+      <div class="print-footer">
+        <span>Aggiornata al: ${oggi}</span>
+        <span>Foglio n° ${nFoglio}</span>
+      </div>
+      <div class="print-ente">
+        FONDAZIONE EMILIA BOSIS — www.fondazionebosis.it — verdello@fondazionebosis.it<br>
+        CASCINA GERMOGLIO COMUNITÀ AD ALTA RIABILITAZIONE, VIA SOLFERINO 51 - 24049 VERDELLO (BG) TEL. 035/4813814
+      </div>
+    </div>`;
+
+  // Incrementa numero foglio
+  const cnt = loadO(SK.contatori);
+  cnt[pid] = (cnt[pid]||1) + 1;
+  save(SK.contatori, cnt);
+
+  const w = window.open('','_blank','width=1100,height=800');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Foglio Terapia — ${pz.cognome} ${pz.nome}</title>
+  <style>
+    body{font-family:'Times New Roman',serif;background:#fff;color:#000;margin:0;}
+    .print-page{padding:15mm 15mm 10mm;}
+    .print-header{text-align:center;margin-bottom:8mm;border-bottom:2px solid #000;padding-bottom:4mm;}
+    .print-header h1{font-size:14pt;font-weight:bold;}
+    .print-header h2{font-size:12pt;margin-top:2mm;}
+    .foglio-info{font-size:9pt;margin-top:3mm;display:flex;justify-content:space-between;}
+    .print-section{margin-top:6mm;}
+    .print-section-title{font-size:9pt;font-weight:bold;text-transform:uppercase;border-bottom:1.5px solid #000;padding-bottom:1mm;margin-bottom:2mm;}
+    .print-table{width:100%;border-collapse:collapse;font-size:8pt;}
+    .print-table th{border:1px solid #000;padding:2mm 3mm;text-align:left;background:#f0f0f0;font-size:7pt;}
+    .print-table td{border:1px solid #000;padding:2mm 3mm;min-height:8mm;}
+    .firma-cell{width:28mm;}
+    .data-cell{width:22mm;}
+    .orario-cell{width:12mm;text-align:center;}
+    .print-footer{margin-top:8mm;border-top:1px solid #aaa;padding-top:3mm;font-size:7pt;color:#555;display:flex;justify-content:space-between;}
+    .print-ente{font-size:6.5pt;color:#555;text-align:center;margin-top:4mm;}
+    @page{size:A4 landscape;margin:8mm;}
+  </style></head><body>${printHTML}
+  <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`);
+  w.document.close();
+
+  renderScheda(pid); // aggiorna numero foglio in vista
+  toast('Foglio n°'+(cnt[pid]-1)+' inviato alla stampa');
+}
+
+// ============================================================
+// MODAL PAZIENTE
+// ============================================================
+let editPzId = null;
+
+function openModalPaziente(pid) {
+  editPzId = pid || null;
+  document.getElementById('modal-pz-title').textContent = pid ? 'Modifica paziente' : 'Nuovo paziente';
+  if (pid) {
+    const pz = load(SK.pazienti).find(p=>p.id===pid);
+    if (pz) {
+      document.getElementById('pz-cognome').value = pz.cognome||'';
+      document.getElementById('pz-nome').value = pz.nome||'';
+      document.getElementById('pz-gruppo').value = pz.gruppo||'CRA';
+      document.getElementById('pz-attivo').value = String(pz.attivo!==false&&pz.attivo!=='false');
+      document.getElementById('pz-note').value = pz.note||'';
+    }
+  } else {
+    ['pz-cognome','pz-nome','pz-note'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('pz-gruppo').value='CRA';
+    document.getElementById('pz-attivo').value='true';
+  }
+  openModal('modal-paziente');
+}
+
+function salvaPaziente() {
+  const cognome = document.getElementById('pz-cognome').value.trim();
+  const nome    = document.getElementById('pz-nome').value.trim();
+  if (!cognome||!nome) { alert('Cognome e nome sono obbligatori'); return; }
+
+  const pazienti = load(SK.pazienti);
+  if (editPzId) {
+    const idx = pazienti.findIndex(p=>p.id===editPzId);
+    if (idx>=0) Object.assign(pazienti[idx], {
+      cognome, nome,
+      gruppo: document.getElementById('pz-gruppo').value,
+      attivo: document.getElementById('pz-attivo').value === 'true',
+      note:   document.getElementById('pz-note').value.trim(),
+    });
+  } else {
+    pazienti.push({ id:uid(), cognome, nome,
+      gruppo: document.getElementById('pz-gruppo').value,
+      attivo: true,
+      note:   document.getElementById('pz-note').value.trim(),
+    });
+  }
+  save(SK.pazienti, pazienti);
+  closeModal('modal-paziente');
+  renderLista();
+  if (pazienteAperto) renderScheda(pazienteAperto);
+  toast(editPzId ? 'Paziente aggiornato' : 'Paziente aggiunto');
+}
+
+function eliminaPaziente(pid) {
+  if (!confirm('Eliminare questo paziente e tutte le sue terapie?')) return;
+  save(SK.pazienti, load(SK.pazienti).filter(p=>p.id!==pid));
+  save(SK.terapie, load(SK.terapie).filter(t=>t.pazienteId!==pid));
+  tornaLista();
+  toast('Paziente eliminato');
+}
+
+// ============================================================
+// MODAL FARMACO
+// ============================================================
+function openModalFarmaco(pid, sezione) {
+  farmacoEditPzId = pid;
+  farmacoEditId = null;
+  document.getElementById('modal-farm-title').textContent = 'Aggiungi farmaco';
+  ['farm-nome','farm-dose','farm-note','farm-indicazione'].forEach(id=>document.getElementById(id).value='');
+  ['farm-data-inizio','farm-data-fine','farm-la-eseguita','farm-la-prossima'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('farm-via').value='';
+  document.getElementById('farm-fonte').value='CRA';
+  document.getElementById('farm-sezione').value = sezione||'orale';
+  ['or8','or13','or15','or20'].forEach(id=>document.getElementById(id).checked=false);
+  // default data inizio = oggi
+  document.getElementById('farm-data-inizio').value = new Date().toISOString().slice(0,10);
+  aggiornaCampiSezione();
+  aggiornaCRAselect();
+  openModal('modal-farmaco');
+}
+
+function aggiornaCampiSezione() {
+  const s = document.getElementById('farm-sezione').value;
+  document.getElementById('grp-orari').style.display      = (s==='orale'||s==='topica') ? '' : 'none';
+  document.getElementById('grp-longacting').style.display = s==='longacting' ? '' : 'none';
+  document.getElementById('grp-indicazione').style.display= s==='bisogno' ? '' : 'none';
+  document.getElementById('grp-via').style.display        = s!=='orale' ? '' : 'none';
+}
+
+function salvaFarmaco() {
+  const nome = document.getElementById('farm-nome').value.trim();
+  const dose = document.getElementById('farm-dose').value.trim();
+  if (!nome||!dose) { alert('Nome farmaco e dose sono obbligatori'); return; }
+
+  const sezione = document.getElementById('farm-sezione').value;
+  const orari = ['8','13','15','20'].filter(o=>document.getElementById('or'+o).checked);
+
+  const terapia = {
+    id:         uid(),
+    pazienteId: farmacoEditPzId,
+    farmaco:    nome,
+    sezione:    sezione,
+    dose:       dose,
+    via:        document.getElementById('farm-via').value,
+    orari:      orari,
+    indicazione:document.getElementById('farm-indicazione').value.trim(),
+    laEseguita: document.getElementById('farm-la-eseguita').value,
+    laProssima: document.getElementById('farm-la-prossima').value,
+    fonte:       document.getElementById('farm-fonte').value,
+    farmacoCRAid: document.getElementById('farm-cra-link').value || null,
+    dataInizio:  document.getElementById('farm-data-inizio').value,
+    dataFine:   document.getElementById('farm-data-fine').value || null,
+    note:       document.getElementById('farm-note').value.trim(),
+    dataCreazione: new Date().toISOString(),
+  };
+
+  const terapie = load(SK.terapie);
+  terapie.push(terapia);
+  save(SK.terapie, terapie);
+
+  closeModal('modal-farmaco');
+  renderScheda(farmacoEditPzId);
+  toast('Farmaco aggiunto');
+}
+
+function eliminaTerapia(tid, pid) {
+  if (!confirm('Eliminare questa riga terapia?')) return;
+  save(SK.terapie, load(SK.terapie).filter(t=>t.id!==tid));
+  renderScheda(pid);
+  toast('Farmaco rimosso');
+}
+
+// ============================================================
+// IMPORTA DA RICETTAMANAGER
+// ============================================================
+function importaRicettaManager() {
+  document.getElementById('rm-file').value='';
+  document.getElementById('rm-preview').style.display='none';
+  openModal('modal-import');
+  document.getElementById('rm-file').onchange = function() {
+    const f = this.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        const patients = data.patients||[];
+        const prev = document.getElementById('rm-preview');
+        prev.style.display='';
+        prev.textContent = `Trovati ${patients.length} pazienti in RicettaManager:\n`+
+          patients.map(p=>`  • ${p.name} (${p.group})`).join('\n');
+      } catch(err) {
+        alert('File JSON non valido');
+      }
+    };
+    r.readAsText(f);
+  };
+}
+
+function eseguiImport() {
+  const f = document.getElementById('rm-file').files[0];
+  if (!f) { alert('Seleziona un file'); return; }
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const rmPatients = data.patients||[];
+      const pazienti = load(SK.pazienti);
+      let aggiunti = 0;
+      rmPatients.forEach(rmp => {
+        const parts = (rmp.name||'').trim().split(' ');
+        const cognome = parts[0]||'';
+        const nome = parts.slice(1).join(' ')||'';
+        // mappa gruppo RM → gruppo CRA app
+        const gruppo = rmp.group==='CD' ? 'CD' : 'CRA';
+        // controlla duplicati per nome
+        const dup = pazienti.some(p =>
+          p.cognome.toLowerCase()===cognome.toLowerCase() &&
+          p.nome.toLowerCase()===nome.toLowerCase()
+        );
+        if (!dup) {
+          pazienti.push({ id:uid(), cognome, nome, gruppo, attivo:true, note:'Importato da RicettaManager' });
+          aggiunti++;
+        }
+      });
+      save(SK.pazienti, pazienti);
+      closeModal('modal-import');
+      renderLista();
+      toast(`Importati ${aggiunti} pazienti (${rmPatients.length-aggiunti} già presenti)`);
+    } catch(err) {
+      alert('Errore durante l\'importazione');
+    }
+  };
+  r.readAsText(f);
+}
+
+
+// ============================================================
+// SESSIONE 2 — INVENTARIO FARMACI CRA
+// ============================================================
+
+let caricoFarmacoId  = null;
+let rettificaFarmacoId = null;
+let editFCRAid = null;
+
+// ---------- calcolo scorta residua ----------
+function calcolaScorta(farm) {
+  if (!farm.lastSync || farm.scorta === undefined) return 0;
+  const ls   = new Date(farm.lastSync); ls.setHours(0,0,0,0);
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  const giorni = Math.max(0, Math.round((oggi - ls) / 86400000));
+  const consumo = calcolaConsumoCRA(farm.id);
+  return Math.max(0, farm.scorta - giorni * consumo);
+}
+
+// consumo giornaliero = somma dosi delle terapie CRA attive per quel farmaco
+function calcolaConsumoCRA(farmId) {
+  const terapie = load(SK.terapie);
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  return terapie
+    .filter(t => {
+      if (t.fonte !== 'CRA') return false;
+      if (!t.farmacoCRAid || t.farmacoCRAid !== farmId) return false;
+      const di = t.dataInizio ? new Date(t.dataInizio) : null;
+      const df = t.dataFine   ? new Date(t.dataFine)   : null;
+      if (di && di > oggi) return false;
+      if (df && df < oggi) return false;
+      return true;
+    })
+    .reduce((acc, t) => {
+      // per long acting: consumo giornaliero = dose / periodicità giorni
+      if (t.sezione === 'longacting' && t.laProssima && t.laEseguita) {
+        const dp = new Date(t.laProssima);
+        const de = new Date(t.laEseguita);
+        const periodicita = Math.max(1, Math.round((dp-de)/86400000));
+        return acc + (parseFloat(t.dose)||1) / periodicita;
+      }
+      return acc + (parseFloat(t.dose)||0);
+    }, 0);
+}
+
+function statoFarmaco(farm) {
+  const res = calcolaScorta(farm);
+  if (res <= (farm.sogliaUrgent||0)) return 'urgent';
+  if (res <= (farm.sogliaWarn||0))   return 'warn';
+  return 'ok';
+}
+
+// ---------- RENDER INVENTARIO ----------
+function renderInventario() {
+  const farmaci = load(SK.fcraFarmaci||'fcra_farmaci_cra');
+  const q = (document.getElementById('search-inv')?.value||'').toLowerCase();
+  const lista = farmaci.filter(f => f.nome.toLowerCase().includes(q));
+
+  // sommario
+  const urgenti = lista.filter(f=>statoFarmaco(f)==='urgent').length;
+  const warn    = lista.filter(f=>statoFarmaco(f)==='warn').length;
+  const ok      = lista.filter(f=>statoFarmaco(f)==='ok').length;
+  document.getElementById('inv-summary').innerHTML = `
+    <div class="inv-stat"><div class="inv-stat-n" style="color:var(--text)">${lista.length}</div><div class="inv-stat-l">Farmaci in magazzino</div></div>
+    <div class="inv-stat"><div class="inv-stat-n" style="color:var(--green)">${ok}</div><div class="inv-stat-l">Scorte ok</div></div>
+    <div class="inv-stat"><div class="inv-stat-n" style="color:var(--amber)">${warn}</div><div class="inv-stat-l">In esaurimento</div></div>
+    <div class="inv-stat"><div class="inv-stat-n" style="color:var(--red)">${urgenti}</div><div class="inv-stat-l">Critici / esauriti</div></div>
+  `;
+  document.getElementById('inv-count').textContent = lista.length + ' farmac' + (lista.length===1?'o':'i');
+
+  // alert banner
+  const chipUrg = lista.filter(f=>statoFarmaco(f)==='urgent').map(f=>`<span class="chip-urgent">${f.nome}</span>`).join('');
+  const chipWrn = lista.filter(f=>statoFarmaco(f)==='warn').map(f=>`<span class="chip-warn">${f.nome}</span>`).join('');
+  document.getElementById('inv-alert-urgent').style.display = urgenti ? '' : 'none';
+  document.getElementById('inv-alert-warn').style.display   = warn    ? '' : 'none';
+  document.getElementById('inv-chips-urgent').innerHTML = chipUrg;
+  document.getElementById('inv-chips-warn').innerHTML   = chipWrn;
+
+  const grid = document.getElementById('inv-grid');
+  if (!lista.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">💊</div><p>Nessun farmaco CRA registrato. Aggiungi il primo farmaco.</p></div>';
+    return;
+  }
+
+  grid.innerHTML = lista.map(f => {
+    const scorta   = calcolaScorta(f);
+    const consumo  = calcolaConsumoCRA(f.id);
+    const giorni   = consumo > 0 ? Math.floor(scorta / consumo) : null;
+    const stato    = statoFarmaco(f);
+    const pct      = f.scorta > 0 ? Math.min(100, Math.round(scorta / f.scorta * 100)) : 0;
+    const fillCls  = stato==='urgent'?'fill-red':stato==='warn'?'fill-amber':'fill-green';
+    const valCls   = stato==='urgent'?'red':stato==='warn'?'amber':'green';
+    const terapiePz = getTerapieFarmacoCRA(f.id);
+
+    return `
+    <div class="inv-card stato-${stato}">
+      <div class="inv-card-head">
+        <div>
+          <div class="inv-nome">${f.nome}</div>
+          <div class="inv-forma">${f.forma||''} · ${f.udm||'unità'}/conf: ${f.xconf||'—'}</div>
+        </div>
+        <span class="badge ${stato==='ok'?'badge-cra':stato==='warn'?'' :''}" style="${stato==='urgent'?'background:var(--red-bg);color:var(--red);border:1px solid rgba(224,82,82,.3)':stato==='warn'?'background:var(--amber-bg);color:var(--amber);border:1px solid rgba(232,145,58,.3)':'background:var(--green-bg);color:var(--green);border:1px solid rgba(77,184,122,.3)'};font-family:Inconsolata,monospace;font-size:.6rem;padding:2px 8px;border-radius:20px;">
+          ${stato==='urgent'?'CRITICO':stato==='warn'?'ATTENZIONE':'OK'}
+        </span>
+      </div>
+      <div class="inv-card-body">
+        <div class="progress-bar"><div class="progress-fill ${fillCls}" style="width:${pct}%"></div></div>
+        <div class="inv-row">
+          <span class="inv-label">Scorta residua stimata</span>
+          <span class="inv-val ${valCls}">${Math.round(scorta)} ${f.udm||'unità'}</span>
+        </div>
+        <div class="inv-row">
+          <span class="inv-label">Consumo/die struttura</span>
+          <span class="inv-val">${consumo>0 ? consumo.toFixed(1)+' '+( f.udm||'u')+'/die' : '<span style="color:var(--dim)">nessuna terapia attiva</span>'}</span>
+        </div>
+        <div class="inv-row">
+          <span class="inv-label">Giorni residui stimati</span>
+          <span class="inv-val ${valCls}">${giorni!==null ? giorni+' gg' : '—'}</span>
+        </div>
+        <div class="inv-row">
+          <span class="inv-label">Pazienti in terapia</span>
+          <span class="inv-val">${terapiePz.length}</span>
+        </div>
+        ${f.note ? `<div style="font-size:0.72rem;color:var(--muted);margin-top:2px">${f.note}</div>` : ''}
+      </div>
+      <div class="inv-card-foot">
+        <button class="btn btn-gold btn-sm" onclick="openModalCarico('${f.id}')">+ Carico</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModalRettifica('${f.id}')">⚖ Rettifica</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModalFarmacioCRA('${f.id}')">✏️</button>
+        <button class="btn btn-red btn-sm" onclick="eliminaFarmacioCRA('${f.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getTerapieFarmacoCRA(farmId) {
+  const terapie = load(SK.terapie);
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  return terapie.filter(t => {
+    if (t.farmacoCRAid !== farmId || t.fonte !== 'CRA') return false;
+    const df = t.dataFine ? new Date(t.dataFine) : null;
+    return !df || df >= oggi;
+  });
+}
+
+// ---------- MODAL FARMACO CRA ----------
+const SK_FCRA = 'fcra_farmaci_cra';
+
+function openModalFarmacioCRA(fid) {
+  editFCRAid = fid || null;
+  document.getElementById('modal-fcra-title').textContent = fid ? 'Modifica farmaco' : 'Nuovo farmaco CRA';
+  if (fid) {
+    const f = load(SK_FCRA).find(x=>x.id===fid);
+    if (f) {
+      document.getElementById('fcra-nome').value   = f.nome||'';
+      document.getElementById('fcra-forma').value  = f.forma||'Compresse';
+      document.getElementById('fcra-xconf').value  = f.xconf||'';
+      document.getElementById('fcra-udm').value    = f.udm||'';
+      document.getElementById('fcra-scorta').value = f.scorta||'';
+      document.getElementById('fcra-lastsync').value = f.lastSync||'';
+      document.getElementById('fcra-warn').value   = f.sogliaWarn||'';
+      document.getElementById('fcra-urgent').value = f.sogliaUrgent||'';
+      document.getElementById('fcra-note').value   = f.note||'';
+    }
+  } else {
+    ['fcra-nome','fcra-xconf','fcra-udm','fcra-scorta','fcra-warn','fcra-urgent','fcra-note']
+      .forEach(id=>document.getElementById(id).value='');
+    document.getElementById('fcra-forma').value='Compresse';
+    document.getElementById('fcra-lastsync').value = new Date().toISOString().slice(0,10);
+  }
+  openModal('modal-farmaco-cra');
+}
+
+function salvaFarmacioCRA() {
+  const nome = document.getElementById('fcra-nome').value.trim();
+  const xconf = parseInt(document.getElementById('fcra-xconf').value)||0;
+  const scorta = parseFloat(document.getElementById('fcra-scorta').value);
+  const lastSync = document.getElementById('fcra-lastsync').value;
+  if (!nome||!xconf||isNaN(scorta)||!lastSync) { alert('Nome, unità/conf, scorta e data di riferimento sono obbligatori'); return; }
+
+  const farmaci = load(SK_FCRA);
+  const obj = {
+    nome, xconf, scorta, lastSync,
+    forma:       document.getElementById('fcra-forma').value,
+    udm:         document.getElementById('fcra-udm').value.trim(),
+    sogliaWarn:  parseFloat(document.getElementById('fcra-warn').value)||0,
+    sogliaUrgent:parseFloat(document.getElementById('fcra-urgent').value)||0,
+    note:        document.getElementById('fcra-note').value.trim(),
+  };
+
+  if (editFCRAid) {
+    const idx = farmaci.findIndex(x=>x.id===editFCRAid);
+    if (idx>=0) Object.assign(farmaci[idx], obj);
+  } else {
+    farmaci.push({ id:uid(), ...obj });
+  }
+  save(SK_FCRA, farmaci);
+  closeModal('modal-farmaco-cra');
+  renderInventario();
+  toast(editFCRAid ? 'Farmaco aggiornato' : 'Farmaco aggiunto al magazzino');
+}
+
+function eliminaFarmacioCRA(fid) {
+  if (!confirm('Eliminare questo farmaco dal magazzino?')) return;
+  save(SK_FCRA, load(SK_FCRA).filter(f=>f.id!==fid));
+  renderInventario();
+  toast('Farmaco eliminato');
+}
+
+// ---------- CARICO SCORTE ----------
+function openModalCarico(fid) {
+  caricoFarmacoId = fid;
+  const f = load(SK_FCRA).find(x=>x.id===fid);
+  if (!f) return;
+  document.getElementById('carico-farm-label').textContent = `Farmaco: ${f.nome} · ${f.forma||''} · scorta attuale stimata: ${Math.round(calcolaScorta(f))} ${f.udm||'unità'}`;
+  document.getElementById('carico-xconf').value = f.xconf||1;
+  document.getElementById('carico-nconf').value = '';
+  document.getElementById('carico-totale').value = '';
+  document.getElementById('carico-note').value = '';
+  openModal('modal-carico');
+}
+
+function aggiornaTotaleCarico() {
+  const n = parseInt(document.getElementById('carico-nconf').value)||0;
+  const x = parseInt(document.getElementById('carico-xconf').value)||1;
+  document.getElementById('carico-totale').value = (n*x) + ' unità';
+}
+// listener dinamico
+document.addEventListener('input', e => {
+  if (e.target.id==='carico-nconf') aggiornaTotaleCarico();
+});
+
+function eseguiCarico() {
+  const nconf = parseInt(document.getElementById('carico-nconf').value);
+  if (!nconf||nconf<1) { alert('Inserire il numero di confezioni'); return; }
+  const f = load(SK_FCRA).find(x=>x.id===caricoFarmacoId);
+  if (!f) return;
+
+  // ricalcola la scorta attuale, poi aggiunge il carico
+  const scorta_ora = calcolaScorta(f);
+  const totale = nconf * (f.xconf||1);
+  const nuovaScorta = scorta_ora + totale;
+  const oggi = new Date().toISOString().slice(0,10);
+
+  // aggiorna farmaco
+  const farmaci = load(SK_FCRA);
+  const idx = farmaci.findIndex(x=>x.id===caricoFarmacoId);
+  farmaci[idx].scorta = nuovaScorta;
+  farmaci[idx].lastSync = oggi;
+  save(SK_FCRA, farmaci);
+
+  // log movimento
+  const movimenti = load(SK.movimenti);
+  movimenti.unshift({
+    id: uid(),
+    data: oggi,
+    tipo: 'carico',
+    farmacoId: caricoFarmacoId,
+    farmacoNome: f.nome,
+    quantita: +totale,
+    nconf,
+    note: document.getElementById('carico-note').value.trim(),
+  });
+  save(SK.movimenti, movimenti);
+
+  closeModal('modal-carico');
+  renderInventario();
+  toast(`Carico registrato: +${totale} ${f.udm||'unità'} di ${f.nome}`);
+}
+
+// ---------- RETTIFICA ----------
+function openModalRettifica(fid) {
+  rettificaFarmacoId = fid;
+  const f = load(SK_FCRA).find(x=>x.id===fid);
+  if (!f) return;
+  const calcolata = Math.round(calcolaScorta(f));
+  document.getElementById('rett-farm-label').textContent = `Farmaco: ${f.nome}`;
+  document.getElementById('rett-calcolata').value = calcolata + ' ' + (f.udm||'unità');
+  document.getElementById('rett-scorta').value = '';
+  document.getElementById('rett-note').value = '';
+  openModal('modal-rettifica');
+}
+
+function eseguiRettifica() {
+  const nuova = parseFloat(document.getElementById('rett-scorta').value);
+  const nota  = document.getElementById('rett-note').value.trim();
+  if (isNaN(nuova)||nuova<0) { alert('Inserire la scorta reale'); return; }
+  if (!nota) { alert('La motivazione della rettifica è obbligatoria'); return; }
+
+  const f = load(SK_FCRA).find(x=>x.id===rettificaFarmacoId);
+  const vecchia = Math.round(calcolaScorta(f));
+  const diff = nuova - vecchia;
+  const oggi = new Date().toISOString().slice(0,10);
+
+  const farmaci = load(SK_FCRA);
+  const idx = farmaci.findIndex(x=>x.id===rettificaFarmacoId);
+  farmaci[idx].scorta = nuova;
+  farmaci[idx].lastSync = oggi;
+  save(SK_FCRA, farmaci);
+
+  const movimenti = load(SK.movimenti);
+  movimenti.unshift({
+    id: uid(), data: oggi, tipo: 'rettifica',
+    farmacoId: rettificaFarmacoId, farmacoNome: f.nome,
+    quantita: diff, scorta_precedente: vecchia, scorta_nuova: nuova,
+    note: nota,
+  });
+  save(SK.movimenti, movimenti);
+
+  closeModal('modal-rettifica');
+  renderInventario();
+  toast(`Rettifica registrata: ${diff>=0?'+':''}${diff} ${f.udm||'unità'} su ${f.nome}`);
+}
+
+// ---------- LOG MOVIMENTI ----------
+function openModalMovimenti() {
+  const movimenti = load(SK.movimenti);
+  const el = document.getElementById('log-movimenti-content');
+  if (!movimenti.length) {
+    el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">Nessun movimento registrato</p>';
+  } else {
+    el.innerHTML = '<div class="mov-list">' + movimenti.map(m => {
+      const segno = m.quantita >= 0 ? '+' : '';
+      return `<div class="mov-row">
+        <div>
+          <span class="mov-tipo ${m.tipo}">${m.tipo.toUpperCase()}</span>
+          <span style="margin-left:8px;font-weight:700">${m.farmacoNome||'—'}</span>
+          ${m.note ? `<span style="color:var(--muted);font-size:0.72rem;margin-left:6px">· ${m.note}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:14px;align-items:center">
+          <span class="mov-q ${m.quantita>=0?'pos':'neg'}">${segno}${m.quantita}</span>
+          <span class="mov-data">${m.data||'—'}</span>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+  }
+  openModal('modal-movimenti');
+}
+
+function stampaMovimenti() {
+  const movimenti = load(SK.movimenti);
+  const farmaci   = load(SK_FCRA);
+  const oggi = new Date().toLocaleDateString('it-IT');
+  const righe = movimenti.map(m => `
+    <tr>
+      <td>${m.data||'—'}</td>
+      <td>${m.tipo.toUpperCase()}</td>
+      <td>${m.farmacoNome||'—'}</td>
+      <td style="text-align:right">${m.quantita>=0?'+':''}${m.quantita}</td>
+      <td>${m.note||''}</td>
+    </tr>`).join('');
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Log Movimenti Magazzino</title>
+  <style>
+    body{font-family:'Times New Roman',serif;padding:15mm;}
+    h1{font-size:13pt;margin-bottom:4mm;}
+    p{font-size:8pt;color:#555;margin-bottom:6mm;}
+    table{width:100%;border-collapse:collapse;font-size:8pt;}
+    th{border:1px solid #000;padding:2mm;background:#f0f0f0;text-align:left;}
+    td{border:1px solid #000;padding:2mm;}
+    @page{size:A4;margin:10mm;}
+  </style></head><body>
+  <h1>Log Movimenti Magazzino — Farmaci CRA</h1>
+  <p>Stampato il: ${oggi} · ${movimenti.length} movimenti</p>
+  <table><thead><tr><th>Data</th><th>Tipo</th><th>Farmaco</th><th>Quantità</th><th>Note</th></tr></thead>
+  <tbody>${righe}</tbody></table>
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+}
+
+// Aggiorna SK per SK_FCRA
+SK.fcraFarmaci = SK_FCRA;
+
+function aggiornaCRAselect() {
+  const fonte = document.getElementById('farm-fonte').value;
+  const grp   = document.getElementById('grp-cra-link');
+  grp.style.display = fonte==='CRA' ? '' : 'none';
+  if (fonte==='CRA') popola_CRA_select();
+}
+
+function popola_CRA_select() {
+  const farmaci = load(SK_FCRA);
+  const sel = document.getElementById('farm-cra-link');
+  sel.innerHTML = '<option value="">— seleziona farmaco dal magazzino —</option>' +
+    farmaci.map(f=>`<option value="${f.id}">${f.nome} (${f.forma||''})</option>`).join('');
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target===o) o.classList.remove('open'); });
+});
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderLista();
+aggiornaCampiSezione();
+</script>
+</body>
+</html>

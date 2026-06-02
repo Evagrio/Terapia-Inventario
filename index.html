@@ -856,7 +856,7 @@ function renderScheda(pid) {
         <td style="text-align:right">
             <div style="display:flex;gap:4px;justify-content:flex-end">
               <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
-              <button class="btn btn-red btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
+              <button class="btn btn-ghost btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
             </div>
           </td>
       </tr>`;
@@ -921,7 +921,7 @@ function renderScheda(pid) {
               <td style="text-align:right">
             <div style="display:flex;gap:4px;justify-content:flex-end">
               <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
-              <button class="btn btn-red btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
+              <button class="btn btn-ghost btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
             </div>
           </td>
             </tr>`;
@@ -976,7 +976,7 @@ function renderScheda(pid) {
               <td style="text-align:right">
             <div style="display:flex;gap:4px;justify-content:flex-end">
               <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
-              <button class="btn btn-red btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
+              <button class="btn btn-ghost btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
             </div>
           </td>
             </tr>`;
@@ -1061,15 +1061,51 @@ function stampaFoglioB(pid) {
     </tr>`).join('');
   };
 
-  const buildLAPrint = () => {
+  const buildLAPrint = () => ''; // sostituita da buildLASections
+
+  const buildLASections = () => {
     const rows = attive.filter(t=>t.sezione==='longacting');
-    if (!rows.length) return `<tr><td colspan="4" style="color:#aaa;font-style:italic;text-align:center;padding:4mm">—</td></tr>`;
-    return rows.map(t => `<tr>
-      <td>${t.farmaco} — ${t.dose}</td>
-      <td class="data-cell">${t.laEseguita||''}</td>
-      <td class="firma-cell"></td>
-      <td class="data-cell">${t.laProssima||''}</td>
-    </tr>`).join('');
+    if (!rows.length) return `
+      <div class="print-section">
+        <div class="print-section-title">Terapia Long Acting</div>
+        <table class="print-table">
+          <thead><tr>
+            <th class="data-cell">Data inizio</th><th class="firma-cell">Firma medico</th>
+            <th>Farmaco / Dose / Via</th>
+            <th class="data-cell">Data eseguita</th>
+            <th class="firma-cell">Firma Inf.</th>
+            <th class="data-cell">Data prossima</th>
+          </tr></thead>
+          <tbody><tr><td colspan="6" style="color:#aaa;font-style:italic;text-align:center;padding:4mm">—</td></tr></tbody>
+        </table>
+      </div>`;
+    return rows.map(t => {
+      const giorni = t.laGiorni ? ' ogni ' + t.laGiorni + ' giorni' : '';
+      return `
+      <div class="print-section">
+        <div class="print-section-title">Terapia Long Acting${giorni}</div>
+        <table class="print-table">
+          <thead><tr>
+            <th class="data-cell">Data inizio</th>
+            <th class="firma-cell">Firma medico</th>
+            <th>Farmaco / Dose / Via</th>
+            <th class="data-cell">Data eseguita</th>
+            <th class="firma-cell">Firma Inf.</th>
+            <th class="data-cell">Data prossima</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td class="data-cell">${t.dataInizio||''}<br><br></td>
+              <td class="firma-cell"></td>
+              <td>${t.farmaco} — ${t.dose}${t.via?' ('+t.via+')':''}<br><small style="color:#555">${t.fonte==='personale'?'[farmaco personale]':'[farmaci CRA]'}</small></td>
+              <td class="data-cell">${t.laEseguita||''}</td>
+              <td class="firma-cell"></td>
+              <td class="data-cell">${t.laProssima||''}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>`;
+    }).join('');
   };
 
   const printHTML = `
@@ -1135,18 +1171,7 @@ function stampaFoglioB(pid) {
         </table>
       </div>
 
-      <div class="print-section">
-        <div class="print-section-title">Terapia Long Acting</div>
-        <table class="print-table">
-          <thead><tr>
-            <th>Farmaco / Dose</th>
-            <th class="data-cell">Data eseguita</th>
-            <th class="firma-cell">Firma I.P.</th>
-            <th class="data-cell">Data prossima</th>
-          </tr></thead>
-          <tbody>${buildLAPrint()}</tbody>
-        </table>
-      </div>
+      ${buildLASections()}
 
       <div class="print-footer">
         <span>Aggiornata al: ${oggi}</span>

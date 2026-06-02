@@ -198,6 +198,14 @@ select option { background:var(--surface2); }
 @keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 
+/* LOGIN */
+.login-screen { position:fixed; inset:0; z-index:1000; background:var(--bg); display:flex; align-items:center; justify-content:center; padding:24px; }
+.login-box { width:100%; max-width:380px; background:var(--surface); border:1px solid var(--border-hi); border-radius:18px; padding:34px 30px; box-shadow:0 24px 64px rgba(0,0,0,.55); text-align:center; }
+.login-box h1 { font-family:'Playfair Display',serif; color:var(--gold); font-size:1.8rem; margin-bottom:4px; }
+.login-box p { color:var(--muted); font-size:.82rem; margin-bottom:22px; }
+.login-box input { text-align:center; letter-spacing:.12em; font-size:1rem; }
+.login-error { min-height:20px; color:var(--red); font-size:.8rem; margin-top:10px; }
+
 /* PILL SEZIONE */
 .sezione-pill { font-size:0.62rem; padding:2px 8px; border-radius:10px; font-family:'Inconsolata',monospace; font-weight:600; text-transform:uppercase; }
 .pill-orale   { background:var(--gold-bg); color:var(--gold); }
@@ -263,6 +271,17 @@ select option { background:var(--surface2); }
 </head>
 <body>
 
+<div class="login-screen no-print" id="login-screen">
+  <div class="login-box">
+    <h1>Farmacia<em style="color:var(--text);font-size:1.1rem;">CRA</em></h1>
+    <p>Accesso protetto ai dati locali</p>
+    <input type="password" id="login-password" placeholder="Password" onkeydown="if(event.key==='Enter')loginApp()">
+    <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:12px" onclick="loginApp()">Entra</button>
+    <div class="login-error" id="login-error"></div>
+    <p style="font-size:.68rem;margin-top:18px;margin-bottom:0">Password iniziale: <strong style="color:var(--gold)">farmacia2026</strong></p>
+  </div>
+</div>
+
 <header class="no-print">
   <div class="logo">Farmacia<em>CRA</em></div>
   <div class="hdr-right">
@@ -270,6 +289,7 @@ select option { background:var(--surface2); }
     <label class="btn btn-ghost btn-sm" style="cursor:pointer" title="Importa backup dati">
       📥 Importa <input type="file" id="import-file" accept=".json" style="display:none" onchange="importaBackup(this)">
     </label>
+    <button class="btn btn-ghost btn-sm" onclick="logoutApp()" title="Blocca app">🔒 Blocca</button>
     <div class="clock" id="clock"></div>
   </div>
 </header>
@@ -577,7 +597,7 @@ select option { background:var(--surface2); }
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Dose / Posologia *</label>
+          <label>Posologia descrittiva *</label>
           <input type="text" id="farm-dose" placeholder="es. 1 cp, 2 mg, 5 gocce…">
         </div>
         <div class="form-group" id="grp-via">
@@ -592,6 +612,31 @@ select option { background:var(--surface2); }
             <option>Sublinguale</option>
             <option>Transdermica</option>
             <option>Inalatoria</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Dose numerica</label>
+          <input type="number" id="farm-dose-num" min="0" step="0.01" placeholder="es. 1">
+        </div>
+        <div class="form-group">
+          <label>Unità dose</label>
+          <select id="farm-dose-unit">
+            <option value="cp">cp</option>
+            <option value="gtt">gtt</option>
+            <option value="puff">puff</option>
+            <option value="ml">ml</option>
+            <option value="fl">fl</option>
+            <option value="unità">unità</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Inventario</label>
+          <select id="farm-inv-enabled">
+            <option value="true">Scala scorta CRA</option>
+            <option value="false">Non scalare</option>
           </select>
         </div>
       </div>
@@ -706,10 +751,81 @@ const SK = {
   movimenti:  'fcra_movimenti',
 };
 
-const load  = k => JSON.parse(localStorage.getItem(k) || '[]');
-const loadO = k => JSON.parse(localStorage.getItem(k) || '{}');
-const save  = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+const APP_PASSWORD_KEY = 'fcra_pwd';
+const APP_SESSION_KEY = 'fcra_session';
+const DEFAULT_PASSWORD = 'farmacia2026';
+
+function storageGet(key) {
+  try { return localStorage.getItem(key); }
+  catch (err) { return null; }
+}
+
+function storageSet(key, value) {
+  try {
+    const previous = localStorage.getItem(key);
+    if (previous !== null) localStorage.setItem(key + '_last_good', previous);
+    localStorage.setItem(key, value);
+    return true;
+  } catch (err) {
+    alert('Salvataggio non riuscito: spazio locale esaurito o browser non disponibile. Esporta un backup prima di continuare.');
+    return false;
+  }
+}
+
+function safeParse(raw, fallback, key) {
+  if (!raw) return fallback;
+  try { return JSON.parse(raw); }
+  catch (err) {
+    const backup = storageGet(key + '_last_good');
+    if (backup) {
+      try { return JSON.parse(backup); } catch (_) {}
+    }
+    console.warn('Dato locale corrotto:', key);
+    return fallback;
+  }
+}
+
+const load  = k => {
+  const value = safeParse(storageGet(k), [], k);
+  return Array.isArray(value) ? value : [];
+};
+const loadO = k => {
+  const value = safeParse(storageGet(k), {}, k);
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+};
+const save  = (k,v) => storageSet(k, JSON.stringify(v));
 const uid   = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+function getPassword() {
+  return storageGet(APP_PASSWORD_KEY) || DEFAULT_PASSWORD;
+}
+
+function loginApp() {
+  const input = document.getElementById('login-password');
+  const err = document.getElementById('login-error');
+  if (input.value === getPassword()) {
+    try { sessionStorage.setItem(APP_SESSION_KEY, 'active'); } catch (_) {}
+    document.getElementById('login-screen').style.display = 'none';
+    input.value = '';
+    err.textContent = '';
+  } else {
+    err.textContent = 'Password non corretta';
+    input.value = '';
+    input.focus();
+  }
+}
+
+function checkLogin() {
+  let active = false;
+  try { active = sessionStorage.getItem(APP_SESSION_KEY) === 'active'; } catch (_) {}
+  document.getElementById('login-screen').style.display = active ? 'none' : 'flex';
+}
+
+function logoutApp() {
+  try { sessionStorage.removeItem(APP_SESSION_KEY); } catch (_) {}
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-password').focus();
+}
 
 // ============================================================
 // STATO
@@ -1290,6 +1406,9 @@ function openModalFarmaco(pid, sezione) {
   document.getElementById('modal-farm-title').textContent = 'Aggiungi farmaco';
   ['farm-nome','farm-dose','farm-note','farm-indicazione'].forEach(id=>document.getElementById(id).value='');
   ['farm-data-inizio','farm-data-fine','farm-la-eseguita','farm-la-prossima','farm-la-giorni'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('farm-dose-num').value = '';
+  document.getElementById('farm-dose-unit').value = 'cp';
+  document.getElementById('farm-inv-enabled').value = 'true';
   document.getElementById('farm-via').value='';
   document.getElementById('farm-fonte').value='CRA';
   document.getElementById('farm-sezione').value = sezione||'orale';
@@ -1325,6 +1444,9 @@ function editTerapia(tid, pid) {
   document.getElementById('farm-nome').value        = t.farmaco || '';
   document.getElementById('farm-sezione').value     = t.sezione || 'orale';
   document.getElementById('farm-dose').value        = t.dose || '';
+  document.getElementById('farm-dose-num').value    = t.doseNum ?? '';
+  document.getElementById('farm-dose-unit').value   = t.doseUnit || 'cp';
+  document.getElementById('farm-inv-enabled').value = String(t.invEnabled !== false);
   document.getElementById('farm-via').value         = t.via || '';
   document.getElementById('farm-indicazione').value = t.indicazione || '';
   document.getElementById('farm-la-eseguita').value = t.laEseguita || '';
@@ -1359,6 +1481,9 @@ function salvaFarmaco() {
 
   const sezione = document.getElementById('farm-sezione').value;
   const orari = ['8','13','15','20'].filter(o=>document.getElementById('or'+o).checked);
+  const doseNumRaw = document.getElementById('farm-dose-num').value;
+  const doseNum = doseNumRaw === '' ? null : parseFloat(doseNumRaw);
+  if (doseNum !== null && (isNaN(doseNum) || doseNum < 0)) { alert('La dose numerica deve essere un numero positivo.'); return; }
 
   const terapia = {
     id:         uid(),
@@ -1366,6 +1491,9 @@ function salvaFarmaco() {
     farmaco:    nome,
     sezione:    sezione,
     dose:       dose,
+    doseNum:    doseNum,
+    doseUnit:   document.getElementById('farm-dose-unit').value,
+    invEnabled: document.getElementById('farm-inv-enabled').value === 'true',
     via:        document.getElementById('farm-via').value,
     orari:      orari,
     indicazione:document.getElementById('farm-indicazione').value.trim(),
@@ -1506,14 +1634,17 @@ function calcolaConsumoCRA(farmId) {
       return true;
     })
     .reduce((acc, t) => {
+      if (t.invEnabled === false) return acc;
+      const dose = Number.isFinite(parseFloat(t.doseNum)) ? parseFloat(t.doseNum) : 0;
       // per long acting: consumo giornaliero = dose / periodicità giorni
       if (t.sezione === 'longacting' && t.laProssima && t.laEseguita) {
         const dp = new Date(t.laProssima);
         const de = new Date(t.laEseguita);
         const periodicita = Math.max(1, Math.round((dp-de)/86400000));
-        return acc + (parseFloat(t.dose)||1) / periodicita;
+        return acc + dose / periodicita;
       }
-      return acc + (parseFloat(t.dose)||0);
+      const somministrazioni = (t.orari && t.orari.length) ? t.orari.length : 1;
+      return acc + dose * somministrazioni;
     }, 0);
 }
 
@@ -1926,11 +2057,11 @@ function importaBackup(input) {
   reader.onload = e => {
     try {
       const data = JSON.parse(e.target.result);
-      if (data.fcra_pazienti)  save(SK.pazienti,   data.fcra_pazienti);
-      if (data.fcra_terapie)   save(SK.terapie,    data.fcra_terapie);
-      if (data.fcra_contatori) save(SK.contatori,  data.fcra_contatori);
-      if (data.fcra_farmaci)   save(SK_FCRA,       data.fcra_farmaci);
-      if (data.fcra_movimenti) save(SK.movimenti,  data.fcra_movimenti);
+      save(SK.pazienti,   Array.isArray(data.fcra_pazienti) ? data.fcra_pazienti : []);
+      save(SK.terapie,    Array.isArray(data.fcra_terapie) ? data.fcra_terapie : []);
+      save(SK.contatori,  data.fcra_contatori && typeof data.fcra_contatori === 'object' && !Array.isArray(data.fcra_contatori) ? data.fcra_contatori : {});
+      save(SK_FCRA,       Array.isArray(data.fcra_farmaci) ? data.fcra_farmaci : []);
+      save(SK.movimenti,  Array.isArray(data.fcra_movimenti) ? data.fcra_movimenti : []);
       input.value = '';
       renderLista();
       toast('Backup importato correttamente');
@@ -1944,6 +2075,7 @@ function importaBackup(input) {
 // ============================================================
 // INIT
 // ============================================================
+checkLogin();
 renderLista();
 aggiornaCampiSezione();
 </script>

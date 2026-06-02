@@ -1,1 +1,0 @@
-# Terapia-Inventario

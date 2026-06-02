@@ -304,7 +304,7 @@ select option { background:var(--surface2); }
           <option value="CD">Pz CD</option>
         </select>
         <button class="btn btn-gold" onclick="openModalPaziente()">+ Nuovo paziente</button>
-        <button class="btn btn-ghost btn-sm" onclick="importaRicettaManager()" title="Importa pazienti da RicettaManager JSON">📥 Importa RM</button>
+
       </div>
     </div>
     <div class="grid" id="grid-pazienti"></div>
@@ -537,6 +537,10 @@ select option { background:var(--surface2); }
         </div>
       </div>
       <div class="form-group">
+        <label>⚠ Allergie / Intolleranze</label>
+        <input type="text" id="pz-allergie" placeholder="es. Penicilline, Lattice, FANS…" style="border-color:var(--amber)">
+      </div>
+      <div class="form-group">
         <label>Note</label>
         <textarea id="pz-note" placeholder="Note cliniche generali…"></textarea>
       </div>
@@ -605,7 +609,7 @@ select option { background:var(--surface2); }
 
       <!-- Long Acting date -->
       <div id="grp-longacting" style="display:none;">
-        <div class="form-row">
+        <div class="form-row-3">
           <div class="form-group">
             <label>Data ultima somministrazione</label>
             <input type="date" id="farm-la-eseguita">
@@ -613,6 +617,10 @@ select option { background:var(--surface2); }
           <div class="form-group">
             <label>Data prossima somministrazione</label>
             <input type="date" id="farm-la-prossima">
+          </div>
+          <div class="form-group">
+            <label>Ogni (giorni)</label>
+            <input type="number" id="farm-la-giorni" min="1" max="365" placeholder="es. 28">
           </div>
         </div>
       </div>
@@ -771,6 +779,7 @@ function renderLista() {
         <div>
           <div class="pname">${p.cognome} ${p.nome}</div>
           <div class="pmeta">${p.gruppo} · ${p.attivo==='false'||p.attivo===false?'Dimesso':'Attivo'}</div>
+          ${p.allergie ? `<div style="margin-top:4px;font-size:0.7rem;background:var(--amber-bg);border:1px solid var(--amber);color:var(--amber);border-radius:6px;padding:2px 7px;display:inline-block">⚠ ${p.allergie}</div>` : ''}
         </div>
         ${badge}
       </div>
@@ -845,9 +854,11 @@ function renderScheda(pid) {
         ${orari}
         ${sospCell}
         <td style="text-align:right">
-          <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
-          <button class="btn btn-red btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
-        </td>
+            <div style="display:flex;gap:4px;justify-content:flex-end">
+              <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
+              <button class="btn btn-red btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
+            </div>
+          </td>
       </tr>`;
   };
 
@@ -908,9 +919,11 @@ function renderScheda(pid) {
               <td style="font-size:0.78rem;color:var(--muted)">${t.indicazione||'—'}</td>
               ${sospCell}
               <td style="text-align:right">
-                <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
-                <button class="btn btn-red btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
-              </td>
+            <div style="display:flex;gap:4px;justify-content:flex-end">
+              <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
+              <button class="btn btn-red btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
+            </div>
+          </td>
             </tr>`;
           }).join('') : `<tr><td colspan="5" class="empty-row">Nessuna terapia al bisogno</td></tr>`}
         </tbody>
@@ -931,6 +944,7 @@ function renderScheda(pid) {
       <table class="la-table">
         <thead><tr>
           <th>Farmaco / Dose</th>
+          <th style="width:55px;text-align:center">Ogni</th>
           <th>Data eseguita</th>
           <th>Firma I.P.</th>
           <th>Data prossima</th>
@@ -954,14 +968,17 @@ function renderScheda(pid) {
               : `<td class="drug-date">—</td>`;
             return `<tr>
               <td><span class="drug-nome">${t.farmaco}</span> ${fonteBadge}<br><span class="drug-dose">${t.dose}</span></td>
+              <td style="text-align:center;font-family:Inconsolata,monospace;font-size:0.8rem;color:var(--gold)">${t.laGiorni ? t.laGiorni+' gg' : '—'}</td>
               <td class="drug-date">${t.laEseguita||'—'}</td>
               <td style="width:80px;color:var(--dim);font-size:0.75rem">___________</td>
               <td class="${prossimaClass}">${t.laProssima||'—'}</td>
               ${sospCell}
               <td style="text-align:right">
-                <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
-                <button class="btn btn-red btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
-              </td>
+            <div style="display:flex;gap:4px;justify-content:flex-end">
+              <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
+              <button class="btn btn-red btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
+            </div>
+          </td>
             </tr>`;
           }).join('') : `<tr><td colspan="6" class="empty-row">Nessuna terapia long acting</td></tr>`}
         </tbody>
@@ -974,10 +991,11 @@ function renderScheda(pid) {
       <div>
         <div class="scheda-pname">${pz.cognome} ${pz.nome}</div>
         <div class="scheda-meta">${pz.gruppo} · ${pz.attivo==='false'||pz.attivo===false?'Dimesso':'Attivo'} · ${attive.length} farmaci attivi</div>
+        ${pz.allergie ? `<div style="margin-top:6px;font-size:0.8rem;background:var(--amber-bg);border:1px solid var(--amber);color:var(--amber);border-radius:8px;padding:4px 12px;font-weight:700">⚠ ALLERGIE: ${pz.allergie}</div>` : ''}
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         ${badge}
-        <span class="foglio-num">Foglio n° ${nFoglio}</span>
+        <span class="foglio-num" style="cursor:pointer" title="Clicca per modificare" onclick="editNFoglio('${pid}')">Foglio n° ${nFoglio} ✎</span>
         <button class="btn btn-blue btn-sm no-print" onclick="stampaFoglioB('${pid}')">🖨 Stampa foglio B</button>
         <button class="btn btn-ghost btn-sm no-print" onclick="openModalPaziente('${pid}')">✏️ Modifica</button>
       </div>
@@ -1185,14 +1203,15 @@ function openModalPaziente(pid) {
   if (pid) {
     const pz = load(SK.pazienti).find(p=>p.id===pid);
     if (pz) {
-      document.getElementById('pz-cognome').value = pz.cognome||'';
-      document.getElementById('pz-nome').value = pz.nome||'';
-      document.getElementById('pz-gruppo').value = pz.gruppo||'CRA';
-      document.getElementById('pz-attivo').value = String(pz.attivo!==false&&pz.attivo!=='false');
-      document.getElementById('pz-note').value = pz.note||'';
+      document.getElementById('pz-cognome').value   = pz.cognome||'';
+      document.getElementById('pz-nome').value     = pz.nome||'';
+      document.getElementById('pz-gruppo').value   = pz.gruppo||'CRA';
+      document.getElementById('pz-attivo').value   = String(pz.attivo!==false&&pz.attivo!=='false');
+      document.getElementById('pz-allergie').value = pz.allergie||'';
+      document.getElementById('pz-note').value     = pz.note||'';
     }
   } else {
-    ['pz-cognome','pz-nome','pz-note'].forEach(id=>document.getElementById(id).value='');
+    ['pz-cognome','pz-nome','pz-allergie','pz-note'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('pz-gruppo').value='CRA';
     document.getElementById('pz-attivo').value='true';
   }
@@ -1209,15 +1228,17 @@ function salvaPaziente() {
     const idx = pazienti.findIndex(p=>p.id===editPzId);
     if (idx>=0) Object.assign(pazienti[idx], {
       cognome, nome,
-      gruppo: document.getElementById('pz-gruppo').value,
-      attivo: document.getElementById('pz-attivo').value === 'true',
-      note:   document.getElementById('pz-note').value.trim(),
+      gruppo:   document.getElementById('pz-gruppo').value,
+      attivo:   document.getElementById('pz-attivo').value === 'true',
+      allergie: document.getElementById('pz-allergie').value.trim(),
+      note:     document.getElementById('pz-note').value.trim(),
     });
   } else {
     pazienti.push({ id:uid(), cognome, nome,
-      gruppo: document.getElementById('pz-gruppo').value,
-      attivo: true,
-      note:   document.getElementById('pz-note').value.trim(),
+      gruppo:   document.getElementById('pz-gruppo').value,
+      attivo:   true,
+      allergie: document.getElementById('pz-allergie').value.trim(),
+      note:     document.getElementById('pz-note').value.trim(),
     });
   }
   save(SK.pazienti, pazienti);
@@ -1243,7 +1264,7 @@ function openModalFarmaco(pid, sezione) {
   farmacoEditId = null;
   document.getElementById('modal-farm-title').textContent = 'Aggiungi farmaco';
   ['farm-nome','farm-dose','farm-note','farm-indicazione'].forEach(id=>document.getElementById(id).value='');
-  ['farm-data-inizio','farm-data-fine','farm-la-eseguita','farm-la-prossima'].forEach(id=>document.getElementById(id).value='');
+  ['farm-data-inizio','farm-data-fine','farm-la-eseguita','farm-la-prossima','farm-la-giorni'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('farm-via').value='';
   document.getElementById('farm-fonte').value='CRA';
   document.getElementById('farm-sezione').value = sezione||'orale';
@@ -1283,6 +1304,7 @@ function editTerapia(tid, pid) {
   document.getElementById('farm-indicazione').value = t.indicazione || '';
   document.getElementById('farm-la-eseguita').value = t.laEseguita || '';
   document.getElementById('farm-la-prossima').value = t.laProssima || '';
+  document.getElementById('farm-la-giorni').value   = t.laGiorni || '';
   document.getElementById('farm-fonte').value       = t.fonte || 'CRA';
   document.getElementById('farm-note').value        = t.note || '';
   document.getElementById('farm-data-inizio').value = t.dataInizio || '';
@@ -1323,7 +1345,8 @@ function salvaFarmaco() {
     orari:      orari,
     indicazione:document.getElementById('farm-indicazione').value.trim(),
     laEseguita: document.getElementById('farm-la-eseguita').value,
-    laProssima: document.getElementById('farm-la-prossima').value,
+    laProssima:  document.getElementById('farm-la-prossima').value,
+    laGiorni:    parseInt(document.getElementById('farm-la-giorni').value)||null,
     fonte:       document.getElementById('farm-fonte').value,
     farmacoCRAid: document.getElementById('farm-cra-link').value || null,
     dataInizio:  document.getElementById('farm-data-inizio').value,
@@ -1830,6 +1853,20 @@ function toast(msg) {
   setTimeout(()=>t.classList.remove('show'), 2500);
 }
 
+
+
+function editNFoglio(pid) {
+  const cnt = loadO(SK.contatori);
+  const attuale = cnt[pid] || 1;
+  const nuovo = prompt('Numero foglio attuale: ' + attuale + '\nInserisci il nuovo numero:', attuale);
+  if (nuovo === null) return;
+  const n = parseInt(nuovo);
+  if (isNaN(n) || n < 1) { alert('Numero non valido'); return; }
+  cnt[pid] = n;
+  save(SK.contatori, cnt);
+  renderScheda(pid);
+  toast('Numero foglio aggiornato a ' + n);
+}
 
 // ============================================================
 // BACKUP ESPORTA / IMPORTA

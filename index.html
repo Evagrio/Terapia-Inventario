@@ -276,9 +276,13 @@ select option { background:var(--surface2); }
     <h1>Farmacia<em style="color:var(--text);font-size:1.1rem;">CRA</em></h1>
     <p>Accesso protetto ai dati locali</p>
     <input type="password" id="login-password" placeholder="Password" onkeydown="if(event.key==='Enter')loginApp()">
+    <label style="display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--muted);margin-top:10px;cursor:pointer">
+      <input type="checkbox" id="ricorda-device" style="width:auto;accent-color:var(--gold)">
+      Ricorda su questo computer
+    </label>
     <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:12px" onclick="loginApp()">Entra</button>
     <div class="login-error" id="login-error"></div>
-    <p style="font-size:.68rem;margin-top:18px;margin-bottom:0">Password iniziale: <strong style="color:var(--gold)">farmacia2026</strong></p>
+    <p style="font-size:.68rem;margin-top:18px;margin-bottom:0;color:var(--dim)">Contatta l'amministratore per la password di accesso.</p>
   </div>
 </div>
 
@@ -289,7 +293,8 @@ select option { background:var(--surface2); }
     <label class="btn btn-ghost btn-sm" style="cursor:pointer" title="Importa backup dati">
       📥 Importa <input type="file" id="import-file" accept=".json" style="display:none" onchange="importaBackup(this)">
     </label>
-    <button class="btn btn-ghost btn-sm" onclick="logoutApp()" title="Blocca app">🔒 Blocca</button>
+    <button class="btn btn-ghost btn-sm" onclick="openModalCambiaPassword()" title="Cambia password">🔑</button>
+    <button class="btn btn-ghost btn-sm" onclick="logoutApp()" title="Blocca app">🔒</button>
     <div class="clock" id="clock"></div>
   </div>
 </header>
@@ -815,17 +820,7 @@ function loginApp() {
   }
 }
 
-function checkLogin() {
-  let active = false;
-  try { active = sessionStorage.getItem(APP_SESSION_KEY) === 'active'; } catch (_) {}
-  document.getElementById('login-screen').style.display = active ? 'none' : 'flex';
-}
-
-function logoutApp() {
-  try { sessionStorage.removeItem(APP_SESSION_KEY); } catch (_) {}
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('login-password').focus();
-}
+// login gestito dal blocco avanzato
 
 // ============================================================
 // STATO
@@ -1751,6 +1746,19 @@ function getTerapieFarmacoCRA(farmId) {
 // ---------- MODAL FARMACO CRA ----------
 const SK_FCRA = 'fcra_farmaci_cra';
 
+// ============================================================
+// PRELOAD FARMACI CRA (solo nomi, dati da completare)
+// ============================================================
+(function preloadFarmaciCRA() {
+  const existing = load(SK_FCRA);
+  if (!existing || existing.length === 0) {
+    save(SK_FCRA, [{"id": "fcra0001", "nome": "Abilify (Aripiprazolo) 5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0002", "nome": "Abilify (Aripiprazolo) 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0003", "nome": "Abilify (Aripiprazolo) 15 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0004", "nome": "Akineton 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0005", "nome": "Akineton 4 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0006", "nome": "Atarax 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0007", "nome": "Clozapina (Leponex) 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0008", "nome": "Clozapina (Leponex) 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0009", "nome": "Delorazepam (EN) 1 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0010", "nome": "Delorazepam (EN) 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0011", "nome": "Depakin Chrono 300 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0012", "nome": "Depakin Chrono 500 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0013", "nome": "Diazepam (Valium) 5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0014", "nome": "Domperidone 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0015", "nome": "Entumin (Clotiapina) 40 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0016", "nome": "Fluoxetina 20 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0017", "nome": "Fluvoxamina 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0018", "nome": "Fluvoxamina 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0019", "nome": "Gabapentin 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0020", "nome": "Gabapentin 300 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0021", "nome": "Gabapentin 400 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0022", "nome": "Haldol (Aloperidolo) 1 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0023", "nome": "Largactil 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0024", "nome": "Largactil 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0025", "nome": "Latuda 37 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0026", "nome": "Latuda 74 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0027", "nome": "Litio Carbonato 300 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0028", "nome": "Litio Resilient 83 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0029", "nome": "Lorazepam (Tavor) 1 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0030", "nome": "Lorazepam (Tavor) 2,5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0031", "nome": "Mirtazapina 30 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0032", "nome": "Nozinam 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0033", "nome": "Nozinam 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0034", "nome": "Olanzapina 5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0035", "nome": "Olanzapina 10 mg velotab", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0036", "nome": "Oxibutina e.g. 5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0037", "nome": "Paliperidone 6 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0038", "nome": "Paroxetina 20 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0039", "nome": "Pregabalin 25 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0040", "nome": "Pregabalin 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0041", "nome": "Pregabalin 75 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0042", "nome": "Pregabalin 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0043", "nome": "Pregabalin 150 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0044", "nome": "Quetiapina 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0045", "nome": "Quetiapina RP 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0046", "nome": "Quetiapina RP 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0047", "nome": "Quetiapina 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0048", "nome": "Quetiapina 150 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0049", "nome": "Quetiapina RP 200 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0050", "nome": "Quetiapina 200 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0051", "nome": "Quetiapina RP 300 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0052", "nome": "Quetiapina RP 400 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0053", "nome": "Resilient 83 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0054", "nome": "Risperidone 1 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0055", "nome": "Risperidone 3 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0056", "nome": "Rivotril 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0057", "nome": "Rxulti 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0058", "nome": "Sertralina 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0059", "nome": "Strattera 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0060", "nome": "Strattera 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0061", "nome": "Strattera 40 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0062", "nome": "Strattera 60 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0063", "nome": "Tegretol (Carbamazepina) 200 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0064", "nome": "Trittico 75 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0065", "nome": "Trittico 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0066", "nome": "Trittico 150 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0067", "nome": "Valdorm (Flurazepam) 15 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0068", "nome": "Valdorm (Flurazepam) 30 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0069", "nome": "Zolpidem 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0070", "nome": "Lamotrigina eg 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0071", "nome": "Allopurinolo 300 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0072", "nome": "Carvasin 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0073", "nome": "Citalopram 20 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0074", "nome": "Deltacortene", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0075", "nome": "Gaviscon", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0076", "nome": "Ibuprofene 600 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0077", "nome": "Loperamide 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0078", "nome": "Muscoril", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0079", "nome": "Nimesulide 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0080", "nome": "Nimesulide 100 mg bustine", "forma": "Bustine", "udm": "bust", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0081", "nome": "Pantoprazolo 20 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0082", "nome": "Paracetamolo 500 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0083", "nome": "Pursennid", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0084", "nome": "Vatran 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0085", "nome": "Clonazepam (Rivotril) gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0086", "nome": "Diazepam gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0087", "nome": "Delorazepam (EN) gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0088", "nome": "Entumin gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0089", "nome": "Haldol (Serenase) 2 mg/ml gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0090", "nome": "Haldol (Serenase) 10 mg/ml gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0091", "nome": "Talofen gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0092", "nome": "Bromazepam 2,5 mg/ml gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0093", "nome": "Lormetazepam 2,5 mg/ml gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0094", "nome": "Efortil gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0095", "nome": "Brintellix gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0096", "nome": "Didergot gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0097", "nome": "Depakin Soluzione 200 mg/ml", "forma": "Soluzione orale", "udm": "ml", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0098", "nome": "EN (Delorazepam) 2 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0099", "nome": "EN (Delorazepam) 5 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0100", "nome": "Entumin fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0101", "nome": "Diazepam (Valium) 10 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0102", "nome": "Haldol 5 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0103", "nome": "Haldol Decanoas 50 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0104", "nome": "Haldol Decanoas 150 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0105", "nome": "Talofen 25 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0106", "nome": "Largactil 50 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0107", "nome": "Aloperidolo 2 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0108", "nome": "Diclofenac fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0109", "nome": "Plasil fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0110", "nome": "Buscopan fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0111", "nome": "Betametasone 4 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0112", "nome": "Farganesse fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0113", "nome": "Ugoral 500 mg fiale", "forma": "Fiala EV", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0114", "nome": "Tocolchicoside eg 4 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0115", "nome": "Abilify Maintena 400 mg", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0116", "nome": "Xeplion 100 mg", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0117", "nome": "Xeplion 150 mg", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0118", "nome": "Haldol Decanoato 150 mg/ml", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0119", "nome": "Haldol Decanoato 50 mg/ml", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0120", "nome": "Trevicta", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0121", "nome": "Foille crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0122", "nome": "Aureomicina crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0123", "nome": "Azolmel crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0124", "nome": "Gentalin crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0125", "nome": "Gentalin Beta crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0126", "nome": "Metazone crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0127", "nome": "Voltaren crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0128", "nome": "Vaselina", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0129", "nome": "Connettivina crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}]);
+    console.log('Preload farmaci CRA: 129 farmaci caricati');
+  }
+})();
+
+
+
 function openModalFarmacioCRA(fid) {
   editFCRAid = fid || null;
   document.getElementById('modal-fcra-title').textContent = fid ? 'Modifica farmaco' : 'Nuovo farmaco CRA';
@@ -2072,12 +2080,114 @@ function importaBackup(input) {
   reader.readAsText(file);
 }
 
+
+// ============================================================
+// LOGIN AVANZATO: ricorda device, cambia password, blocco mobile
+// ============================================================
+
+// Blocco dispositivi a schermo piccolo (< 600px larghezza)
+(function checkMobile() {
+  if (window.innerWidth < 600) {
+    document.body.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0F1117;padding:24px">
+        <div style="text-align:center;color:#E8EAF0;max-width:320px">
+          <div style="font-size:3rem;margin-bottom:16px">📱</div>
+          <h2 style="font-family:serif;color:#E8B84B;margin-bottom:12px">Dispositivo non supportato</h2>
+          <p style="font-size:0.9rem;color:#7A8099;line-height:1.6">
+            FarmaciaCRA è ottimizzato per l'uso su computer o tablet.<br><br>
+            Accedi da un dispositivo con schermo più grande.
+          </p>
+        </div>
+      </div>`;
+    return;
+  }
+})();
+
+const DEVICE_KEY  = 'fcra_device_trusted';
+const PWD_KEY     = 'fcra_password';
+const DEFAULT_PWD = 'farmacia2026';
+
+function getPassword() {
+  return localStorage.getItem(PWD_KEY) || DEFAULT_PWD;
+}
+
+function checkLogin() {
+  // Se il dispositivo è ricordato, entra direttamente
+  if (localStorage.getItem(DEVICE_KEY) === 'true') {
+    document.getElementById('login-screen').style.display = 'none';
+    return;
+  }
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+
+function logoutApp() {
+  localStorage.removeItem(DEVICE_KEY);
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function openModalCambiaPassword() {
+  ['pwd-attuale','pwd-nuova','pwd-conferma'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('pwd-error').style.display = 'none';
+  openModal('modal-cambia-pwd');
+}
+
+function eseguiCambioPassword() {
+  const attuale  = document.getElementById('pwd-attuale').value;
+  const nuova    = document.getElementById('pwd-nuova').value;
+  const conferma = document.getElementById('pwd-conferma').value;
+  const errEl    = document.getElementById('pwd-error');
+
+  if (attuale !== getPassword()) {
+    errEl.textContent = 'Password attuale errata'; errEl.style.display = 'block'; return;
+  }
+  if (nuova.length < 6) {
+    errEl.textContent = 'La nuova password deve avere almeno 6 caratteri'; errEl.style.display = 'block'; return;
+  }
+  if (nuova !== conferma) {
+    errEl.textContent = 'Le password non coincidono'; errEl.style.display = 'block'; return;
+  }
+  localStorage.setItem(PWD_KEY, nuova);
+  closeModal('modal-cambia-pwd');
+  toast('Password aggiornata');
+}
+
 // ============================================================
 // INIT
 // ============================================================
 checkLogin();
 renderLista();
 aggiornaCampiSezione();
+
+<!-- MODAL CAMBIA PASSWORD -->
+<div class="overlay" id="modal-cambia-pwd">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <span class="modal-title">🔑 Cambia password</span>
+      <button class="close-btn" onclick="closeModal('modal-cambia-pwd')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Password attuale</label>
+        <input type="password" id="pwd-attuale" placeholder="Password attuale">
+      </div>
+      <div class="form-group">
+        <label>Nuova password</label>
+        <input type="password" id="pwd-nuova" placeholder="Nuova password (min. 6 caratteri)">
+      </div>
+      <div class="form-group">
+        <label>Conferma nuova password</label>
+        <input type="password" id="pwd-conferma" placeholder="Ripeti la nuova password">
+      </div>
+      <div id="pwd-error" style="color:var(--red);font-size:0.78rem;display:none;margin-top:4px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-cambia-pwd')">Annulla</button>
+      <button class="btn btn-gold" onclick="eseguiCambioPassword()">Salva nuova password</button>
+    </div>
+  </div>
+</div>
 </script>
 </body>
 </html>

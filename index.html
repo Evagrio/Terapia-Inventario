@@ -845,7 +845,8 @@ function renderScheda(pid) {
         ${orari}
         ${sospCell}
         <td style="text-align:right">
-          <button class="btn btn-ghost btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
+          <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
+          <button class="btn btn-red btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
         </td>
       </tr>`;
   };
@@ -906,7 +907,10 @@ function renderScheda(pid) {
               <td><span class="drug-nome">${t.farmaco}</span> ${fonteBadge}<br><span class="drug-dose">${t.dose}</span>${t.via?`<br><small style="color:var(--muted)">${t.via}</small>`:''}</td>
               <td style="font-size:0.78rem;color:var(--muted)">${t.indicazione||'—'}</td>
               ${sospCell}
-              <td style="text-align:right"><button class="btn btn-ghost btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button></td>
+              <td style="text-align:right">
+                <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
+                <button class="btn btn-red btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
+              </td>
             </tr>`;
           }).join('') : `<tr><td colspan="5" class="empty-row">Nessuna terapia al bisogno</td></tr>`}
         </tbody>
@@ -954,7 +958,10 @@ function renderScheda(pid) {
               <td style="width:80px;color:var(--dim);font-size:0.75rem">___________</td>
               <td class="${prossimaClass}">${t.laProssima||'—'}</td>
               ${sospCell}
-              <td style="text-align:right"><button class="btn btn-ghost btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button></td>
+              <td style="text-align:right">
+                <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
+                <button class="btn btn-red btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
+              </td>
             </tr>`;
           }).join('') : `<tr><td colspan="6" class="empty-row">Nessuna terapia long acting</td></tr>`}
         </tbody>
@@ -1256,6 +1263,48 @@ function aggiornaCampiSezione() {
   document.getElementById('grp-via').style.display        = s!=='orale' ? '' : 'none';
 }
 
+
+// ============================================================
+// MODIFICA TERAPIA ESISTENTE
+// ============================================================
+function editTerapia(tid, pid) {
+  const terapie = load(SK.terapie);
+  const t = terapie.find(x => x.id === tid);
+  if (!t) return;
+
+  farmacoEditId   = tid;
+  farmacoEditPzId = pid;
+
+  document.getElementById('modal-farm-title').textContent = 'Modifica farmaco';
+  document.getElementById('farm-nome').value        = t.farmaco || '';
+  document.getElementById('farm-sezione').value     = t.sezione || 'orale';
+  document.getElementById('farm-dose').value        = t.dose || '';
+  document.getElementById('farm-via').value         = t.via || '';
+  document.getElementById('farm-indicazione').value = t.indicazione || '';
+  document.getElementById('farm-la-eseguita').value = t.laEseguita || '';
+  document.getElementById('farm-la-prossima').value = t.laProssima || '';
+  document.getElementById('farm-fonte').value       = t.fonte || 'CRA';
+  document.getElementById('farm-note').value        = t.note || '';
+  document.getElementById('farm-data-inizio').value = t.dataInizio || '';
+  document.getElementById('farm-data-fine').value   = t.dataFine || '';
+
+  // orari
+  ['8','13','15','20'].forEach(o => {
+    document.getElementById('or' + o).checked = t.orari && t.orari.includes(o);
+  });
+
+  aggiornaCampiSezione();
+  aggiornaCRAselect();
+
+  // preseleziona farmaco CRA se collegato
+  if (t.farmacoCRAid) {
+    const sel = document.getElementById('farm-cra-link');
+    if (sel) sel.value = t.farmacoCRAid;
+  }
+
+  openModal('modal-farmaco');
+}
+
 function salvaFarmaco() {
   const nome = document.getElementById('farm-nome').value.trim();
   const dose = document.getElementById('farm-dose').value.trim();
@@ -1284,12 +1333,24 @@ function salvaFarmaco() {
   };
 
   const terapie = load(SK.terapie);
-  terapie.push(terapia);
+  if (farmacoEditId) {
+    // MODIFICA
+    const idx = terapie.findIndex(x => x.id === farmacoEditId);
+    if (idx >= 0) {
+      terapia.id = farmacoEditId;
+      terapia.dataCreazione = terapie[idx].dataCreazione;
+      terapie[idx] = terapia;
+    }
+  } else {
+    // NUOVO
+    terapie.push(terapia);
+  }
   save(SK.terapie, terapie);
 
   closeModal('modal-farmaco');
   renderScheda(farmacoEditPzId);
-  toast('Farmaco aggiunto');
+  toast(farmacoEditId ? 'Farmaco aggiornato' : 'Farmaco aggiunto');
+  farmacoEditId = null;
 }
 
 function eliminaTerapia(tid, pid) {

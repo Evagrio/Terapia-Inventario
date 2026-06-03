@@ -416,13 +416,18 @@ select option { background:var(--surface2); }
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Soglia alert (unità)</label>
-          <input type="number" id="fcra-warn" min="0" placeholder="es. 30">
+          <label>⬇ Alert scorte (giorni residui)</label>
+          <input type="number" id="fcra-warn-gg" min="1" value="8" placeholder="8">
+          <small style="color:var(--muted);font-size:0.68rem;margin-top:3px;display:block">Default 8 gg — calcolato sul consumo attuale</small>
         </div>
         <div class="form-group">
-          <label>Soglia urgente (unità)</label>
-          <input type="number" id="fcra-urgent" min="0" placeholder="es. 10">
+          <label>⚠ Urgente (giorni residui)</label>
+          <input type="number" id="fcra-urgent-gg" min="1" value="3" placeholder="3">
+          <small style="color:var(--muted);font-size:0.68rem;margin-top:3px;display:block">Default 3 gg</small>
         </div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:9px 12px;font-size:0.73rem;color:var(--muted);margin-top:-6px">
+        💡 Le soglie si basano sui giorni residui stimati. Con consumo giornaliero zero vengono ignorate.
       </div>
       <div class="form-group">
         <label>Note</label>
@@ -1646,6 +1651,7 @@ function calcolaConsumoCRA(farmId) {
     .filter(t => {
       if (t.fonte !== 'CRA') return false;
       if (!t.farmacoCRAid || t.farmacoCRAid !== farmId) return false;
+      if (t.sezione === 'bisogno') return false; // aggiornamento manuale
       const di = t.dataInizio ? new Date(t.dataInizio) : null;
       const df = t.dataFine   ? new Date(t.dataFine)   : null;
       if (di && di > oggi) return false;
@@ -1668,9 +1674,16 @@ function calcolaConsumoCRA(farmId) {
 }
 
 function statoFarmaco(farm) {
-  const res = calcolaScorta(farm);
-  if (res <= (farm.sogliaUrgent||0)) return 'urgent';
-  if (res <= (farm.sogliaWarn||0))   return 'warn';
+  const scorta  = calcolaScorta(farm);
+  const consumo = calcolaConsumoCRA(farm.id);
+  if (consumo > 0) {
+    const giorniRes = scorta / consumo;
+    if (giorniRes <= (farm.sogliaUrgentGg||3)) return 'urgent';
+    if (giorniRes <= (farm.sogliaWarnGg||8))   return 'warn';
+  } else {
+    if (scorta <= (farm.sogliaUrgent||0)) return 'urgent';
+    if (scorta <= (farm.sogliaWarn||0))   return 'warn';
+  }
   return 'ok';
 }
 
@@ -1741,6 +1754,10 @@ function renderInventario() {
           <span class="inv-label">Giorni residui stimati</span>
           <span class="inv-val ${valCls}">${giorni!==null ? giorni+' gg' : '—'}</span>
         </div>
+        <div class="inv-row" style="font-size:0.72rem">
+          <span class="inv-label" style="color:var(--dim)">Soglie alert / urgente</span>
+          <span style="font-family:Inconsolata,monospace;color:var(--dim)">${f.sogliaWarnGg||8} gg / ${f.sogliaUrgentGg||3} gg</span>
+        </div>
         <div class="inv-row">
           <span class="inv-label">Pazienti in terapia</span>
           <span class="inv-val">${terapiePz.length}</span>
@@ -1782,13 +1799,16 @@ function openModalFarmacioCRA(fid) {
       document.getElementById('fcra-udm').value    = f.udm||'';
       document.getElementById('fcra-scorta').value = f.scorta||'';
       document.getElementById('fcra-lastsync').value = f.lastSync||'';
-      document.getElementById('fcra-warn').value   = f.sogliaWarn||'';
-      document.getElementById('fcra-urgent').value = f.sogliaUrgent||'';
+      const _c = calcolaConsumoCRA(f.id);
+      document.getElementById('fcra-warn-gg').value   = _c > 0 ? Math.round((f.sogliaWarn||0)/_c) : (f.sogliaWarnGg||8);
+      document.getElementById('fcra-urgent-gg').value = _c > 0 ? Math.round((f.sogliaUrgent||0)/_c) : (f.sogliaUrgentGg||3);
       document.getElementById('fcra-note').value   = f.note||'';
     }
   } else {
-    ['fcra-nome','fcra-xconf','fcra-udm','fcra-scorta','fcra-warn','fcra-urgent','fcra-note']
+    ['fcra-nome','fcra-xconf','fcra-udm','fcra-scorta','fcra-note']
       .forEach(id=>document.getElementById(id).value='');
+    document.getElementById('fcra-warn-gg').value   = 8;
+    document.getElementById('fcra-urgent-gg').value = 3;
     document.getElementById('fcra-forma').value='Compresse';
     document.getElementById('fcra-lastsync').value = new Date().toISOString().slice(0,10);
   }
@@ -1807,8 +1827,8 @@ function salvaFarmacioCRA() {
     nome, xconf, scorta, lastSync,
     forma:       document.getElementById('fcra-forma').value,
     udm:         document.getElementById('fcra-udm').value.trim(),
-    sogliaWarn:  parseFloat(document.getElementById('fcra-warn').value)||0,
-    sogliaUrgent:parseFloat(document.getElementById('fcra-urgent').value)||0,
+    sogliaWarnGg:   parseInt(document.getElementById('fcra-warn-gg').value)||8,
+    sogliaUrgentGg: parseInt(document.getElementById('fcra-urgent-gg').value)||3,
     note:        document.getElementById('fcra-note').value.trim(),
   };
 

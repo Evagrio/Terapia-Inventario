@@ -25,6 +25,11 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 header { background:var(--surface); border-bottom:1px solid var(--border); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; gap:12px; }
 .logo { font-family:'Playfair Display',serif; font-size:1.4rem; color:var(--gold); white-space:nowrap; }
 .logo em { font-style:italic; color:var(--text); font-size:1rem; }
+.hdr-tabs { display:flex; align-items:center; gap:2px; flex:1; margin:0 20px; }
+.htab { padding:6px 16px; font-size:0.82rem; font-weight:700; color:var(--muted); cursor:pointer;
+        border-radius:8px; transition:all .15s; white-space:nowrap; }
+.htab:hover { color:var(--text); background:var(--surface2); }
+.htab.active { color:var(--gold); background:var(--gold-bg); }
 .hdr-right { display:flex; align-items:center; gap:10px; }
 .clock { font-family:'Inconsolata',monospace; font-size:0.72rem; color:var(--muted); text-align:right; line-height:1.7; }
 
@@ -288,22 +293,23 @@ select option { background:var(--surface2); }
 
 <header class="no-print">
   <div class="logo">Farmacia<em>CRA</em></div>
+  <div class="hdr-tabs no-print">
+    <div class="htab active" id="htab-pazienti" onclick="showTab('pazienti')">Pazienti</div>
+    <div class="htab" id="htab-inventario" onclick="showTab('inventario')">Inventario CRA</div>
+    <div class="htab" id="htab-report" onclick="showTab('report')">Report</div>
+  </div>
   <div class="hdr-right">
     <button class="btn btn-ghost btn-sm" onclick="esportaBackup()" title="Esporta backup dati">💾 Backup</button>
     <label class="btn btn-ghost btn-sm" style="cursor:pointer" title="Importa backup dati">
       📥 Importa <input type="file" id="import-file" accept=".json" style="display:none" onchange="importaBackup(this)">
     </label>
     <button class="btn btn-ghost btn-sm" onclick="openModalCambiaPassword()" title="Cambia password">🔑</button>
-    <button class="btn btn-ghost btn-sm" onclick="logoutApp()" title="Blocca app">🔒</button>
+
     <div class="clock" id="clock"></div>
   </div>
 </header>
 
-<nav class="nav-tabs no-print">
-  <div class="tab active" onclick="showTab('pazienti')">Pazienti</div>
-  <div class="tab" onclick="showTab('inventario')">Inventario CRA <span style="font-size:.65rem;color:var(--dim)">(sessione 2)</span></div>
-  <div class="tab" onclick="showTab('report')">Report <span style="font-size:.65rem;color:var(--dim)">(sessione 3)</span></div>
-</nav>
+
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
@@ -323,11 +329,7 @@ select option { background:var(--surface2); }
           <span class="search-icon">🔍</span>
           <input type="text" id="search-pz" placeholder="Cerca paziente…" oninput="renderLista()">
         </div>
-        <select id="filtro-gruppo" onchange="renderLista()" style="width:auto;padding:8px 12px;">
-          <option value="">Tutti i gruppi</option>
-          <option value="CRA">Pz CRA</option>
-          <option value="CD">Pz CD</option>
-        </select>
+
         <button class="btn btn-gold" onclick="openModalPaziente()">+ Nuovo paziente</button>
 
       </div>
@@ -552,17 +554,17 @@ select option { background:var(--surface2); }
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Gruppo *</label>
-          <select id="pz-gruppo">
-            <option value="CRA">Pz CRA</option>
-            <option value="CD">Pz CD</option>
-          </select>
-        </div>
-        <div class="form-group">
           <label>Stato</label>
           <select id="pz-attivo">
             <option value="true">Attivo</option>
             <option value="false">Dimesso</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Terapia</label>
+          <select id="pz-terapia-sospesa">
+            <option value="false">In corso</option>
+            <option value="true">Sospesa (assenza)</option>
           </select>
         </div>
       </div>
@@ -875,8 +877,8 @@ let farmacoEditPzId = null;
 function showTab(t) {
   ['pazienti','inventario','report'].forEach(x => {
     document.getElementById('tab-'+x).style.display = x===t ? '' : 'none';
-    document.querySelectorAll('.nav-tabs .tab')[['pazienti','inventario','report'].indexOf(x)]
-      .classList.toggle('active', x===t);
+    const el = document.getElementById('htab-'+x);
+    if (el) el.classList.toggle('active', x===t);
   });
   if (t==='inventario') renderInventario();
 }
@@ -887,7 +889,7 @@ function showTab(t) {
 function renderLista() {
   const pazienti = load(SK.pazienti);
   const q = (document.getElementById('search-pz').value||'').toLowerCase();
-  const g = document.getElementById('filtro-gruppo').value;
+  const g = '';
   const terapie = load(SK.terapie);
 
   let lista = pazienti.filter(p => {
@@ -908,17 +910,14 @@ function renderLista() {
     const tt = terapie.filter(t => t.pazienteId===p.id && !t.dataFine);
     const nOrale   = tt.filter(t=>t.sezione==='orale').length;
     const nAltro   = tt.filter(t=>t.sezione!=='orale').length;
-    const badge = p.attivo==='false'||p.attivo===false
-      ? '<span class="badge badge-dim">Dimesso</span>'
-      : p.gruppo==='CD'
-        ? '<span class="badge badge-cd">Pz CD</span>'
-        : '<span class="badge badge-cra">Pz CRA</span>';
+    const badge = (p.attivo==='false'||p.attivo===false)
+      ? '<span class="badge badge-dim">Dimesso</span>' : '';
     return `
     <div class="pcard" onclick="apriScheda('${p.id}')">
       <div class="pcard-head">
         <div>
           <div class="pname">${p.cognome} ${p.nome}</div>
-          <div class="pmeta">${p.gruppo} · ${p.attivo==='false'||p.attivo===false?'Dimesso':'Attivo'}</div>
+          <div class="pmeta">${p.attivo==='false'||p.attivo===false?'Dimesso':'Attivo'}${(p.terapiaSospesa===true||p.terapiaSospesa==='true') ? ' · <span style="color:var(--amber)">⏸ Terapia sospesa</span>' : ''}</div>
           ${p.allergie ? `<div style="margin-top:4px;font-size:0.7rem;background:var(--amber-bg);border:1px solid var(--amber);color:var(--amber);border-radius:6px;padding:2px 7px;display:inline-block">⚠ ${p.allergie}</div>` : ''}
         </div>
         ${badge}
@@ -932,8 +931,9 @@ function renderLista() {
       </div>
       <div class="pcard-actions" onclick="event.stopPropagation()">
         <button class="btn btn-blue btn-sm" onclick="apriScheda('${p.id}')">📋 Scheda terapia</button>
+        <button class="btn ${(p.terapiaSospesa===true||p.terapiaSospesa==='true')?'btn-gold':'btn-ghost'} btn-sm" onclick="toggleTerapiaSospesa('${p.id}')">${(p.terapiaSospesa===true||p.terapiaSospesa==='true') ? '▶ Riprendi' : '⏸ Sospendi'}</button>
         <button class="btn btn-ghost btn-sm" onclick="openModalPaziente('${p.id}')">✏️</button>
-        <button class="btn btn-red btn-sm" onclick="eliminaPaziente('${p.id}')">🗑</button>
+        <button class="btn btn-ghost btn-sm" onclick="eliminaPaziente('${p.id}')">🗑</button>
       </div>
     </div>`;
   }).join('');
@@ -1130,7 +1130,8 @@ function renderScheda(pid) {
     <div class="scheda-header">
       <div>
         <div class="scheda-pname">${pz.cognome} ${pz.nome}</div>
-        <div class="scheda-meta">${pz.gruppo} · ${pz.attivo==='false'||pz.attivo===false?'Dimesso':'Attivo'} · ${attive.length} farmaci attivi</div>
+        <div class="scheda-meta">${pz.attivo==='false'||pz.attivo===false?'Dimesso':'Attivo'} · ${attive.length} farmaci attivi</div>
+        ${(pz.terapiaSospesa===true||pz.terapiaSospesa==='true') ? '<div style="margin-top:6px;font-size:0.8rem;background:var(--amber-bg);border:1px solid var(--amber);color:var(--amber);border-radius:8px;padding:4px 12px;font-weight:700">⏸ TERAPIA SOSPESA — conteggio farmaci escluso</div>' : ''}
         ${pz.allergie ? `<div style="margin-top:6px;font-size:0.8rem;background:var(--amber-bg);border:1px solid var(--amber);color:var(--amber);border-radius:8px;padding:4px 12px;font-weight:700">⚠ ALLERGIE: ${pz.allergie}</div>` : ''}
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -1255,7 +1256,7 @@ function stampaFoglioB(pid) {
         <h2>${pz.cognome} ${pz.nome}</h2>
         <div class="foglio-info">
           <span>Foglio n° ${nFoglio}</span>
-          <span>Gruppo: ${pz.gruppo}</span>
+
           <span>Aggiornato al: ${oggi}</span>
         </div>
       </div>
@@ -1370,13 +1371,16 @@ function openModalPaziente(pid) {
     if (pz) {
       document.getElementById('pz-cognome').value   = pz.cognome||'';
       document.getElementById('pz-nome').value     = pz.nome||'';
-      document.getElementById('pz-gruppo').value   = pz.gruppo||'CRA';
-      document.getElementById('pz-attivo').value   = String(pz.attivo!==false&&pz.attivo!=='false');
+
+      document.getElementById('pz-attivo').value          = String(pz.attivo!==false&&pz.attivo!=='false');
+      document.getElementById('pz-terapia-sospesa').value  = String(pz.terapiaSospesa===true||pz.terapiaSospesa==='true');
       document.getElementById('pz-allergie').value = pz.allergie||'';
       document.getElementById('pz-note').value     = pz.note||'';
     }
   } else {
     ['pz-cognome','pz-nome','pz-allergie','pz-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pz-attivo').value = 'true';
+  document.getElementById('pz-terapia-sospesa').value = 'false';
     document.getElementById('pz-gruppo').value='CRA';
     document.getElementById('pz-attivo').value='true';
   }
@@ -1393,15 +1397,16 @@ function salvaPaziente() {
     const idx = pazienti.findIndex(p=>p.id===editPzId);
     if (idx>=0) Object.assign(pazienti[idx], {
       cognome, nome,
-      gruppo:   document.getElementById('pz-gruppo').value,
+      gruppo:   'CRA',
       attivo:   document.getElementById('pz-attivo').value === 'true',
       allergie: document.getElementById('pz-allergie').value.trim(),
       note:     document.getElementById('pz-note').value.trim(),
     });
   } else {
     pazienti.push({ id:uid(), cognome, nome,
-      gruppo:   document.getElementById('pz-gruppo').value,
-      attivo:   true,
+      gruppo:   'CRA',
+      attivo:         true,
+      terapiaSospesa: false,
       allergie: document.getElementById('pz-allergie').value.trim(),
       note:     document.getElementById('pz-note').value.trim(),
     });
@@ -1411,6 +1416,18 @@ function salvaPaziente() {
   renderLista();
   if (pazienteAperto) renderScheda(pazienteAperto);
   toast(editPzId ? 'Paziente aggiornato' : 'Paziente aggiunto');
+}
+
+
+function toggleTerapiaSospesa(pid) {
+  const pazienti = load(SK.pazienti);
+  const idx = pazienti.findIndex(p=>p.id===pid);
+  if (idx<0) return;
+  pazienti[idx].terapiaSospesa = !(pazienti[idx].terapiaSospesa===true||pazienti[idx].terapiaSospesa==='true');
+  save(SK.pazienti, pazienti);
+  renderLista();
+  if (pazienteAperto===pid) renderScheda(pid);
+  toast(pazienti[idx].terapiaSospesa ? '⏸ Terapia sospesa — conteggio farmaci escluso' : '▶ Terapia ripresa');
 }
 
 function eliminaPaziente(pid) {
@@ -1652,6 +1669,10 @@ function calcolaConsumoCRA(farmId) {
       if (t.fonte !== 'CRA') return false;
       if (!t.farmacoCRAid || t.farmacoCRAid !== farmId) return false;
       if (t.sezione === 'bisogno') return false; // aggiornamento manuale
+      // escludi pazienti con terapia temporaneamente sospesa
+      const pzList = load(SK.pazienti);
+      const pzT = pzList.find(p=>p.id===t.pazienteId);
+      if (pzT && (pzT.terapiaSospesa===true||pzT.terapiaSospesa==='true')) return false;
       const di = t.dataInizio ? new Date(t.dataInizio) : null;
       const df = t.dataFine   ? new Date(t.dataFine)   : null;
       if (di && di > oggi) return false;
@@ -1674,6 +1695,7 @@ function calcolaConsumoCRA(farmId) {
 }
 
 function statoFarmaco(farm) {
+  if (farm.alertSospeso) return 'ok'; // alert silenziato manualmente
   const scorta  = calcolaScorta(farm);
   const consumo = calcolaConsumoCRA(farm.id);
   if (consumo > 0) {
@@ -1733,7 +1755,7 @@ function renderInventario() {
     <div class="inv-card stato-${stato}">
       <div class="inv-card-head">
         <div>
-          <div class="inv-nome">${f.nome}</div>
+          <div class="inv-nome">${f.nome} ${f.alertSospeso ? '<span style="font-size:0.6rem;background:var(--surface2);border:1px solid var(--dim);color:var(--dim);border-radius:10px;padding:1px 7px;font-family:Inconsolata,monospace;vertical-align:middle">ALERT SOSPESO</span>' : ''}</div>
           <div class="inv-forma">${f.forma||''} · ${f.udm||'unità'}/conf: ${f.xconf||'—'}</div>
         </div>
         <span class="badge ${stato==='ok'?'badge-cra':stato==='warn'?'' :''}" style="${stato==='urgent'?'background:var(--red-bg);color:var(--red);border:1px solid rgba(224,82,82,.3)':stato==='warn'?'background:var(--amber-bg);color:var(--amber);border:1px solid rgba(232,145,58,.3)':'background:var(--green-bg);color:var(--green);border:1px solid rgba(77,184,122,.3)'};font-family:Inconsolata,monospace;font-size:.6rem;padding:2px 8px;border-radius:20px;">
@@ -1768,7 +1790,8 @@ function renderInventario() {
         <button class="btn btn-gold btn-sm" onclick="openModalCarico('${f.id}')">+ Carico</button>
         <button class="btn btn-ghost btn-sm" onclick="openModalRettifica('${f.id}')">⚖ Rettifica</button>
         <button class="btn btn-ghost btn-sm" onclick="openModalFarmacioCRA('${f.id}')">✏️</button>
-        <button class="btn btn-red btn-sm" onclick="eliminaFarmacioCRA('${f.id}')">🗑</button>
+        <button class="btn btn-ghost btn-sm" title="${f.alertSospeso?'Riattiva alert':'Silenzia alert'}" onclick="toggleAlertSospeso('${f.id}')">${f.alertSospeso ? '🔔' : '🔕'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="eliminaFarmacioCRA('${f.id}')">🗑</button>
       </div>
     </div>`;
   }).join('');
@@ -1830,6 +1853,7 @@ function salvaFarmacioCRA() {
     sogliaWarnGg:   parseInt(document.getElementById('fcra-warn-gg').value)||8,
     sogliaUrgentGg: parseInt(document.getElementById('fcra-urgent-gg').value)||3,
     note:        document.getElementById('fcra-note').value.trim(),
+    alertSospeso: editFCRAid ? (load(SK_FCRA).find(x=>x.id===editFCRAid)||{}).alertSospeso||false : false,
   };
 
   if (editFCRAid) {
@@ -1842,6 +1866,17 @@ function salvaFarmacioCRA() {
   closeModal('modal-farmaco-cra');
   renderInventario();
   toast(editFCRAid ? 'Farmaco aggiornato' : 'Farmaco aggiunto al magazzino');
+}
+
+
+function toggleAlertSospeso(fid) {
+  const farmaci = load(SK_FCRA);
+  const idx = farmaci.findIndex(x=>x.id===fid);
+  if (idx<0) return;
+  farmaci[idx].alertSospeso = !farmaci[idx].alertSospeso;
+  save(SK_FCRA, farmaci);
+  renderInventario();
+  toast(farmaci[idx].alertSospeso ? 'Alert silenziato per questo farmaco' : 'Alert riattivato');
 }
 
 function eliminaFarmacioCRA(fid) {

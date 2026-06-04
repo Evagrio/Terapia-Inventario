@@ -1168,195 +1168,248 @@ function stampaFoglioB(pid) {
   const oggi = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
   const ORARI = ['8','13','15','20'];
 
-  const buildPrintRows = (sezione) => {
+  // ── Celle orario per stampa ───────────────────────────────────────────
+  const orariHeader = ORARI.map(o=>`<th class="or-cell">${o}</th>`).join('');
+
+  const buildOrariCells = (t) => ORARI.map(o => {
+    const on = t.orari && t.orari.includes(o);
+    return `<td class="or-cell">${on ? o : ''}</td>`;
+  }).join('');
+
+  // ── Righe per sezione ─────────────────────────────────────────────────
+  const buildRighe = (sezione, nRighe) => {
     const rows = attive.filter(t=>t.sezione===sezione);
-    if (!rows.length) {
-      return `<tr><td colspan="8" style="color:#aaa;font-style:italic;text-align:center;padding:4mm">—</td></tr>`;
+    const result = [];
+    for (let i = 0; i < nRighe; i++) {
+      const t = rows[i];
+      if (t) {
+        const fonte = t.fonte==='personale' ? '<br><span style="font-size:6pt;color:#666">[pers.]</span>' : '';
+        result.push(`<tr>
+          <td class="data-cell">${t.dataInizio||''}</td>
+          <td class="firma-cell"></td>
+          <td class="drug-cell">${t.farmaco} — ${t.dose}${t.via?' ('+t.via+')':''}${fonte}</td>
+          ${buildOrariCells(t)}
+          <td class="data-cell">${t.dataFine||''}</td>
+          <td class="firma-cell"></td>
+        </tr>`);
+      } else {
+        result.push(`<tr>
+          <td class="data-cell"></td><td class="firma-cell"></td>
+          <td class="drug-cell"></td>
+          <td class="or-cell"></td><td class="or-cell"></td><td class="or-cell"></td><td class="or-cell"></td>
+          <td class="data-cell"></td><td class="firma-cell"></td>
+        </tr>`);
+      }
     }
-    return rows.map(t => {
-      const orariCells = ORARI.map(o => {
-        const on = t.orari && t.orari.includes(o);
-        return `<td class="orario-cell">${on ? o : ''}</td>`;
-      }).join('');
-      return `<tr>
-        <td class="data-cell">${t.dataInizio||''}<br><br></td>
-        <td class="firma-cell"></td>
-        <td>${t.farmaco} — ${t.dose}${t.via?' ('+t.via+')':''}<br><small style="color:#555">${t.fonte==='personale'?'[farmaco personale]':'[farmaci CRA]'}</small></td>
-        ${orariCells}
-        <td class="data-cell">${t.dataFine||''}<br><br></td>
-        <td class="firma-cell"></td>
-      </tr>`;
-    }).join('');
+    return result.join('');
   };
 
-  const buildBisognoPrint = () => {
+  const buildRigheBisogno = (nRighe) => {
     const rows = attive.filter(t=>t.sezione==='bisogno');
-    if (!rows.length) return `<tr><td colspan="5" style="color:#aaa;font-style:italic;text-align:center;padding:4mm">—</td></tr>`;
-    return rows.map(t => `<tr>
-      <td class="data-cell">${t.dataInizio||''}<br><br></td>
-      <td class="firma-cell"></td>
-      <td>${t.farmaco} — ${t.dose}${t.via?' ('+t.via+')':''}</td>
-      <td>${t.indicazione||''}</td>
-      <td class="data-cell">${t.dataFine||''}<br><br></td>
-      <td class="firma-cell"></td>
-    </tr>`).join('');
+    const result = [];
+    for (let i = 0; i < nRighe; i++) {
+      const t = rows[i];
+      if (t) {
+        const fonte = t.fonte==='personale' ? ' <span style="font-size:6pt;color:#666">[pers.]</span>' : '';
+        result.push(`<tr>
+          <td class="data-cell">${t.dataInizio||''}</td>
+          <td class="firma-cell"></td>
+          <td class="drug-cell" colspan="5">${t.farmaco} — ${t.dose}${t.via?' ('+t.via+')':''}${t.indicazione?' — '+t.indicazione:''}${fonte}</td>
+          <td class="data-cell">${t.dataFine||''}</td>
+          <td class="firma-cell"></td>
+        </tr>`);
+      } else {
+        result.push(`<tr>
+          <td class="data-cell"></td><td class="firma-cell"></td>
+          <td class="drug-cell" colspan="5"></td>
+          <td class="data-cell"></td><td class="firma-cell"></td>
+        </tr>`);
+      }
+    }
+    return result.join('');
   };
 
-  const buildLAPrint = () => ''; // sostituita da buildLASections
-
-  const buildLASections = () => {
+  const buildRigheLongActing = (nRighe) => {
     const rows = attive.filter(t=>t.sezione==='longacting');
-    if (!rows.length) return `
-      <div class="print-section">
-        <div class="print-section-title">Terapia Long Acting</div>
-        <table class="print-table">
-          <thead><tr>
-            <th class="data-cell">Data inizio</th><th class="firma-cell">Firma medico</th>
-            <th>Farmaco / Dose / Via</th>
-            <th class="data-cell">Data eseguita</th>
-            <th class="firma-cell">Firma Inf.</th>
-            <th class="data-cell">Data prossima</th>
-          </tr></thead>
-          <tbody><tr><td colspan="6" style="color:#aaa;font-style:italic;text-align:center;padding:4mm">—</td></tr></tbody>
-        </table>
-      </div>`;
-    return rows.map(t => {
-      const giorni = t.laGiorni ? ' ogni ' + t.laGiorni + ' giorni' : '';
-      return `
-      <div class="print-section">
-        <div class="print-section-title">Terapia Long Acting${giorni}</div>
-        <table class="print-table">
-          <thead><tr>
-            <th class="data-cell">Data inizio</th>
-            <th class="firma-cell">Firma medico</th>
-            <th>Farmaco / Dose / Via</th>
-            <th class="data-cell">Data eseguita</th>
-            <th class="firma-cell">Firma Inf.</th>
-            <th class="data-cell">Data prossima</th>
-          </tr></thead>
-          <tbody>
-            <tr>
-              <td class="data-cell">${t.dataInizio||''}<br><br></td>
-              <td class="firma-cell"></td>
-              <td>${t.farmaco} — ${t.dose}${t.via?' ('+t.via+')':''}<br><small style="color:#555">${t.fonte==='personale'?'[farmaco personale]':'[farmaci CRA]'}</small></td>
-              <td class="data-cell">${t.laEseguita||''}</td>
-              <td class="firma-cell"></td>
-              <td class="data-cell">${t.laProssima||''}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>`;
-    }).join('');
+    const result = [];
+    for (let i = 0; i < nRighe; i++) {
+      const t = rows[i];
+      if (t) {
+        const fonte = t.fonte==='personale' ? ' <span style="font-size:6pt;color:#666">[pers.]</span>' : '';
+        result.push(`<tr>
+          <td class="data-cell">${t.dataInizio||''}</td>
+          <td class="firma-cell"></td>
+          <td class="drug-cell">${t.farmaco} — ${t.dose}${fonte}</td>
+          <td class="data-cell" colspan="2">${t.laEseguita||''}</td>
+          <td class="firma-cell" style="font-size:7pt;color:#888">Firma Inf.</td>
+          <td class="data-cell" colspan="3">${t.laProssima||''}</td>
+        </tr>`);
+      } else {
+        result.push(`<tr>
+          <td class="data-cell"></td><td class="firma-cell"></td>
+          <td class="drug-cell"></td>
+          <td class="data-cell" colspan="2"></td>
+          <td class="firma-cell"></td>
+          <td class="data-cell" colspan="3"></td>
+        </tr>`);
+      }
+    }
+    return result.join('');
   };
 
-  const printHTML = `
-    <div class="print-page">
-      <div class="print-header">
-        <h1>FOGLIO TERAPIA</h1>
-        <h2>${pz.cognome} ${pz.nome}</h2>
-        <div class="foglio-info">
-          <span>Foglio n° ${nFoglio}</span>
+  // ── Long Acting: titolo con giorni ───────────────────────────────────
+  const laRows = attive.filter(t=>t.sezione==='longacting');
+  const laGiorniLabel = laRows.length > 0 && laRows[0].laGiorni
+    ? ` OGNI ${laRows[0].laGiorni} GIORNI` : '';
 
-          <span>Aggiornato al: ${oggi}</span>
-        </div>
-      </div>
+  // ── HTML completo pagina ─────────────────────────────────────────────
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Foglio Terapia — ${pz.cognome} ${pz.nome}</title>
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Times New Roman',serif; font-size:8.5pt; background:#fff; color:#000; }
+    .page { padding:8mm 10mm 6mm; }
 
-      <div class="print-section">
-        <div class="print-section-title">Terapia Orale</div>
-        <table class="print-table">
-          <thead><tr>
-            <th class="data-cell">Data inizio</th>
-            <th class="firma-cell">Firma medico</th>
-            <th>Farmaco / Dose</th>
-            <th class="orario-cell">8</th>
-            <th class="orario-cell">13</th>
-            <th class="orario-cell">15</th>
-            <th class="orario-cell">20</th>
-            <th class="data-cell">Data sosp.</th>
-            <th class="firma-cell">Firma medico</th>
-          </tr></thead>
-          <tbody>${buildPrintRows('orale')}</tbody>
-        </table>
-      </div>
+    /* INTESTAZIONE */
+    .hdr-table { width:100%; border-collapse:collapse; margin-bottom:3mm; }
+    .hdr-logo  { font-size:9pt; font-weight:bold; width:30%; vertical-align:top; }
+    .hdr-title { font-size:11pt; font-weight:bold; text-align:center; vertical-align:middle; }
+    .hdr-pz    { font-size:9pt; text-align:right; width:30%; vertical-align:top; }
+    .hdr-sub   { font-size:7.5pt; font-weight:normal; display:block; margin-top:1mm; }
 
-      <div class="print-section">
-        <div class="print-section-title">Terapia Topica / IM / SC / EV / Varie</div>
-        <table class="print-table">
-          <thead><tr>
-            <th class="data-cell">Data inizio</th>
-            <th class="firma-cell">Firma medico</th>
-            <th>Farmaco / Dose / Via</th>
-            <th class="orario-cell">8</th>
-            <th class="orario-cell">13</th>
-            <th class="orario-cell">15</th>
-            <th class="orario-cell">20</th>
-            <th class="data-cell">Data sosp.</th>
-            <th class="firma-cell">Firma medico</th>
-          </tr></thead>
-          <tbody>${buildPrintRows('topica')}</tbody>
-        </table>
-      </div>
+    /* GRIGLIA TERAPIA */
+    .terapia-table { width:100%; border-collapse:collapse; font-size:7.5pt; table-layout:fixed; }
+    .terapia-table th {
+      border:1px solid #000; padding:1.5mm 1mm; text-align:center;
+      background:#e8e8e8; font-size:7pt; font-weight:bold; line-height:1.2;
+    }
+    .terapia-table td {
+      border:1px solid #000; padding:1mm; min-height:6.5mm; height:6.5mm;
+      vertical-align:middle; line-height:1.2;
+    }
+    .data-cell  { width:18mm; text-align:center; font-size:7pt; }
+    .firma-cell { width:20mm; }
+    .drug-cell  { text-align:left; font-size:7.5pt; }
+    .or-cell    { width:9mm; text-align:center; font-size:7pt; }
 
-      <div class="print-section">
-        <div class="print-section-title">Terapia al Bisogno</div>
-        <table class="print-table">
-          <thead><tr>
-            <th class="data-cell">Data inizio</th>
-            <th class="firma-cell">Firma medico</th>
-            <th>Farmaco / Dose / Via</th>
-            <th>Indicazione</th>
-            <th class="data-cell">Data sosp.</th>
-            <th class="firma-cell">Firma medico</th>
-          </tr></thead>
-          <tbody>${buildBisognoPrint()}</tbody>
-        </table>
-      </div>
+    /* TITOLI SEZIONE */
+    .sez-row td {
+      background:#d0d0d0; font-weight:bold; font-size:8pt;
+      text-transform:uppercase; letter-spacing:.04em;
+      padding:1.5mm 2mm; border:1px solid #000;
+    }
 
-      ${buildLASections()}
+    /* FOOTER */
+    .footer-aggiornata {
+      font-size:7.5pt; margin-top:2mm;
+      display:flex; justify-content:space-between;
+    }
+    .footer-ente {
+      font-size:7pt; color:#333; text-align:center;
+      margin-top:1.5mm; border-top:1px solid #aaa; padding-top:1.5mm;
+    }
+    @page { size:A4 portrait; margin:8mm; }
+  </style>
+  </head><body>
+  <div class="page">
 
-      <div class="print-footer">
-        <span>Aggiornata al: ${oggi}</span>
-        <span>Foglio n° ${nFoglio}</span>
-      </div>
-      <div class="print-ente">
-        FONDAZIONE EMILIA BOSIS — www.fondazionebosis.it — verdello@fondazionebosis.it<br>
-        CASCINA GERMOGLIO COMUNITÀ AD ALTA RIABILITAZIONE, VIA SOLFERINO 51 - 24049 VERDELLO (BG) TEL. 035/4813814
-      </div>
-    </div>`;
+    <!-- INTESTAZIONE -->
+    <table class="hdr-table">
+      <tr>
+        <td class="hdr-logo">
+          FONDAZIONE<br>EMILIA BOSIS
+          <span class="hdr-sub">Cascina Germoglio</span>
+        </td>
+        <td class="hdr-title">
+          FOGLIO TERAPIA &nbsp; n.&nbsp;${nFoglio}
+          <span class="hdr-sub">COMUNITÀ "IL GERMOGLIO" — VERDELLO (BG)</span>
+        </td>
+        <td class="hdr-pz">
+          <strong>${pz.cognome} ${pz.nome}</strong>
+          <span class="hdr-sub">${pz.allergie?'⚠ Allergie: '+pz.allergie:''}</span>
+        </td>
+      </tr>
+    </table>
+
+    <!-- GRIGLIA PRINCIPALE -->
+    <table class="terapia-table">
+      <colgroup>
+        <col style="width:18mm"><col style="width:20mm">
+        <col><col style="width:9mm"><col style="width:9mm">
+        <col style="width:9mm"><col style="width:9mm">
+        <col style="width:18mm"><col style="width:20mm">
+      </colgroup>
+
+      <!-- HEADER COLONNE -->
+      <thead>
+        <tr>
+          <th>DATA<br>INIZIO</th>
+          <th>FIRMA<br>MEDICO</th>
+          <th>TERAPIA ORALE</th>
+          ${orariHeader}
+          <th>DATA<br>SOSP.</th>
+          <th>FIRMA<br>MEDICO</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <!-- 17 righe TERAPIA ORALE -->
+        ${buildRighe('orale', 17)}
+
+        <!-- TERAPIA TOPICA -->
+        <tr class="sez-row"><td colspan="9">Terapia Topica &nbsp;/&nbsp; I.M. &nbsp;/&nbsp; S.C. &nbsp;/&nbsp; E.V. &nbsp;/&nbsp; Varie</td></tr>
+        ${buildRighe('topica', 3)}
+
+        <!-- TERAPIA AL BISOGNO -->
+        <tr class="sez-row"><td colspan="9">Terapia al Bisogno</td></tr>
+        ${buildRigheBisogno(5)}
+
+        <!-- TERAPIA LONG ACTING -->
+        <tr class="sez-row">
+          <td colspan="9">Terapia Long Acting${laGiorniLabel}</td>
+        </tr>
+        <!-- sub-header long acting -->
+        <tr>
+          <th class="data-cell">DATA<br>INIZIO</th>
+          <th class="firma-cell">FIRMA<br>MEDICO</th>
+          <th class="drug-cell">FARMACO / DOSE / VIA</th>
+          <th class="data-cell" colspan="2">DATA<br>ESEGUITA</th>
+          <th class="firma-cell">FIRMA<br>INF.</th>
+          <th class="data-cell" colspan="3">DATA<br>PROSSIMA</th>
+        </tr>
+        ${buildRigheLongActing(2)}
+      </tbody>
+    </table>
+
+    <!-- AGGIORNATA AL -->
+    <div class="footer-aggiornata">
+      <span>Aggiornata al: <strong>${oggi}</strong></span>
+      <span>Foglio n.&nbsp;${nFoglio}</span>
+    </div>
+
+    <!-- PIÈ DI PAGINA ENTE -->
+    <div class="footer-ente">
+      FONDAZIONE EMILIA BOSIS &nbsp;·&nbsp; www.fondazionebosis.it &nbsp;·&nbsp; verdello@fondazionebosis.it<br>
+      COMUNITÀ "IL GERMOGLIO", VIA SOLFERINO 51 - 24049 VERDELLO (BG) &nbsp; TEL. 035/4813814
+    </div>
+
+  </div>
+  <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`;
 
   // Incrementa numero foglio
   const cnt = loadO(SK.contatori);
   cnt[pid] = (cnt[pid]||1) + 1;
   save(SK.contatori, cnt);
 
-  const w = window.open('','_blank','width=1100,height=800');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Foglio Terapia — ${pz.cognome} ${pz.nome}</title>
-  <style>
-    body{font-family:'Times New Roman',serif;background:#fff;color:#000;margin:0;}
-    .print-page{padding:15mm 15mm 10mm;}
-    .print-header{text-align:center;margin-bottom:8mm;border-bottom:2px solid #000;padding-bottom:4mm;}
-    .print-header h1{font-size:14pt;font-weight:bold;}
-    .print-header h2{font-size:12pt;margin-top:2mm;}
-    .foglio-info{font-size:9pt;margin-top:3mm;display:flex;justify-content:space-between;}
-    .print-section{margin-top:6mm;}
-    .print-section-title{font-size:9pt;font-weight:bold;text-transform:uppercase;border-bottom:1.5px solid #000;padding-bottom:1mm;margin-bottom:2mm;}
-    .print-table{width:100%;border-collapse:collapse;font-size:8pt;}
-    .print-table th{border:1px solid #000;padding:2mm 3mm;text-align:left;background:#f0f0f0;font-size:7pt;}
-    .print-table td{border:1px solid #000;padding:2mm 3mm;min-height:8mm;}
-    .firma-cell{width:28mm;}
-    .data-cell{width:22mm;}
-    .orario-cell{width:12mm;text-align:center;}
-    .print-footer{margin-top:8mm;border-top:1px solid #aaa;padding-top:3mm;font-size:7pt;color:#555;display:flex;justify-content:space-between;}
-    .print-ente{font-size:6.5pt;color:#555;text-align:center;margin-top:4mm;}
-    @page{size:A4 landscape;margin:8mm;}
-  </style></head><body>${printHTML}
-  <script>window.onload=()=>{window.print();}<\/script>
-  </body></html>`);
+  const w = window.open('','_blank');
+  w.document.write(html);
   w.document.close();
 
-  renderScheda(pid); // aggiorna numero foglio in vista
+  renderScheda(pid);
   toast('Foglio n°'+(cnt[pid]-1)+' inviato alla stampa');
 }
+
 
 // ============================================================
 // MODAL PAZIENTE

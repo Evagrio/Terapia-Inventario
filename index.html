@@ -1002,6 +1002,7 @@ function showTab(t) {
     if (el) el.classList.toggle('active', x===t);
   });
   if (t==='inventario') renderInventario();
+  if (t==='report')     showReportTab('consumi');
 }
 
 // ============================================================
@@ -2837,15 +2838,6 @@ function stampaReportPazienti() {
   ${blocchi}
   <script>window.onload=()=>window.print()<\/script></body></html>`);
   w.document.close();
-}
-
-// ── Hook per apertura tab report ────────────────────────────────────────────
-const _origShowTab = showTab;
-function showTab(t) {
-  _origShowTab(t);
-  if (t==='report') {
-    showReportTab('consumi');
-  }
 }
 
 // ============================================================

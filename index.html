@@ -168,6 +168,12 @@ select option { background:var(--surface2); }
 .orario-check input { width:auto; }
 .orario-check span { font-family:'Inconsolata',monospace; font-size:0.82rem; }
 
+/* CONVALIDA TERAPIA STAMPA */
+@media print {
+  .convalida-page { page-break-after: always; }
+  .convalida-page:last-child { page-break-after: avoid; }
+}
+
 /* PRINT STYLES */
 @media print {
   body { background:#fff; color:#000; font-family:'Times New Roman',serif; }
@@ -331,6 +337,7 @@ select option { background:var(--surface2); }
         </div>
 
         <button class="btn btn-gold" onclick="openModalPaziente()">+ Nuovo paziente</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModalConvalida()">🗓 Convalida terapia</button>
 
       </div>
     </div>
@@ -2151,6 +2158,161 @@ function editNFoglio(pid) {
   toast('Numero foglio aggiornato a ' + n);
 }
 
+
+// ============================================================
+// CONVALIDA TERAPIA
+// ============================================================
+
+function openModalConvalida() {
+  // Preseleziona mese corrente
+  const now = new Date();
+  const mesi = ['GENNAIO','FEBBRAIO','MARZO','APRILE','MAGGIO','GIUGNO',
+                'LUGLIO','AGOSTO','SETTEMBRE','OTTOBRE','NOVEMBRE','DICEMBRE'];
+  document.getElementById('conv-mese').value = mesi[now.getMonth()];
+  document.getElementById('conv-anno').value = now.getFullYear();
+  document.getElementById('conv-pazienti-sel').value = 'tutti';
+  document.getElementById('conv-pz-singolo').style.display = 'none';
+
+  // Popola select paziente singolo
+  const pazienti = load(SK.pazienti).filter(p=>p.attivo!==false&&p.attivo!=='false');
+  const sel = document.getElementById('conv-pz-id');
+  sel.innerHTML = pazienti.map(p=>`<option value="${p.id}">${p.cognome} ${p.nome}</option>`).join('');
+
+  // Toggle singolo/tutti
+  document.getElementById('conv-pazienti-sel').onchange = function() {
+    document.getElementById('conv-pz-singolo').style.display =
+      this.value === 'singolo' ? '' : 'none';
+  };
+
+  openModal('modal-convalida');
+}
+
+function stampaConvalida() {
+  const mese  = document.getElementById('conv-mese').value;
+  const anno  = document.getElementById('conv-anno').value;
+  const modo  = document.getElementById('conv-pazienti-sel').value;
+
+  let pazienti = load(SK.pazienti).filter(p=>p.attivo!==false&&p.attivo!=='false');
+  if (modo === 'singolo') {
+    const pid = document.getElementById('conv-pz-id').value;
+    pazienti = pazienti.filter(p=>p.id===pid);
+  }
+
+  if (!pazienti.length) { toast('Nessun paziente attivo'); return; }
+
+  // Calcola numero giorni del mese
+  const meseIdx = ['GENNAIO','FEBBRAIO','MARZO','APRILE','MAGGIO','GIUGNO',
+    'LUGLIO','AGOSTO','SETTEMBRE','OTTOBRE','NOVEMBRE','DICEMBRE'].indexOf(mese);
+  const nGiorni = new Date(parseInt(anno), meseIdx+1, 0).getDate();
+  const ORARI = ['8','13','15','20'];
+
+  const buildFoglio = (pz) => {
+    const righeGiorni = Array.from({length: nGiorni}, (_,i) => `
+      <tr>
+        <td class="cv-gg">${i+1}</td>
+        <td class="cv-ann"></td>
+        <td class="cv-or"></td>
+        <td class="cv-or"></td>
+        <td class="cv-or"></td>
+        <td class="cv-or"></td>
+      </tr>`).join('');
+
+    return `
+    <div class="convalida-page">
+
+      <!-- INTESTAZIONE -->
+      <table class="cv-hdr-table">
+        <tr>
+          <td class="cv-logo">
+            FONDAZIONE<br>EMILIA BOSIS
+          </td>
+          <td class="cv-pz-box">
+            ${pz.cognome} ${pz.nome}
+          </td>
+        </tr>
+      </table>
+
+      <!-- TITOLO -->
+      <table class="cv-title-table">
+        <tr>
+          <td class="cv-title-left">convalida <strong>TERAPIA</strong></td>
+          <td class="cv-title-right"><strong>${mese} ${anno}</strong></td>
+        </tr>
+      </table>
+
+      <!-- GRIGLIA GIORNI -->
+      <table class="cv-table">
+        <thead>
+          <tr>
+            <th class="cv-gg">gg</th>
+            <th class="cv-ann">annotazioni</th>
+            ${ORARI.map(o=>`<th class="cv-or">${o}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${righeGiorni}
+        </tbody>
+      </table>
+
+    </div>`;
+  };
+
+  const allPages = pazienti.map(buildFoglio).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Convalida Terapia — ${mese} ${anno}</title>
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Times New Roman',serif; font-size:9pt; background:#fff; color:#000; }
+
+    .convalida-page {
+      padding: 10mm 12mm 8mm;
+      page-break-after: always;
+      min-height: 277mm;
+      display: flex;
+      flex-direction: column;
+    }
+    .convalida-page:last-child { page-break-after: avoid; }
+
+    /* INTESTAZIONE */
+    .cv-hdr-table { width:100%; border-collapse:collapse; margin-bottom:6mm; }
+    .cv-logo { font-size:8pt; font-weight:bold; width:40%; vertical-align:top; font-style:italic; }
+    .cv-pz-box {
+      width:55%; text-align:center; font-size:13pt; font-weight:bold;
+      border:1.5px solid #000; padding:3mm 5mm; vertical-align:middle;
+    }
+
+    /* TITOLO */
+    .cv-title-table { width:100%; border-collapse:collapse; margin-bottom:5mm; }
+    .cv-title-left  { font-size:12pt; width:50%; vertical-align:bottom; }
+    .cv-title-right { font-size:16pt; font-weight:bold; text-align:right; vertical-align:bottom; }
+
+    /* GRIGLIA */
+    .cv-table { width:100%; border-collapse:collapse; flex:1; }
+    .cv-table th {
+      border:1px solid #555; padding:1.5mm 1mm;
+      text-align:center; font-size:8pt;
+      background:#f0f0f0;
+    }
+    .cv-table td { border:1px solid #aaa; padding:0; height:7.2mm; }
+    .cv-gg  { width:10mm; text-align:center; font-size:8pt; border-right:1px solid #555 !important; }
+    .cv-ann { text-align:left; padding-left:2mm !important; }
+    .cv-or  { width:13mm; text-align:center; border-left:1px solid #555 !important; }
+
+    @page { size:A4 portrait; margin:6mm; }
+  </style>
+  </head><body>
+  ${allPages}
+  <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`;
+
+  closeModal('modal-convalida');
+  const w = window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  toast('Convalida terapia inviata alla stampa');
+}
+
 // ============================================================
 // BACKUP ESPORTA / IMPORTA
 // ============================================================
@@ -2273,6 +2435,59 @@ aggiornaCampiSezione();
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modal-cambia-pwd')">Annulla</button>
       <button class="btn btn-gold" onclick="eseguiCambioPassword()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONVALIDA TERAPIA -->
+<div class="overlay" id="modal-convalida">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <span class="modal-title">🗓 Convalida Terapia — Stampa</span>
+      <button class="close-btn" onclick="closeModal('modal-convalida')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:4px">
+        Inserisci mese e anno una volta sola — verranno riportati su tutti i fogli.
+      </p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Mese</label>
+          <select id="conv-mese">
+            <option value="GENNAIO">Gennaio</option>
+            <option value="FEBBRAIO">Febbraio</option>
+            <option value="MARZO">Marzo</option>
+            <option value="APRILE">Aprile</option>
+            <option value="MAGGIO">Maggio</option>
+            <option value="GIUGNO">Giugno</option>
+            <option value="LUGLIO">Luglio</option>
+            <option value="AGOSTO">Agosto</option>
+            <option value="SETTEMBRE">Settembre</option>
+            <option value="OTTOBRE">Ottobre</option>
+            <option value="NOVEMBRE">Novembre</option>
+            <option value="DICEMBRE">Dicembre</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Anno</label>
+          <input type="number" id="conv-anno" value="2026" min="2024" max="2099">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Pazienti da stampare</label>
+        <select id="conv-pazienti-sel">
+          <option value="tutti">Tutti i pazienti attivi</option>
+          <option value="singolo">Paziente singolo</option>
+        </select>
+      </div>
+      <div class="form-group" id="conv-pz-singolo" style="display:none">
+        <label>Seleziona paziente</label>
+        <select id="conv-pz-id"></select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-convalida')">Annulla</button>
+      <button class="btn btn-gold" onclick="stampaConvalida()">🖨 Stampa tutti</button>
     </div>
   </div>
 </div>

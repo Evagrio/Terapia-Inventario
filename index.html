@@ -1902,8 +1902,17 @@ function stampaFoglioB(pid) {
     }
 
     /* FOOTER */
-    .footer-aggiornata { font-size:7pt; margin-top:1.5mm; display:flex; justify-content:space-between; }
-    .footer-ente { font-size:6pt; color:#444; text-align:center; margin-top:1mm; border-top:1px solid #bbb; padding-top:1mm; }
+    .footer-cell {
+      border:none !important;
+      height:auto !important;
+      min-height:0 !important;
+      overflow:visible !important;
+      padding:1.5mm 0 0 !important;
+      -webkit-print-color-adjust:exact;
+      print-color-adjust:exact;
+    }
+    .footer-aggiornata { font-size:7pt; display:flex; justify-content:space-between; margin-bottom:1mm; }
+    .footer-ente { font-size:6pt; color:#000; text-align:center; border-top:1px solid #999; padding-top:1mm; line-height:1.5; }
 
     @page { size:A4 portrait; margin:5mm; }
   </style>
@@ -1958,13 +1967,13 @@ function stampaFoglioB(pid) {
           <th class="data-cell-la" colspan="4">DATA<br>PROSSIMA</th>
         </tr>
         ${buildRigheLongActing()}
-        <tr>
-          <td colspan="9" style="border:none; padding-top:1.5mm; padding-bottom:0;">
-            <div style="display:flex; justify-content:space-between; font-size:7pt;">
+        <tr class="footer-row">
+          <td colspan="9" class="footer-cell">
+            <div class="footer-aggiornata">
               <span>Aggiornata al: <strong>${oggi}</strong></span>
               <span>Foglio n.&nbsp;${nFoglio}</span>
             </div>
-            <div style="font-size:6pt; color:#444; text-align:center; margin-top:1mm; border-top:1px solid #bbb; padding-top:1mm;">
+            <div class="footer-ente">
               FONDAZIONE EMILIA BOSIS &nbsp;&nbsp; www.fondazionebosis.it &nbsp;&nbsp; verdello@fondazionebosis.it<br>
               COMUNITÀ "IL GERMOGLIO", VIA SOLFERINO 51 - 24049 VERDELLO (BG) &nbsp; TEL. 035/4813814
             </div>

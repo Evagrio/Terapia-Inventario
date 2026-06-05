@@ -278,21 +278,6 @@ select option { background:var(--surface2); }
 .inv-stat { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 20px; flex:1; min-width:140px; }
 .inv-stat-n { font-family:'Inconsolata',monospace; font-size:1.4rem; font-weight:600; }
 .inv-stat-l { font-size:0.7rem; color:var(--muted); margin-top:3px; }
-
-/* REPORT */
-.rep-pz-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; }
-.rep-pz-head { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
-.rep-pz-head:hover { background:var(--surface2); }
-.rep-pz-name { font-family:'Playfair Display',serif; font-size:1rem; }
-.rep-pz-meta { font-family:'Inconsolata',monospace; font-size:0.7rem; color:var(--muted); margin-top:2px; }
-.rep-pz-body { padding:0 16px 14px; }
-.rep-farmaci-mini { width:100%; border-collapse:collapse; font-size:0.78rem; margin-top:10px; }
-.rep-farmaci-mini th { font-family:'Inconsolata',monospace; font-size:0.62rem; color:var(--muted); font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border); text-align:left; }
-.rep-farmaci-mini td { padding:7px 8px; border-bottom:1px solid var(--border); vertical-align:middle; }
-.rep-farmaci-mini tr:last-child td { border-bottom:none; }
-.rep-stato-ok     { color:var(--green); font-family:'Inconsolata',monospace; font-size:0.72rem; }
-.rep-stato-warn   { color:var(--amber); font-family:'Inconsolata',monospace; font-size:0.72rem; }
-.rep-stato-urgent { color:var(--red); font-family:'Inconsolata',monospace; font-size:0.72rem; }
 </style>
 </head>
 <body>
@@ -548,111 +533,12 @@ select option { background:var(--surface2); }
   </div>
 </div>
 
-<!-- ===================== TAB REPORT ===================== -->
+<!-- ===================== TAB REPORT (placeholder) ===================== -->
 <div id="tab-report" class="container" style="display:none;">
-
-  <div class="toolbar">
-    <div>
-      <h2>Report</h2>
-      <p id="report-subtitle">Consumi, scorte e terapie per paziente</p>
-    </div>
-    <div class="tbar-right">
-      <div class="hdr-tabs" style="margin:0;gap:2px">
-        <div class="htab active" id="rtab-consumi" onclick="showReportTab('consumi')">📦 Consumi farmaci</div>
-        <div class="htab" id="rtab-mensile" onclick="showReportTab('mensile')">📅 Fabbisogno mensile</div>
-        <div class="htab" id="rtab-pazienti" onclick="showReportTab('pazienti')">👤 Terapie pazienti</div>
-      </div>
-    </div>
+  <div class="empty-state">
+    <div class="icon">📊</div>
+    <p>Report consumi — disponibile nella Sessione 3</p>
   </div>
-
-  <!-- REPORT CONSUMI PER FARMACO -->
-  <div id="report-consumi">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
-      <p style="font-size:0.78rem;color:var(--muted)">Consumi giornalieri calcolati dalle terapie attive (esclusi al bisogno e pazienti con terapia sospesa)</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--muted);cursor:pointer;text-transform:none;letter-spacing:0">
-          <input type="checkbox" id="rep-solo-attivi" onchange="renderReportConsumi()" style="width:auto;accent-color:var(--gold)">
-          Solo farmaci con consumo attivo
-        </label>
-        <button class="btn btn-ghost btn-sm" onclick="stampaReportConsumi()">🖨 Stampa</button>
-      </div>
-    </div>
-    <div style="overflow-x:auto;">
-      <table class="drug-table" id="rep-consumi-table" style="min-width:700px;">
-        <thead>
-          <tr>
-            <th>Farmaco</th>
-            <th>Forma</th>
-            <th style="text-align:right">Consumo/die</th>
-            <th style="text-align:right">Scorta residua</th>
-            <th style="text-align:right">Giorni residui</th>
-            <th style="text-align:right">Pz. in terapia</th>
-            <th style="text-align:center">Stato</th>
-          </tr>
-        </thead>
-        <tbody id="rep-consumi-body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- REPORT FABBISOGNO MENSILE -->
-  <div id="report-mensile" style="display:none;">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
-      <div class="form-group" style="flex-direction:row;align-items:center;gap:8px;margin:0">
-        <label style="white-space:nowrap;margin:0">Mese:</label>
-        <select id="rep-mese" onchange="renderReportMensile()" style="width:auto">
-          <option value="0">Gennaio</option><option value="1">Febbraio</option>
-          <option value="2">Marzo</option><option value="3">Aprile</option>
-          <option value="4">Maggio</option><option value="5">Giugno</option>
-          <option value="6">Luglio</option><option value="7">Agosto</option>
-          <option value="8">Settembre</option><option value="9">Ottobre</option>
-          <option value="10">Novembre</option><option value="11">Dicembre</option>
-        </select>
-      </div>
-      <div class="form-group" style="flex-direction:row;align-items:center;gap:8px;margin:0">
-        <label style="white-space:nowrap;margin:0">Anno:</label>
-        <input type="number" id="rep-anno" value="2026" min="2024" max="2099" onchange="renderReportMensile()" style="width:90px">
-      </div>
-      <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--muted);cursor:pointer;text-transform:none;letter-spacing:0">
-        <input type="checkbox" id="rep-mens-solo-attivi" onchange="renderReportMensile()" style="width:auto;accent-color:var(--gold)">
-        Solo farmaci con consumo attivo
-      </label>
-      <button class="btn btn-ghost btn-sm" onclick="stampaReportMensile()">🖨 Stampa</button>
-    </div>
-    <p style="font-size:0.78rem;color:var(--muted);margin-bottom:14px" id="rep-mens-subtitle"></p>
-    <div style="overflow-x:auto;">
-      <table class="drug-table" id="rep-mensile-table" style="min-width:600px;">
-        <thead>
-          <tr>
-            <th>Farmaco</th>
-            <th>Forma</th>
-            <th style="text-align:right">Consumo/die</th>
-            <th style="text-align:right" id="rep-col-fabbisogno">Fabbisogno mensile</th>
-            <th style="text-align:right">Scorta residua</th>
-            <th style="text-align:right">Da ordinare (stima)</th>
-          </tr>
-        </thead>
-        <tbody id="rep-mensile-body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- REPORT TERAPIE PER PAZIENTE -->
-  <div id="report-pazienti" style="display:none;">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
-      <div class="search-bar">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="rep-search-pz" placeholder="Cerca paziente…" oninput="renderReportPazienti()" style="width:220px">
-      </div>
-      <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--muted);cursor:pointer;text-transform:none;letter-spacing:0">
-        <input type="checkbox" id="rep-pz-solo-attivi" checked onchange="renderReportPazienti()" style="width:auto;accent-color:var(--gold)">
-        Solo pazienti attivi
-      </label>
-      <button class="btn btn-ghost btn-sm" onclick="stampaReportPazienti()">🖨 Stampa tutti</button>
-    </div>
-    <div id="rep-pazienti-body" style="display:flex;flex-direction:column;gap:14px;"></div>
-  </div>
-
 </div>
 
 <!-- ===================== MODAL PAZIENTE ===================== -->
@@ -1002,7 +888,6 @@ function showTab(t) {
     if (el) el.classList.toggle('active', x===t);
   });
   if (t==='inventario') renderInventario();
-  if (t==='report')     showReportTab('consumi');
 }
 
 // ============================================================
@@ -1096,7 +981,7 @@ function renderScheda(pid) {
     ? '<span class="badge badge-cd">Pz CD</span>'
     : '<span class="badge badge-cra">Pz CRA</span>';
 
-  const ORARI = ['8','12','13','15','18','21'];
+  const ORARI = ['8','13','15','20'];
 
   const buildRow = (t) => {
     const orari = ORARI.map(o => {
@@ -1284,148 +1169,172 @@ function stampaFoglioB(pid) {
   if (!pz) return;
 
   const terapie = load(SK.terapie);
-  const attive = terapie.filter(t=>t.pazienteId===pid && !t.dataFine);
+  const attive  = terapie.filter(t=>t.pazienteId===pid && !t.dataFine);
   const contatori = loadO(SK.contatori);
   const nFoglio = contatori[pid] || 1;
   const oggi = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const ORARI = ['8','12','13','15','18','21'];
+  const ORARI = ['8','13','15','20'];
 
-  // Estrai quantità numerica dalla dose: "10 gtt" → "10", "1 cp" → "1", "0,5 cp" → "0,5"
-  const estraiQta = (dose) => {
+  // Estrae solo il numero dalla stringa dose (es. "10 gtt" → "10", "1 cp" → "1", "0,5 cp" → "0,5")
+  const doseNum = (dose) => {
     if (!dose) return '';
-    const m = dose.match(/^(\d+[,.]?\d*)/);
-    return m ? m[1] : '';
+    const m = dose.match(/^([0-9]+[,.]?[0-9]*\/?\s?[0-9]*[,.]?[0-9]*)/);
+    return m ? m[1].trim() : dose.split(' ')[0];
   };
 
-  const orariHeader = ORARI.map(o=>`<th class="or-cell">${o}</th>`).join('');
-
-  // Celle orario: mostrano la quantità numerica se l'orario è attivo
+  // Celle orario: mostra la quantità numerica solo negli orari attivi
   const buildOrariCells = (t) => ORARI.map(o => {
     const on = t.orari && t.orari.includes(o);
-    const qta = on ? estraiQta(t.dose) : '';
-    return `<td class="or-cell">${qta}</td>`;
+    return `<td class="or-cell">${on ? doseNum(t.dose) : ''}</td>`;
   }).join('');
 
-  // Nome farmaco in stampatello maiuscolo + dose in normale
-  const nomeFarmaco = (t) => {
-    return `<span class="drug-name">${(t.farmaco||'').toUpperCase()}</span>`;
-  };
-
+  // Righe per sezione con numero fisso di righe vuote
   const buildRighe = (sezione, nRighe) => {
     const rows = attive.filter(t=>t.sezione===sezione);
-    const result = [];
-    for (let i = 0; i < nRighe; i++) {
+    return Array.from({length: nRighe}, (_,i) => {
       const t = rows[i];
       if (t) {
-        const fonte = t.fonte==='personale' ? '<br><span style="font-size:6pt;color:#666;font-style:italic">[pers.]</span>' : '';
-        const via = t.via && sezione!=='orale' ? `<br><span style="font-size:6.5pt;text-transform:none">${t.via}</span>` : '';
-        result.push(`<tr>
+        const fonte = t.fonte==='personale'
+          ? '<span style="font-size:5.5pt;color:#888"> [P]</span>' : '';
+        return `<tr>
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
-          <td class="drug-cell">${nomeFarmaco(t)}${via}${fonte}</td>
+          <td class="drug-cell">${t.farmaco.toUpperCase()}${fonte}</td>
           ${buildOrariCells(t)}
           <td class="data-cell">${t.dataFine||''}</td>
           <td class="firma-cell"></td>
-        </tr>`);
-      } else {
-        result.push(`<tr>
-          <td class="data-cell"></td><td class="firma-cell"></td>
-          <td class="drug-cell"></td>
-          <td class="or-cell"></td><td class="or-cell"></td><td class="or-cell"></td>
-          <td class="or-cell"></td><td class="or-cell"></td><td class="or-cell"></td>
-          <td class="data-cell"></td><td class="firma-cell"></td>
-        </tr>`);
+        </tr>`;
       }
-    }
-    return result.join('');
+      return `<tr>
+        <td class="data-cell"></td><td class="firma-cell"></td>
+        <td class="drug-cell"></td>
+        <td class="or-cell"></td><td class="or-cell"></td>
+        <td class="or-cell"></td><td class="or-cell"></td>
+        <td class="data-cell"></td><td class="firma-cell"></td>
+      </tr>`;
+    }).join('');
   };
 
   const buildRigheBisogno = (nRighe) => {
     const rows = attive.filter(t=>t.sezione==='bisogno');
-    const result = [];
-    for (let i = 0; i < nRighe; i++) {
+    return Array.from({length: nRighe}, (_,i) => {
       const t = rows[i];
       if (t) {
-        const fonte = t.fonte==='personale' ? ' <span style="font-size:6pt;color:#666;font-style:italic">[pers.]</span>' : '';
-        result.push(`<tr>
+        const fonte = t.fonte==='personale'
+          ? '<span style="font-size:5.5pt;color:#888"> [P]</span>' : '';
+        return `<tr>
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
-          <td class="drug-cell" colspan="7">${nomeFarmaco(t)}<span style="font-size:7pt;text-transform:none"> — ${t.dose}${t.via?' ('+t.via+')':''}${t.indicazione?' — '+t.indicazione:''}</span>${fonte}</td>
+          <td class="drug-cell" colspan="5">${t.farmaco.toUpperCase()}${fonte}${t.dose?' — '+t.dose:''}${t.indicazione?' — '+t.indicazione:''}</td>
           <td class="data-cell">${t.dataFine||''}</td>
           <td class="firma-cell"></td>
-        </tr>`);
-      } else {
-        result.push(`<tr>
-          <td class="data-cell"></td><td class="firma-cell"></td>
-          <td class="drug-cell" colspan="7"></td>
-          <td class="data-cell"></td><td class="firma-cell"></td>
-        </tr>`);
+        </tr>`;
       }
-    }
-    return result.join('');
+      return `<tr>
+        <td class="data-cell"></td><td class="firma-cell"></td>
+        <td class="drug-cell" colspan="5"></td>
+        <td class="data-cell"></td><td class="firma-cell"></td>
+      </tr>`;
+    }).join('');
   };
 
-  const buildRigheLongActing = (nRighe) => {
+  // Long Acting: 2 righe, senza colonna firma inf nelle prime 2, firma inf spostata alla terza riga
+  const buildRigheLongActing = () => {
     const rows = attive.filter(t=>t.sezione==='longacting');
+    // riga 1: data inizio / firma medico / farmaco+dose / data eseguita / data prossima
+    // riga 2: vuota o secondo farmaco
+    // "Firma Inf." appare come riga separata sotto data eseguita (2 righe più in basso)
     const result = [];
-    for (let i = 0; i < nRighe; i++) {
+    for (let i = 0; i < 2; i++) {
       const t = rows[i];
       if (t) {
-        const fonte = t.fonte==='personale' ? ' <span style="font-size:6pt;color:#666;font-style:italic">[pers.]</span>' : '';
+        const fonte = t.fonte==='personale'
+          ? '<span style="font-size:5.5pt;color:#888"> [P]</span>' : '';
         result.push(`<tr>
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
-          <td class="drug-cell">${nomeFarmaco(t)}<span style="font-size:7pt;text-transform:none"> — ${t.dose}${t.via?' ('+t.via+')':''}</span>${fonte}</td>
-          <td class="data-cell" colspan="2">${t.laEseguita||''}</td>
-          <td class="firma-cell" style="font-size:7pt;color:#888;text-align:center">Firma Inf.</td>
-          <td class="data-cell" colspan="3">${t.laProssima||''}</td>
+          <td class="drug-cell-la">${t.farmaco.toUpperCase()}${fonte}<br><span style="font-size:7pt">${t.dose||''}</span></td>
+          <td class="data-cell">${t.laEseguita||''}</td>
+          <td class="data-cell">${t.laProssima||''}</td>
         </tr>`);
       } else {
         result.push(`<tr>
           <td class="data-cell"></td><td class="firma-cell"></td>
-          <td class="drug-cell"></td>
-          <td class="data-cell" colspan="2"></td>
-          <td class="firma-cell"></td>
-          <td class="data-cell" colspan="3"></td>
+          <td class="drug-cell-la"></td>
+          <td class="data-cell"></td><td class="data-cell"></td>
         </tr>`);
       }
     }
+    // riga 3: firma inf. spostata 2 righe più in basso
+    result.push(`<tr>
+      <td class="data-cell"></td><td class="firma-cell"></td>
+      <td class="drug-cell-la"></td>
+      <td class="data-cell" style="font-size:6.5pt;color:#555;text-align:center;vertical-align:top;padding-top:1mm">Firma Inf.</td>
+      <td class="data-cell" style="font-size:6.5pt;color:#555;text-align:center;vertical-align:top;padding-top:1mm">Firma Inf.</td>
+    </tr>`);
     return result.join('');
   };
 
   const laRows = attive.filter(t=>t.sezione==='longacting');
-  const laGiorniLabel = laRows.length > 0 && laRows[0].laGiorni
+  const laGiorniLabel = laRows.length>0 && laRows[0].laGiorni
     ? ` OGNI ${laRows[0].laGiorni} GIORNI` : '';
+
+  const orariHeader = ORARI.map(o=>`<th class="or-cell">${o}</th>`).join('');
 
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>Foglio Terapia — ${pz.cognome} ${pz.nome}</title>
   <style>
     * { box-sizing:border-box; margin:0; padding:0; }
-    body { font-family:'Times New Roman',serif; font-size:8.5pt; background:#fff; color:#000; }
-    .page { padding:8mm 10mm 6mm; }
-    .hdr-table { width:100%; border-collapse:collapse; margin-bottom:3mm; }
-    .hdr-logo  { width:32%; vertical-align:top; }
-    .hdr-logo-main { font-family:'Times New Roman',serif; font-size:15pt; line-height:1.2; color:#000; }
-    .hdr-logo-sub  { font-family:'Times New Roman',serif; font-size:8.5pt; color:#333; display:block; margin-top:1.5mm; }
-    .hdr-title { font-size:11pt; font-weight:bold; text-align:center; vertical-align:middle; }
-    .hdr-sub   { font-size:7.5pt; font-weight:normal; display:block; margin-top:1mm; }
-    .hdr-pz    { width:32%; text-align:right; vertical-align:top; }
-    .hdr-pz-name { font-family:'Times New Roman',serif; font-size:18pt; font-weight:bold; line-height:1.1; display:block; }
-    .hdr-pz-sub  { font-size:7.5pt; display:block; margin-top:1.5mm; color:#555; }
-    .terapia-table { width:100%; border-collapse:collapse; font-size:7.5pt; table-layout:fixed; }
-    .terapia-table th { border:1px solid #000; padding:1.5mm 1mm; text-align:center; background:#e8e8e8; font-size:7pt; font-weight:bold; line-height:1.2; }
-    .terapia-table td { border:1px solid #000; padding:1mm; min-height:6.5mm; height:6.5mm; vertical-align:middle; line-height:1.2; }
-    .data-cell  { width:18mm; text-align:center; font-size:7pt; }
-    .firma-cell { width:20mm; }
-    .drug-cell  { text-align:left; }
-    .drug-name  { font-family:'Arial',sans-serif; font-weight:bold; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.02em; }
-    .or-cell    { width:9mm; text-align:center; font-size:8.5pt; font-weight:bold; }
-    .la-eseguita{ width:28mm; text-align:center; font-size:7pt; }
-    .la-prossima{ text-align:center; font-size:7pt; }
-    .sez-row td { background:#d0d0d0; font-weight:bold; font-size:8pt; text-transform:uppercase; letter-spacing:.04em; padding:1.5mm 2mm; border:1px solid #000; }
+    body { font-family:'Times New Roman',serif; font-size:8pt; background:#fff; color:#000; }
+    .page { padding:7mm 9mm 5mm; }
+
+    /* INTESTAZIONE */
+    .hdr-table { width:100%; border-collapse:collapse; margin-bottom:4mm; }
+    .hdr-logo {
+      width:35%; vertical-align:top;
+      font-family:'Brush Script MT','Segoe Script','URW Chancery L',cursive;
+      font-size:14pt; line-height:1.3; color:#222;
+    }
+    .hdr-title {
+      font-size:10pt; font-weight:bold; text-align:center;
+      vertical-align:middle; line-height:1.5;
+    }
+    .hdr-pz {
+      width:30%; text-align:right; vertical-align:top;
+      font-size:14pt; font-weight:bold; line-height:1.4;
+      border:1.5px solid #000; padding:2mm 3mm; text-align:center;
+    }
+    .hdr-sub { font-size:7pt; font-weight:normal; font-family:serif; display:block; margin-top:1mm; }
+
+    /* GRIGLIA */
+    .terapia-table { width:100%; border-collapse:collapse; font-size:8pt; table-layout:fixed; }
+    .terapia-table th {
+      border:1px solid #000; padding:1.5mm 1mm;
+      text-align:center; background:#e0e0e0;
+      font-size:7pt; font-weight:bold; line-height:1.2;
+    }
+    .terapia-table td {
+      border:1px solid #000; padding:0.8mm 1mm;
+      height:6.8mm; vertical-align:middle;
+    }
+    .data-cell  { width:17mm; text-align:center; font-size:7pt; }
+    .firma-cell { width:19mm; }
+    .drug-cell  { font-size:8.5pt; font-weight:bold; letter-spacing:0.02em; }
+    .drug-cell-la { font-size:8.5pt; font-weight:bold; }
+    .or-cell    { width:10mm; text-align:center; font-size:8.5pt; font-weight:bold; }
+
+    /* TITOLI SEZIONE */
+    .sez-row td {
+      background:#c8c8c8; font-weight:bold; font-size:8pt;
+      text-transform:uppercase; letter-spacing:.05em;
+      padding:1.5mm 2mm; border:1px solid #000; height:6mm;
+    }
+
+    /* FOOTER */
     .footer-aggiornata { font-size:7.5pt; margin-top:2mm; display:flex; justify-content:space-between; }
-    .footer-ente { font-size:7pt; color:#333; text-align:center; margin-top:1.5mm; border-top:1px solid #aaa; padding-top:1.5mm; }
-    @page { size:A4 portrait; margin:8mm; }
+    .footer-ente { font-size:6.5pt; color:#333; text-align:center; margin-top:1.5mm; border-top:1px solid #aaa; padding-top:1mm; }
+
+    @page { size:A4 portrait; margin:6mm; }
   </style>
   </head><body>
   <div class="page">
@@ -1433,54 +1342,50 @@ function stampaFoglioB(pid) {
     <table class="hdr-table">
       <tr>
         <td class="hdr-logo">
-          <span class="hdr-logo-main"><em>Fondazione</em><br><em>Emilia Bosis</em></span>
-          <span class="hdr-logo-sub"><em>Cascina Germoglio — Verdello (BG)</em></span>
+          Fondazione<br>Emilia Bosis
+          <span class="hdr-sub" style="font-family:serif">Cascina Germoglio</span>
         </td>
         <td class="hdr-title">
-          FOGLIO TERAPIA &nbsp; n.&nbsp;${nFoglio}
+          FOGLIO TERAPIA &nbsp;&nbsp; n.&nbsp;${nFoglio}
           <span class="hdr-sub">COMUNITÀ "IL GERMOGLIO" — VERDELLO (BG)</span>
         </td>
         <td class="hdr-pz">
-          <span class="hdr-pz-name">${pz.cognome}<br>${pz.nome}</span>
-          <span class="hdr-pz-sub">${pz.allergie?'⚠ Allergie: '+pz.allergie:''}</span>
+          ${pz.cognome}<br>${pz.nome}
+          ${pz.allergie?`<div style="font-size:7pt;color:#cc0000;font-weight:normal;margin-top:1mm">⚠ ${pz.allergie}</div>`:''}
         </td>
       </tr>
     </table>
 
     <table class="terapia-table">
       <colgroup>
-        <col style="width:16mm"><col style="width:18mm">
-        <col><col style="width:8mm"><col style="width:8mm">
-        <col style="width:8mm"><col style="width:8mm">
-        <col style="width:8mm"><col style="width:8mm">
-        <col style="width:16mm"><col style="width:18mm">
+        <col style="width:17mm"><col style="width:19mm">
+        <col><col style="width:10mm"><col style="width:10mm">
+        <col style="width:10mm"><col style="width:10mm">
+        <col style="width:17mm"><col style="width:19mm">
       </colgroup>
       <thead>
         <tr>
-          <th>DATA<br>INIZIO</th>
-          <th>FIRMA<br>MEDICO</th>
+          <th>DATA<br>INIZIO</th><th>FIRMA<br>MEDICO</th>
           <th>TERAPIA ORALE</th>
           ${orariHeader}
-          <th>DATA<br>SOSP.</th>
-          <th>FIRMA<br>MEDICO</th>
+          <th>DATA<br>SOSP.</th><th>FIRMA<br>MEDICO</th>
         </tr>
       </thead>
       <tbody>
         ${buildRighe('orale', 17)}
-        <tr class="sez-row"><td colspan="11">Terapia Topica &nbsp;/&nbsp; I.M. &nbsp;/&nbsp; S.C. &nbsp;/&nbsp; E.V. &nbsp;/&nbsp; Varie</td></tr>
+        <tr class="sez-row"><td colspan="9">Terapia Topica &nbsp;/&nbsp; I.M. &nbsp;/&nbsp; S.C. &nbsp;/&nbsp; E.V. &nbsp;/&nbsp; Varie</td></tr>
         ${buildRighe('topica', 3)}
-        <tr class="sez-row"><td colspan="11">Terapia al Bisogno</td></tr>
+        <tr class="sez-row"><td colspan="9">Terapia al Bisogno</td></tr>
         ${buildRigheBisogno(5)}
-        <tr class="sez-row"><td colspan="11">Terapia Long Acting${laGiorniLabel}</td></tr>
+        <tr class="sez-row"><td colspan="9">Terapia Long Acting${laGiorniLabel}</td></tr>
         <tr>
           <th class="data-cell">DATA<br>INIZIO</th>
           <th class="firma-cell">FIRMA<br>MEDICO</th>
-          <th class="drug-cell">FARMACO / DOSE / VIA</th>
-          <th class="data-cell" colspan="2">DATA<br>ESEGUITA</th>
-          <th class="firma-cell">FIRMA<br>INF.</th>
-          <th class="data-cell" colspan="3">DATA<br>PROSSIMA</th>
+          <th class="drug-cell-la">FARMACO / DOSE / VIA</th>
+          <th class="data-cell" colspan="2">DATA ESEGUITA</th>
+          <th class="data-cell" colspan="4">DATA PROSSIMA</th>
         </tr>
-        ${buildRigheLongActing(2)}
+        ${buildRigheLongActing()}
       </tbody>
     </table>
 
@@ -1503,10 +1408,10 @@ function stampaFoglioB(pid) {
   const w = window.open('','_blank');
   w.document.write(html);
   w.document.close();
-
   renderScheda(pid);
-  toast('Foglio n\u00b0'+(cnt[pid]-1)+' inviato alla stampa');
+  toast('Foglio n°'+(cnt[pid]-1)+' inviato alla stampa');
 }
+
 
 
 // ============================================================
@@ -2295,7 +2200,7 @@ function stampaConvalida() {
   const meseIdx = ['GENNAIO','FEBBRAIO','MARZO','APRILE','MAGGIO','GIUGNO',
     'LUGLIO','AGOSTO','SETTEMBRE','OTTOBRE','NOVEMBRE','DICEMBRE'].indexOf(mese);
   const nGiorni = new Date(parseInt(anno), meseIdx+1, 0).getDate();
-  const ORARI = ['8','12','13','15','18','21'];
+  const ORARI = ['8','13','15','20'];
 
   const buildFoglio = (pz) => {
     const righeGiorni = Array.from({length: nGiorni}, (_,i) => `
@@ -2492,329 +2397,6 @@ function eseguiCambioPassword() {
     save(SK_FCRA, [{"id": "fcra0001", "nome": "Abilify (Aripiprazolo) 5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0002", "nome": "Abilify (Aripiprazolo) 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0003", "nome": "Abilify (Aripiprazolo) 15 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0004", "nome": "Akineton 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0005", "nome": "Akineton 4 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0006", "nome": "Atarax 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0007", "nome": "Clozapina (Leponex) 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0008", "nome": "Clozapina (Leponex) 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0009", "nome": "Delorazepam (EN) 1 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0010", "nome": "Delorazepam (EN) 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0011", "nome": "Depakin Chrono 300 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0012", "nome": "Depakin Chrono 500 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0013", "nome": "Diazepam (Valium) 5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0014", "nome": "Domperidone 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0015", "nome": "Entumin (Clotiapina) 40 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0016", "nome": "Fluoxetina 20 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0017", "nome": "Fluvoxamina 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0018", "nome": "Fluvoxamina 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0019", "nome": "Gabapentin 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0020", "nome": "Gabapentin 300 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0021", "nome": "Gabapentin 400 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0022", "nome": "Haldol (Aloperidolo) 1 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0023", "nome": "Largactil 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0024", "nome": "Largactil 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0025", "nome": "Latuda 37 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0026", "nome": "Latuda 74 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0027", "nome": "Litio Carbonato 300 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0028", "nome": "Litio Resilient 83 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0029", "nome": "Lorazepam (Tavor) 1 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0030", "nome": "Lorazepam (Tavor) 2,5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0031", "nome": "Mirtazapina 30 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0032", "nome": "Nozinam 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0033", "nome": "Nozinam 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0034", "nome": "Olanzapina 5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0035", "nome": "Olanzapina 10 mg velotab", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0036", "nome": "Oxibutina e.g. 5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0037", "nome": "Paliperidone 6 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0038", "nome": "Paroxetina 20 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0039", "nome": "Pregabalin 25 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0040", "nome": "Pregabalin 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0041", "nome": "Pregabalin 75 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0042", "nome": "Pregabalin 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0043", "nome": "Pregabalin 150 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0044", "nome": "Quetiapina 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0045", "nome": "Quetiapina RP 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0046", "nome": "Quetiapina RP 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0047", "nome": "Quetiapina 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0048", "nome": "Quetiapina 150 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0049", "nome": "Quetiapina RP 200 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0050", "nome": "Quetiapina 200 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0051", "nome": "Quetiapina RP 300 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0052", "nome": "Quetiapina RP 400 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0053", "nome": "Resilient 83 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0054", "nome": "Risperidone 1 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0055", "nome": "Risperidone 3 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0056", "nome": "Rivotril 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0057", "nome": "Rxulti 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0058", "nome": "Sertralina 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0059", "nome": "Strattera 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0060", "nome": "Strattera 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0061", "nome": "Strattera 40 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0062", "nome": "Strattera 60 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0063", "nome": "Tegretol (Carbamazepina) 200 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0064", "nome": "Trittico 75 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0065", "nome": "Trittico 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0066", "nome": "Trittico 150 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0067", "nome": "Valdorm (Flurazepam) 15 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0068", "nome": "Valdorm (Flurazepam) 30 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0069", "nome": "Zolpidem 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0070", "nome": "Lamotrigina eg 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0071", "nome": "Allopurinolo 300 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0072", "nome": "Carvasin 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0073", "nome": "Citalopram 20 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0074", "nome": "Deltacortene", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0075", "nome": "Gaviscon", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0076", "nome": "Ibuprofene 600 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0077", "nome": "Loperamide 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0078", "nome": "Muscoril", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0079", "nome": "Nimesulide 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0080", "nome": "Nimesulide 100 mg bustine", "forma": "Bustine", "udm": "bust", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0081", "nome": "Pantoprazolo 20 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0082", "nome": "Paracetamolo 500 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0083", "nome": "Pursennid", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0084", "nome": "Vatran 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0085", "nome": "Clonazepam (Rivotril) gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0086", "nome": "Diazepam gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0087", "nome": "Delorazepam (EN) gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0088", "nome": "Entumin gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0089", "nome": "Haldol (Serenase) 2 mg/ml gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0090", "nome": "Haldol (Serenase) 10 mg/ml gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0091", "nome": "Talofen gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0092", "nome": "Bromazepam 2,5 mg/ml gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0093", "nome": "Lormetazepam 2,5 mg/ml gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0094", "nome": "Efortil gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0095", "nome": "Brintellix gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0096", "nome": "Didergot gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0097", "nome": "Depakin Soluzione 200 mg/ml", "forma": "Soluzione orale", "udm": "ml", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0098", "nome": "EN (Delorazepam) 2 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0099", "nome": "EN (Delorazepam) 5 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0100", "nome": "Entumin fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0101", "nome": "Diazepam (Valium) 10 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0102", "nome": "Haldol 5 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0103", "nome": "Haldol Decanoas 50 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0104", "nome": "Haldol Decanoas 150 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0105", "nome": "Talofen 25 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0106", "nome": "Largactil 50 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0107", "nome": "Aloperidolo 2 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0108", "nome": "Diclofenac fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0109", "nome": "Plasil fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0110", "nome": "Buscopan fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0111", "nome": "Betametasone 4 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0112", "nome": "Farganesse fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0113", "nome": "Ugoral 500 mg fiale", "forma": "Fiala EV", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0114", "nome": "Tocolchicoside eg 4 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0115", "nome": "Abilify Maintena 400 mg", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0116", "nome": "Xeplion 100 mg", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0117", "nome": "Xeplion 150 mg", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0118", "nome": "Haldol Decanoato 150 mg/ml", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0119", "nome": "Haldol Decanoato 50 mg/ml", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0120", "nome": "Trevicta", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0121", "nome": "Foille crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0122", "nome": "Aureomicina crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0123", "nome": "Azolmel crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0124", "nome": "Gentalin crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0125", "nome": "Gentalin Beta crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0126", "nome": "Metazone crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0127", "nome": "Voltaren crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0128", "nome": "Vaselina", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0129", "nome": "Connettivina crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}]);
   }
 })();
-
-// ============================================================
-// SESSIONE 3 — REPORT
-// ============================================================
-
-let reportTabAttivo = 'consumi';
-
-function showReportTab(t) {
-  ['consumi','mensile','pazienti'].forEach(x => {
-    document.getElementById('report-'+x).style.display = x===t ? '' : 'none';
-    const el = document.getElementById('rtab-'+x);
-    if (el) el.classList.toggle('active', x===t);
-  });
-  reportTabAttivo = t;
-  if (t==='consumi')  renderReportConsumi();
-  if (t==='mensile')  { initReportMensile(); renderReportMensile(); }
-  if (t==='pazienti') renderReportPazienti();
-}
-
-// ── Render Report Consumi ────────────────────────────────────────────────────
-function renderReportConsumi() {
-  const farmaci   = load(SK_FCRA);
-  const soloAtt   = document.getElementById('rep-solo-attivi')?.checked;
-  const tbody     = document.getElementById('rep-consumi-body');
-  if (!tbody) return;
-
-  let lista = farmaci.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'it'));
-  if (soloAtt) lista = lista.filter(f => calcolaConsumoCRA(f.id) > 0);
-
-  if (!lista.length) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-row">${soloAtt?'Nessun farmaco con consumo attivo':'Nessun farmaco registrato'}</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = lista.map(f => {
-    const consumo = calcolaConsumoCRA(f.id);
-    const scorta  = Math.round(calcolaScorta(f));
-    const giorni  = consumo > 0 ? Math.floor(scorta / consumo) : null;
-    const stato   = statoFarmaco(f);
-    const pz      = getTerapieFarmacoCRA(f.id).length;
-    const statoLabel = stato==='urgent'
-      ? `<span style="color:var(--red);font-family:Inconsolata,monospace;font-size:0.7rem;font-weight:700">⚠ CRITICO</span>`
-      : stato==='warn'
-      ? `<span style="color:var(--amber);font-family:Inconsolata,monospace;font-size:0.7rem;font-weight:700">⬇ ATTENZIONE</span>`
-      : `<span style="color:var(--green);font-family:Inconsolata,monospace;font-size:0.7rem">OK</span>`;
-    const giorniCls = giorni===null ? '' : giorni<=3 ? 'style="color:var(--red);font-weight:700"' : giorni<=8 ? 'style="color:var(--amber)"' : '';
-    return `<tr>
-      <td><span class="drug-nome">${f.nome}</span></td>
-      <td><span style="font-family:Inconsolata,monospace;font-size:0.72rem;color:var(--muted)">${f.forma||'—'}</span></td>
-      <td style="text-align:right;font-family:Inconsolata,monospace;font-size:0.82rem;color:var(--gold)">${consumo>0?consumo.toFixed(2)+' '+( f.udm||'u')+'/die':'<span style="color:var(--dim)">—</span>'}</td>
-      <td style="text-align:right;font-family:Inconsolata,monospace;font-size:0.82rem">${scorta} ${f.udm||'u'}</td>
-      <td style="text-align:right;font-family:Inconsolata,monospace;font-size:0.82rem" ${giorniCls}>${giorni!==null?giorni+' gg':'<span style="color:var(--dim)">—</span>'}</td>
-      <td style="text-align:right;font-family:Inconsolata,monospace;font-size:0.82rem;color:${pz>0?'var(--text)':'var(--dim)'}">${pz}</td>
-      <td style="text-align:center">${statoLabel}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ── Report Mensile ───────────────────────────────────────────────────────────
-function initReportMensile() {
-  const now = new Date();
-  const sel = document.getElementById('rep-mese');
-  if (sel && sel.value === '') sel.value = now.getMonth();
-  if (!sel.dataset.init) {
-    sel.value = now.getMonth();
-    document.getElementById('rep-anno').value = now.getFullYear();
-    sel.dataset.init = '1';
-  }
-}
-
-function renderReportMensile() {
-  const meseIdx = parseInt(document.getElementById('rep-mese')?.value || new Date().getMonth());
-  const anno    = parseInt(document.getElementById('rep-anno')?.value || new Date().getFullYear());
-  const nGiorni = new Date(anno, meseIdx+1, 0).getDate();
-  const mesiNomi = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
-                    'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-  const soloAtt = document.getElementById('rep-mens-solo-attivi')?.checked;
-
-  const sub = document.getElementById('rep-mens-subtitle');
-  if (sub) sub.textContent = `${mesiNomi[meseIdx]} ${anno} — ${nGiorni} giorni. Stima basata sui consumi giornalieri attuali.`;
-
-  const colH = document.getElementById('rep-col-fabbisogno');
-  if (colH) colH.textContent = `Fabbisogno ${mesiNomi[meseIdx]}`;
-
-  const farmaci = load(SK_FCRA).slice().sort((a,b)=>a.nome.localeCompare(b.nome,'it'));
-  let lista = farmaci;
-  if (soloAtt) lista = lista.filter(f => calcolaConsumoCRA(f.id) > 0);
-
-  const tbody = document.getElementById('rep-mensile-body');
-  if (!tbody) return;
-
-  if (!lista.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-row">Nessun farmaco con consumo attivo</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = lista.map(f => {
-    const consumo   = calcolaConsumoCRA(f.id);
-    const fabbis    = Math.ceil(consumo * nGiorni);
-    const scorta    = Math.round(calcolaScorta(f));
-    const daOrdinare = Math.max(0, fabbis - scorta);
-    const daOrdCls  = daOrdinare > 0 ? 'color:var(--amber);font-weight:700' : 'color:var(--green)';
-    return `<tr>
-      <td><span class="drug-nome">${f.nome}</span></td>
-      <td><span style="font-family:Inconsolata,monospace;font-size:0.72rem;color:var(--muted)">${f.forma||'—'}</span></td>
-      <td style="text-align:right;font-family:Inconsolata,monospace;font-size:0.82rem;color:var(--gold)">${consumo>0?consumo.toFixed(2)+' '+( f.udm||'u')+'/die':'<span style="color:var(--dim)">—</span>'}</td>
-      <td style="text-align:right;font-family:Inconsolata,monospace;font-size:0.82rem">${consumo>0?fabbis+' '+( f.udm||'u'):'<span style="color:var(--dim)">—</span>'}</td>
-      <td style="text-align:right;font-family:Inconsolata,monospace;font-size:0.82rem">${scorta} ${f.udm||'u'}</td>
-      <td style="text-align:right;font-family:Inconsolata,monospace;font-size:0.82rem;${consumo>0?daOrdCls:''}">${consumo>0?(daOrdinare>0?'⚠ '+daOrdinare+' '+( f.udm||'u'):'<span style="color:var(--green)">✓ scorta sufficiente</span>'):'<span style="color:var(--dim)">—</span>'}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ── Report Terapie per Paziente ──────────────────────────────────────────────
-function renderReportPazienti() {
-  const q       = (document.getElementById('rep-search-pz')?.value||'').toLowerCase();
-  const soloAtt = document.getElementById('rep-pz-solo-attivi')?.checked;
-  let pazienti  = load(SK.pazienti);
-  if (soloAtt) pazienti = pazienti.filter(p=>p.attivo!==false&&p.attivo!=='false');
-  if (q) pazienti = pazienti.filter(p=>(p.cognome+' '+p.nome).toLowerCase().includes(q));
-  pazienti = pazienti.slice().sort((a,b)=>a.cognome.localeCompare(b.cognome,'it'));
-
-  const terapie  = load(SK.terapie);
-  const farmaci  = load(SK_FCRA);
-  const container= document.getElementById('rep-pazienti-body');
-  if (!container) return;
-
-  if (!pazienti.length) {
-    container.innerHTML = '<div class="empty-state"><div class="icon">👤</div><p>Nessun paziente trovato</p></div>';
-    return;
-  }
-
-  const SEZIONI = [
-    { key:'orale',      label:'Terapia Orale',         cls:'pill-orale'   },
-    { key:'topica',     label:'Topica / IM / SC / EV', cls:'pill-topica'  },
-    { key:'bisogno',    label:'Al bisogno',             cls:'pill-bisogno' },
-    { key:'longacting', label:'Long Acting',            cls:'pill-longact' },
-  ];
-
-  container.innerHTML = pazienti.map(pz => {
-    const attive = terapie.filter(t=>t.pazienteId===pz.id && !t.dataFine);
-    const sospLabel = (pz.terapiaSospesa===true||pz.terapiaSospesa==='true')
-      ? '<span style="color:var(--amber);font-size:0.7rem;font-family:Inconsolata,monospace">⏸ terapia sospesa</span>' : '';
-    const allergieLabel = pz.allergie
-      ? `<span style="color:var(--amber);font-size:0.7rem;font-family:Inconsolata,monospace">⚠ ${pz.allergie}</span>` : '';
-
-    const sezioniHtml = SEZIONI.map(s => {
-      const rows = attive.filter(t=>t.sezione===s.key);
-      if (!rows.length) return '';
-      const righe = rows.map(t => {
-        const orari = t.orari && t.orari.length ? t.orari.map(o=>`<span class="orario-dot attivo" style="width:22px;height:22px;font-size:0.6rem">${o}</span>`).join('') : '—';
-        const craF  = t.farmacoCRAid ? farmaci.find(f=>f.id===t.farmacoCRAid) : null;
-        const craInfo = craF ? `<span style="font-size:0.65rem;color:var(--muted);font-family:Inconsolata,monospace"> · CRA: ${craF.nome}</span>` : '';
-        const laInfo = t.sezione==='longacting' && t.laGiorni
-          ? `<span style="font-family:Inconsolata,monospace;font-size:0.7rem;color:var(--green)">ogni ${t.laGiorni} gg · pross. ${t.laProssima||'—'}</span>` : '';
-        const bisInfo = t.sezione==='bisogno' && t.indicazione
-          ? `<span style="font-family:Inconsolata,monospace;font-size:0.7rem;color:var(--violet)">${t.indicazione}</span>` : '';
-        return `<tr>
-          <td><span class="drug-nome">${t.farmaco}</span>${craInfo}</td>
-          <td><span class="drug-dose">${t.dose}</span></td>
-          <td>${t.sezione==='orale'||t.sezione==='topica'?orari:laInfo||bisInfo||'—'}</td>
-          <td class="drug-date">${t.dataInizio||'—'}</td>
-          <td><span class="${t.fonte==='personale'?'fonte-pers':'fonte-cra'}">${t.fonte==='personale'?'pers.':'CRA'}</span></td>
-        </tr>`;
-      }).join('');
-      return `
-        <div style="margin-top:10px">
-          <div style="font-family:Inconsolata,monospace;font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px">
-            <span class="sezione-pill ${s.cls}">${s.label}</span>
-          </div>
-          <table class="rep-farmaci-mini">
-            <thead><tr><th>Farmaco</th><th>Dose</th><th>Orari / info</th><th>Inizio</th><th>Fonte</th></tr></thead>
-            <tbody>${righe}</tbody>
-          </table>
-        </div>`;
-    }).join('');
-
-    const nFarmaci = attive.length;
-    return `
-    <div class="rep-pz-card">
-      <div class="rep-pz-head" onclick="toggleRepPz('repbody-${pz.id}')">
-        <div>
-          <div class="rep-pz-name">${pz.cognome} ${pz.nome}</div>
-          <div class="rep-pz-meta">
-            ${pz.attivo===false||pz.attivo==='false'?'Dimesso':'Attivo'} · ${nFarmaci} farmac${nFarmaci===1?'o':'i'} attiv${nFarmaci===1?'o':'i'}
-            ${sospLabel?'&nbsp;·&nbsp;'+sospLabel:''}
-            ${allergieLabel?'&nbsp;·&nbsp;'+allergieLabel:''}
-          </div>
-        </div>
-        <span style="color:var(--dim);font-size:1.2rem">▾</span>
-      </div>
-      <div id="repbody-${pz.id}" class="rep-pz-body" style="display:none;">
-        ${nFarmaci ? sezioniHtml : '<p style="color:var(--dim);font-size:0.8rem;padding-top:10px;font-style:italic">Nessun farmaco in terapia</p>'}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function toggleRepPz(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const isOpen = el.style.display !== 'none';
-  el.style.display = isOpen ? 'none' : '';
-  const arrow = el.previousElementSibling?.querySelector('span:last-child');
-  if (arrow) arrow.textContent = isOpen ? '▾' : '▴';
-}
-
-// ── Stampa Report Consumi ────────────────────────────────────────────────────
-function stampaReportConsumi() {
-  const farmaci = load(SK_FCRA).slice().sort((a,b)=>a.nome.localeCompare(b.nome,'it'));
-  const oggi = new Date().toLocaleDateString('it-IT');
-  const righe = farmaci.map(f => {
-    const consumo = calcolaConsumoCRA(f.id);
-    const scorta  = Math.round(calcolaScorta(f));
-    const giorni  = consumo > 0 ? Math.floor(scorta / consumo) : null;
-    const stato   = statoFarmaco(f);
-    const statoTxt = stato==='urgent'?'CRITICO':stato==='warn'?'ATTENZIONE':'OK';
-    return `<tr>
-      <td>${f.nome}</td>
-      <td>${f.forma||'—'}</td>
-      <td style="text-align:right">${consumo>0?consumo.toFixed(2)+' '+(f.udm||'u')+'/die':'—'}</td>
-      <td style="text-align:right">${scorta} ${f.udm||'u'}</td>
-      <td style="text-align:right">${giorni!==null?giorni+' gg':'—'}</td>
-      <td style="text-align:center">${statoTxt}</td>
-    </tr>`;
-  }).join('');
-  const w = window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Report Consumi</title>
-  <style>body{font-family:'Times New Roman',serif;padding:15mm;}h1{font-size:13pt;margin-bottom:2mm;}p{font-size:8pt;color:#555;margin-bottom:6mm;}
-  table{width:100%;border-collapse:collapse;font-size:8pt;}th{border:1px solid #000;padding:2mm;background:#f0f0f0;text-align:left;}
-  td{border:1px solid #000;padding:2mm;}@page{size:A4;margin:10mm;}</style></head><body>
-  <h1>Report Consumi Farmaci CRA — ${oggi}</h1>
-  <p>Comunità Il Germoglio — Fondazione Emilia Bosis · ${farmaci.length} farmaci</p>
-  <table><thead><tr><th>Farmaco</th><th>Forma</th><th>Consumo/die</th><th>Scorta residua</th><th>Giorni residui</th><th>Stato</th></tr></thead>
-  <tbody>${righe}</tbody></table>
-  <script>window.onload=()=>window.print()<\/script></body></html>`);
-  w.document.close();
-}
-
-// ── Stampa Report Mensile ────────────────────────────────────────────────────
-function stampaReportMensile() {
-  const meseIdx = parseInt(document.getElementById('rep-mese')?.value || new Date().getMonth());
-  const anno    = parseInt(document.getElementById('rep-anno')?.value || new Date().getFullYear());
-  const nGiorni = new Date(anno, meseIdx+1, 0).getDate();
-  const mesiNomi = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
-                    'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-  const oggi = new Date().toLocaleDateString('it-IT');
-  const farmaci = load(SK_FCRA).filter(f=>calcolaConsumoCRA(f.id)>0).sort((a,b)=>a.nome.localeCompare(b.nome,'it'));
-
-  const righe = farmaci.map(f => {
-    const consumo   = calcolaConsumoCRA(f.id);
-    const fabbis    = Math.ceil(consumo * nGiorni);
-    const scorta    = Math.round(calcolaScorta(f));
-    const daOrdinare= Math.max(0, fabbis - scorta);
-    return `<tr>
-      <td>${f.nome}</td>
-      <td>${f.forma||'—'}</td>
-      <td style="text-align:right">${consumo.toFixed(2)} ${f.udm||'u'}/die</td>
-      <td style="text-align:right">${fabbis} ${f.udm||'u'}</td>
-      <td style="text-align:right">${scorta} ${f.udm||'u'}</td>
-      <td style="text-align:right${daOrdinare>0?';font-weight:bold':''}">${daOrdinare>0?daOrdinare+' '+( f.udm||'u'):'—'}</td>
-    </tr>`;
-  }).join('');
-
-  const w = window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fabbisogno Mensile</title>
-  <style>body{font-family:'Times New Roman',serif;padding:15mm;}h1{font-size:13pt;margin-bottom:2mm;}p{font-size:8pt;color:#555;margin-bottom:6mm;}
-  table{width:100%;border-collapse:collapse;font-size:8pt;}th{border:1px solid #000;padding:2mm;background:#f0f0f0;text-align:left;}
-  td{border:1px solid #000;padding:2mm;}@page{size:A4;margin:10mm;}</style></head><body>
-  <h1>Fabbisogno Mensile — ${mesiNomi[meseIdx]} ${anno}</h1>
-  <p>Comunità Il Germoglio — Fondazione Emilia Bosis · Stampato il ${oggi} · ${farmaci.length} farmaci con consumo attivo · ${nGiorni} giorni</p>
-  <table><thead><tr><th>Farmaco</th><th>Forma</th><th>Consumo/die</th><th>Fabbisogno ${mesiNomi[meseIdx]}</th><th>Scorta residua</th><th>Da ordinare</th></tr></thead>
-  <tbody>${righe}</tbody></table>
-  <script>window.onload=()=>window.print()<\/script></body></html>`);
-  w.document.close();
-}
-
-// ── Stampa Report Pazienti ───────────────────────────────────────────────────
-function stampaReportPazienti() {
-  const pazienti = load(SK.pazienti).filter(p=>p.attivo!==false&&p.attivo!=='false')
-                     .sort((a,b)=>a.cognome.localeCompare(b.cognome,'it'));
-  const terapie  = load(SK.terapie);
-  const oggi = new Date().toLocaleDateString('it-IT');
-  const SEZIONI = [
-    { key:'orale',      label:'Terapia Orale' },
-    { key:'topica',     label:'Topica / IM / SC / EV' },
-    { key:'bisogno',    label:'Al Bisogno' },
-    { key:'longacting', label:'Long Acting' },
-  ];
-
-  const blocchi = pazienti.map(pz => {
-    const attive = terapie.filter(t=>t.pazienteId===pz.id && !t.dataFine);
-    const sezioniHtml = SEZIONI.map(s => {
-      const rows = attive.filter(t=>t.sezione===s.key);
-      if (!rows.length) return '';
-      const righe = rows.map(t => {
-        const orari = t.orari&&t.orari.length ? t.orari.join(' · ') : '—';
-        const info = t.sezione==='longacting' && t.laGiorni
-          ? `ogni ${t.laGiorni} gg, pross. ${t.laProssima||'—'}`
-          : t.sezione==='bisogno' && t.indicazione ? t.indicazione : orari;
-        return `<tr><td>${t.farmaco}</td><td>${t.dose}</td><td>${info}</td><td>${t.dataInizio||'—'}</td></tr>`;
-      }).join('');
-      return `<p style="font-size:7pt;font-weight:bold;text-transform:uppercase;margin:4mm 0 1mm">${s.label}</p>
-      <table><thead><tr><th>Farmaco</th><th>Dose</th><th>Orari / Info</th><th>Inizio</th></tr></thead><tbody>${righe}</tbody></table>`;
-    }).join('');
-    const allH = pz.allergie ? `<p style="font-size:8pt;margin-top:2mm;color:#a00">⚠ Allergie: ${pz.allergie}</p>`:'';
-    return `<div style="margin-bottom:10mm;page-break-inside:avoid;">
-      <p style="font-size:11pt;font-weight:bold;border-bottom:1px solid #000;padding-bottom:1mm;margin-bottom:2mm">${pz.cognome} ${pz.nome}</p>
-      ${allH}${attive.length ? sezioniHtml : '<p style="font-size:8pt;color:#888;font-style:italic">Nessun farmaco attivo</p>'}
-    </div>`;
-  }).join('');
-
-  const w = window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Terapie Pazienti</title>
-  <style>body{font-family:'Times New Roman',serif;padding:15mm;}h1{font-size:13pt;margin-bottom:2mm;}p.sub{font-size:8pt;color:#555;margin-bottom:8mm;}
-  table{width:100%;border-collapse:collapse;font-size:8pt;margin-bottom:3mm;}th{border:1px solid #000;padding:1.5mm;background:#f0f0f0;text-align:left;}
-  td{border:1px solid #000;padding:1.5mm;}@page{size:A4;margin:12mm;}</style></head><body>
-  <h1>Riepilogo Terapie Pazienti</h1>
-  <p class="sub">Comunità Il Germoglio — Fondazione Emilia Bosis · Stampato il ${oggi} · ${pazienti.length} pazienti attivi</p>
-  ${blocchi}
-  <script>window.onload=()=>window.print()<\/script></body></html>`);
-  w.document.close();
-}
 
 // ============================================================
 // INIT

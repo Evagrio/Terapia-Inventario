@@ -760,14 +760,10 @@ select option { background:var(--surface2); }
 
       <!-- Long Acting date -->
       <div id="grp-longacting" style="display:none;">
-        <div class="form-row-3">
+        <div class="form-row">
           <div class="form-group">
             <label>Dose (es. 1 fl, 2 mg…)</label>
             <input type="text" id="farm-dose-la" placeholder="es. 1 fl">
-          </div>
-          <div class="form-group">
-            <label>Data ultima somministrazione</label>
-            <input type="date" id="farm-la-eseguita">
           </div>
           <div class="form-group">
             <label>Data prossima somministrazione</label>
@@ -1961,7 +1957,7 @@ function stampaFoglioB(pid) {
           <th class="firma-cell">FIRMA<br>MEDICO</th>
           <th class="drug-cell-la" colspan="3">FARMACO / DOSE / VIA</th>
           <th class="firma-cell-la" colspan="2">FIRMA<br>INF.</th>
-          <th class="data-cell-la" colspan="2">DATA<br>PROSSIMA</th>
+          <th class="data-cell-la" colspan="2" style="font-size:6pt;">DATA PROSSIMA<br>SOMMINISTRAZIONE</th>
         </tr>
         ${buildRigheLongActing()}
         <tr class="footer-row">
@@ -2111,6 +2107,8 @@ function aggiornaCampiSezione() {
   document.getElementById('grp-orari').style.display        = (s==='orale'||s==='topica') ? '' : 'none';
   document.getElementById('grp-longacting').style.display   = s==='longacting' ? '' : 'none';
   document.getElementById('grp-bisogno').style.display      = s==='bisogno' ? '' : 'none';
+  const dataFineRow = document.getElementById('farm-data-fine')?.closest('.form-row');
+  if (dataFineRow) dataFineRow.style.display = s==='longacting' ? 'none' : '';
   const viaRow = document.getElementById('grp-via-row');
   if (viaRow) viaRow.style.display = (s==='orale'||s==='bisogno'||s==='longacting') ? 'none' : '';
   // sync unit labels

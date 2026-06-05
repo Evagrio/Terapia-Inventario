@@ -1096,7 +1096,7 @@ function renderScheda(pid) {
     ? '<span class="badge badge-cd">Pz CD</span>'
     : '<span class="badge badge-cra">Pz CRA</span>';
 
-  const ORARI = ['8','13','15','20'];
+  const ORARI = ['8','12','13','15','18','21'];
 
   const buildRow = (t) => {
     const orari = ORARI.map(o => {
@@ -1288,7 +1288,7 @@ function stampaFoglioB(pid) {
   const contatori = loadO(SK.contatori);
   const nFoglio = contatori[pid] || 1;
   const oggi = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const ORARI = ['8','13','15','20'];
+  const ORARI = ['8','12','13','15','18','21'];
 
   // Estrai quantità numerica dalla dose: "10 gtt" → "10", "1 cp" → "1", "0,5 cp" → "0,5"
   const estraiQta = (dose) => {
@@ -1331,7 +1331,8 @@ function stampaFoglioB(pid) {
         result.push(`<tr>
           <td class="data-cell"></td><td class="firma-cell"></td>
           <td class="drug-cell"></td>
-          <td class="or-cell"></td><td class="or-cell"></td><td class="or-cell"></td><td class="or-cell"></td>
+          <td class="or-cell"></td><td class="or-cell"></td><td class="or-cell"></td>
+          <td class="or-cell"></td><td class="or-cell"></td><td class="or-cell"></td>
           <td class="data-cell"></td><td class="firma-cell"></td>
         </tr>`);
       }
@@ -1349,14 +1350,14 @@ function stampaFoglioB(pid) {
         result.push(`<tr>
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
-          <td class="drug-cell" colspan="5">${nomeFarmaco(t)}<span style="font-size:7pt;text-transform:none"> — ${t.dose}${t.via?' ('+t.via+')':''}${t.indicazione?' — '+t.indicazione:''}</span>${fonte}</td>
+          <td class="drug-cell" colspan="7">${nomeFarmaco(t)}<span style="font-size:7pt;text-transform:none"> — ${t.dose}${t.via?' ('+t.via+')':''}${t.indicazione?' — '+t.indicazione:''}</span>${fonte}</td>
           <td class="data-cell">${t.dataFine||''}</td>
           <td class="firma-cell"></td>
         </tr>`);
       } else {
         result.push(`<tr>
           <td class="data-cell"></td><td class="firma-cell"></td>
-          <td class="drug-cell" colspan="5"></td>
+          <td class="drug-cell" colspan="7"></td>
           <td class="data-cell"></td><td class="firma-cell"></td>
         </tr>`);
       }
@@ -1364,31 +1365,28 @@ function stampaFoglioB(pid) {
     return result.join('');
   };
 
-  // Long Acting: senza colonna DATA ESEGUITA, Firma Inf. sull'ultima riga in basso
   const buildRigheLongActing = (nRighe) => {
     const rows = attive.filter(t=>t.sezione==='longacting');
     const result = [];
     for (let i = 0; i < nRighe; i++) {
       const t = rows[i];
-      const firmaInf = (i === nRighe - 1)
-        ? `<td class="la-eseguita" style="font-size:7pt;color:#555;text-align:center;vertical-align:bottom;padding-bottom:1mm">Firma Inf.</td>`
-        : `<td class="la-eseguita"></td>`;
       if (t) {
         const fonte = t.fonte==='personale' ? ' <span style="font-size:6pt;color:#666;font-style:italic">[pers.]</span>' : '';
         result.push(`<tr>
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
-          <td class="drug-cell">${nomeFarmaco(t)}<span style="font-size:7pt;text-transform:none"> — ${t.dose}${t.via?' — '+t.via:''}</span>${fonte}</td>
-          ${firmaInf}
-          <td class="la-prossima">${t.laProssima||''}</td>
+          <td class="drug-cell">${nomeFarmaco(t)}<span style="font-size:7pt;text-transform:none"> — ${t.dose}${t.via?' ('+t.via+')':''}</span>${fonte}</td>
+          <td class="data-cell" colspan="2">${t.laEseguita||''}</td>
+          <td class="firma-cell" style="font-size:7pt;color:#888;text-align:center">Firma Inf.</td>
+          <td class="data-cell" colspan="3">${t.laProssima||''}</td>
         </tr>`);
       } else {
         result.push(`<tr>
-          <td class="data-cell"></td>
-          <td class="firma-cell"></td>
+          <td class="data-cell"></td><td class="firma-cell"></td>
           <td class="drug-cell"></td>
-          ${firmaInf}
-          <td class="la-prossima"></td>
+          <td class="data-cell" colspan="2"></td>
+          <td class="firma-cell"></td>
+          <td class="data-cell" colspan="3"></td>
         </tr>`);
       }
     }
@@ -1407,8 +1405,8 @@ function stampaFoglioB(pid) {
     .page { padding:8mm 10mm 6mm; }
     .hdr-table { width:100%; border-collapse:collapse; margin-bottom:3mm; }
     .hdr-logo  { width:32%; vertical-align:top; }
-    .hdr-logo-main { font-family:'Times New Roman',serif; font-style:italic; font-weight:bold; font-size:13pt; line-height:1.15; color:#000; }
-    .hdr-logo-sub  { font-family:'Times New Roman',serif; font-style:italic; font-size:8pt; color:#333; display:block; margin-top:1mm; }
+    .hdr-logo-main { font-family:'Times New Roman',serif; font-size:15pt; line-height:1.2; color:#000; }
+    .hdr-logo-sub  { font-family:'Times New Roman',serif; font-size:8.5pt; color:#333; display:block; margin-top:1.5mm; }
     .hdr-title { font-size:11pt; font-weight:bold; text-align:center; vertical-align:middle; }
     .hdr-sub   { font-size:7.5pt; font-weight:normal; display:block; margin-top:1mm; }
     .hdr-pz    { width:32%; text-align:right; vertical-align:top; }
@@ -1435,8 +1433,8 @@ function stampaFoglioB(pid) {
     <table class="hdr-table">
       <tr>
         <td class="hdr-logo">
-          <span class="hdr-logo-main">Fondazione<br>Emilia Bosis</span>
-          <span class="hdr-logo-sub">Cascina Germoglio</span>
+          <span class="hdr-logo-main"><em>Fondazione</em><br><em>Emilia Bosis</em></span>
+          <span class="hdr-logo-sub"><em>Cascina Germoglio — Verdello (BG)</em></span>
         </td>
         <td class="hdr-title">
           FOGLIO TERAPIA &nbsp; n.&nbsp;${nFoglio}
@@ -1451,10 +1449,11 @@ function stampaFoglioB(pid) {
 
     <table class="terapia-table">
       <colgroup>
-        <col style="width:18mm"><col style="width:20mm">
-        <col><col style="width:9mm"><col style="width:9mm">
-        <col style="width:9mm"><col style="width:9mm">
-        <col style="width:18mm"><col style="width:20mm">
+        <col style="width:16mm"><col style="width:18mm">
+        <col><col style="width:8mm"><col style="width:8mm">
+        <col style="width:8mm"><col style="width:8mm">
+        <col style="width:8mm"><col style="width:8mm">
+        <col style="width:16mm"><col style="width:18mm">
       </colgroup>
       <thead>
         <tr>
@@ -1468,17 +1467,18 @@ function stampaFoglioB(pid) {
       </thead>
       <tbody>
         ${buildRighe('orale', 17)}
-        <tr class="sez-row"><td colspan="9">Terapia Topica &nbsp;/&nbsp; I.M. &nbsp;/&nbsp; S.C. &nbsp;/&nbsp; E.V. &nbsp;/&nbsp; Varie</td></tr>
+        <tr class="sez-row"><td colspan="11">Terapia Topica &nbsp;/&nbsp; I.M. &nbsp;/&nbsp; S.C. &nbsp;/&nbsp; E.V. &nbsp;/&nbsp; Varie</td></tr>
         ${buildRighe('topica', 3)}
-        <tr class="sez-row"><td colspan="9">Terapia al Bisogno</td></tr>
+        <tr class="sez-row"><td colspan="11">Terapia al Bisogno</td></tr>
         ${buildRigheBisogno(5)}
-        <tr class="sez-row"><td colspan="9">Terapia Long Acting${laGiorniLabel}</td></tr>
+        <tr class="sez-row"><td colspan="11">Terapia Long Acting${laGiorniLabel}</td></tr>
         <tr>
-          <th style="width:18mm">DATA<br>INIZIO</th>
-          <th style="width:20mm">FIRMA<br>MEDICO</th>
-          <th>FARMACO / DOSE / VIA</th>
-          <th style="width:28mm"></th>
-          <th>DATA<br>PROSSIMA</th>
+          <th class="data-cell">DATA<br>INIZIO</th>
+          <th class="firma-cell">FIRMA<br>MEDICO</th>
+          <th class="drug-cell">FARMACO / DOSE / VIA</th>
+          <th class="data-cell" colspan="2">DATA<br>ESEGUITA</th>
+          <th class="firma-cell">FIRMA<br>INF.</th>
+          <th class="data-cell" colspan="3">DATA<br>PROSSIMA</th>
         </tr>
         ${buildRigheLongActing(2)}
       </tbody>
@@ -2295,7 +2295,7 @@ function stampaConvalida() {
   const meseIdx = ['GENNAIO','FEBBRAIO','MARZO','APRILE','MAGGIO','GIUGNO',
     'LUGLIO','AGOSTO','SETTEMBRE','OTTOBRE','NOVEMBRE','DICEMBRE'].indexOf(mese);
   const nGiorni = new Date(parseInt(anno), meseIdx+1, 0).getDate();
-  const ORARI = ['8','13','15','20'];
+  const ORARI = ['8','12','13','15','18','21'];
 
   const buildFoglio = (pz) => {
     const righeGiorni = Array.from({length: nGiorni}, (_,i) => `

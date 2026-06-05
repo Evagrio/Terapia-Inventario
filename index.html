@@ -1804,18 +1804,18 @@ function stampaFoglioB(pid) {
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
           <td class="drug-cell-la">${t.farmaco.toUpperCase()}${t.dose?' — '+t.dose:''}</td>
-          <td class="data-cell-la">${t.laEseguita||''}</td>
-          <td class="firma-cell-la"></td>
-          <td class="data-cell-la" colspan="4">${t.laProssima||''}</td>
+          <td class="data-cell-la" colspan="2">${t.laEseguita||''}</td>
+          <td class="firma-cell-la" colspan="2"></td>
+          <td class="data-cell-la" colspan="2">${t.laProssima||''}</td>
         </tr>`;
       }
       return `<tr>
         <td class="data-cell"></td>
         <td class="firma-cell"></td>
         <td class="drug-cell-la"></td>
-        <td class="data-cell-la"></td>
-        <td class="firma-cell-la"></td>
-        <td class="data-cell-la" colspan="4"></td>
+        <td class="data-cell-la" colspan="2"></td>
+        <td class="firma-cell-la" colspan="2"></td>
+        <td class="data-cell-la" colspan="2"></td>
       </tr>`;
     }).join('');
   };
@@ -1889,9 +1889,9 @@ function stampaFoglioB(pid) {
     .drug-cell  { font-size:7.8pt; padding-left:1.5mm; }
     .drug-cell-la { font-size:7.8pt; padding-left:1.5mm; }
     .or-cell    { width:9mm; text-align:center; font-size:8pt; font-weight:bold; }
-    /* Long Acting — colonne bilanciate */
-    .data-cell-la  { width:22mm; text-align:center; font-size:6.8pt; }
-    .firma-cell-la { width:22mm; }
+    /* Long Acting — tre celle uguali, larghezza fluisce dal colspan */
+    .data-cell-la  { text-align:center; font-size:6.8pt; }
+    .firma-cell-la { text-align:center; font-size:6.8pt; }
 
     /* TITOLI SEZIONE */
     .sez-row td {
@@ -1962,9 +1962,9 @@ function stampaFoglioB(pid) {
           <th class="data-cell">DATA<br>INIZIO</th>
           <th class="firma-cell">FIRMA<br>MEDICO</th>
           <th class="drug-cell-la">FARMACO / DOSE / VIA</th>
-          <th class="data-cell-la">DATA<br>ESEGUITA</th>
-          <th class="firma-cell-la">FIRMA<br>INF.</th>
-          <th class="data-cell-la" colspan="4">DATA<br>PROSSIMA</th>
+          <th class="data-cell-la" colspan="2">DATA<br>ESEGUITA</th>
+          <th class="firma-cell-la" colspan="2">FIRMA<br>INF.</th>
+          <th class="data-cell-la" colspan="2">DATA<br>PROSSIMA</th>
         </tr>
         ${buildRigheLongActing()}
         <tr class="footer-row">

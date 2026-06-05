@@ -1290,26 +1290,39 @@ function stampaFoglioB(pid) {
   const oggi = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
   const ORARI = ['8','13','15','20'];
 
-  // ── Celle orario per stampa ───────────────────────────────────────────
+  // Estrai quantità numerica dalla dose: "10 gtt" → "10", "1 cp" → "1", "0,5 cp" → "0,5"
+  const estraiQta = (dose) => {
+    if (!dose) return '';
+    const m = dose.match(/^(\d+[,.]?\d*)/);
+    return m ? m[1] : '';
+  };
+
   const orariHeader = ORARI.map(o=>`<th class="or-cell">${o}</th>`).join('');
 
+  // Celle orario: mostrano la quantità numerica se l'orario è attivo
   const buildOrariCells = (t) => ORARI.map(o => {
     const on = t.orari && t.orari.includes(o);
-    return `<td class="or-cell">${on ? o : ''}</td>`;
+    const qta = on ? estraiQta(t.dose) : '';
+    return `<td class="or-cell">${qta}</td>`;
   }).join('');
 
-  // ── Righe per sezione ─────────────────────────────────────────────────
+  // Nome farmaco in stampatello maiuscolo + dose in normale
+  const nomeFarmaco = (t) => {
+    return `<span class="drug-name">${(t.farmaco||'').toUpperCase()}</span>`;
+  };
+
   const buildRighe = (sezione, nRighe) => {
     const rows = attive.filter(t=>t.sezione===sezione);
     const result = [];
     for (let i = 0; i < nRighe; i++) {
       const t = rows[i];
       if (t) {
-        const fonte = t.fonte==='personale' ? '<br><span style="font-size:6pt;color:#666">[pers.]</span>' : '';
+        const fonte = t.fonte==='personale' ? '<br><span style="font-size:6pt;color:#666;font-style:italic">[pers.]</span>' : '';
+        const via = t.via && sezione!=='orale' ? `<br><span style="font-size:6.5pt;text-transform:none">${t.via}</span>` : '';
         result.push(`<tr>
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
-          <td class="drug-cell">${t.farmaco} — ${t.dose}${t.via?' ('+t.via+')':''}${fonte}</td>
+          <td class="drug-cell">${nomeFarmaco(t)}${via}${fonte}</td>
           ${buildOrariCells(t)}
           <td class="data-cell">${t.dataFine||''}</td>
           <td class="firma-cell"></td>
@@ -1332,11 +1345,11 @@ function stampaFoglioB(pid) {
     for (let i = 0; i < nRighe; i++) {
       const t = rows[i];
       if (t) {
-        const fonte = t.fonte==='personale' ? ' <span style="font-size:6pt;color:#666">[pers.]</span>' : '';
+        const fonte = t.fonte==='personale' ? ' <span style="font-size:6pt;color:#666;font-style:italic">[pers.]</span>' : '';
         result.push(`<tr>
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
-          <td class="drug-cell" colspan="5">${t.farmaco} — ${t.dose}${t.via?' ('+t.via+')':''}${t.indicazione?' — '+t.indicazione:''}${fonte}</td>
+          <td class="drug-cell" colspan="5">${nomeFarmaco(t)}<span style="font-size:7pt;text-transform:none"> — ${t.dose}${t.via?' ('+t.via+')':''}${t.indicazione?' — '+t.indicazione:''}</span>${fonte}</td>
           <td class="data-cell">${t.dataFine||''}</td>
           <td class="firma-cell"></td>
         </tr>`);
@@ -1351,109 +1364,91 @@ function stampaFoglioB(pid) {
     return result.join('');
   };
 
+  // Long Acting: senza colonna DATA ESEGUITA, Firma Inf. sull'ultima riga in basso
   const buildRigheLongActing = (nRighe) => {
     const rows = attive.filter(t=>t.sezione==='longacting');
     const result = [];
     for (let i = 0; i < nRighe; i++) {
       const t = rows[i];
+      const firmaInf = (i === nRighe - 1)
+        ? `<td class="la-eseguita" style="font-size:7pt;color:#555;text-align:center;vertical-align:bottom;padding-bottom:1mm">Firma Inf.</td>`
+        : `<td class="la-eseguita"></td>`;
       if (t) {
-        const fonte = t.fonte==='personale' ? ' <span style="font-size:6pt;color:#666">[pers.]</span>' : '';
+        const fonte = t.fonte==='personale' ? ' <span style="font-size:6pt;color:#666;font-style:italic">[pers.]</span>' : '';
         result.push(`<tr>
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
-          <td class="drug-cell">${t.farmaco} — ${t.dose}${fonte}</td>
-          <td class="data-cell" colspan="2">${t.laEseguita||''}</td>
-          <td class="firma-cell" style="font-size:7pt;color:#888">Firma Inf.</td>
-          <td class="data-cell" colspan="3">${t.laProssima||''}</td>
+          <td class="drug-cell">${nomeFarmaco(t)}<span style="font-size:7pt;text-transform:none"> — ${t.dose}${t.via?' — '+t.via:''}</span>${fonte}</td>
+          ${firmaInf}
+          <td class="la-prossima">${t.laProssima||''}</td>
         </tr>`);
       } else {
         result.push(`<tr>
-          <td class="data-cell"></td><td class="firma-cell"></td>
-          <td class="drug-cell"></td>
-          <td class="data-cell" colspan="2"></td>
+          <td class="data-cell"></td>
           <td class="firma-cell"></td>
-          <td class="data-cell" colspan="3"></td>
+          <td class="drug-cell"></td>
+          ${firmaInf}
+          <td class="la-prossima"></td>
         </tr>`);
       }
     }
     return result.join('');
   };
 
-  // ── Long Acting: titolo con giorni ───────────────────────────────────
   const laRows = attive.filter(t=>t.sezione==='longacting');
   const laGiorniLabel = laRows.length > 0 && laRows[0].laGiorni
     ? ` OGNI ${laRows[0].laGiorni} GIORNI` : '';
 
-  // ── HTML completo pagina ─────────────────────────────────────────────
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>Foglio Terapia — ${pz.cognome} ${pz.nome}</title>
   <style>
     * { box-sizing:border-box; margin:0; padding:0; }
     body { font-family:'Times New Roman',serif; font-size:8.5pt; background:#fff; color:#000; }
     .page { padding:8mm 10mm 6mm; }
-
-    /* INTESTAZIONE */
     .hdr-table { width:100%; border-collapse:collapse; margin-bottom:3mm; }
-    .hdr-logo  { font-size:9pt; font-weight:bold; width:30%; vertical-align:top; }
+    .hdr-logo  { width:32%; vertical-align:top; }
+    .hdr-logo-main { font-family:'Times New Roman',serif; font-style:italic; font-weight:bold; font-size:13pt; line-height:1.15; color:#000; }
+    .hdr-logo-sub  { font-family:'Times New Roman',serif; font-style:italic; font-size:8pt; color:#333; display:block; margin-top:1mm; }
     .hdr-title { font-size:11pt; font-weight:bold; text-align:center; vertical-align:middle; }
-    .hdr-pz    { font-size:9pt; text-align:right; width:30%; vertical-align:top; }
     .hdr-sub   { font-size:7.5pt; font-weight:normal; display:block; margin-top:1mm; }
-
-    /* GRIGLIA TERAPIA */
+    .hdr-pz    { width:32%; text-align:right; vertical-align:top; }
+    .hdr-pz-name { font-family:'Times New Roman',serif; font-size:18pt; font-weight:bold; line-height:1.1; display:block; }
+    .hdr-pz-sub  { font-size:7.5pt; display:block; margin-top:1.5mm; color:#555; }
     .terapia-table { width:100%; border-collapse:collapse; font-size:7.5pt; table-layout:fixed; }
-    .terapia-table th {
-      border:1px solid #000; padding:1.5mm 1mm; text-align:center;
-      background:#e8e8e8; font-size:7pt; font-weight:bold; line-height:1.2;
-    }
-    .terapia-table td {
-      border:1px solid #000; padding:1mm; min-height:6.5mm; height:6.5mm;
-      vertical-align:middle; line-height:1.2;
-    }
+    .terapia-table th { border:1px solid #000; padding:1.5mm 1mm; text-align:center; background:#e8e8e8; font-size:7pt; font-weight:bold; line-height:1.2; }
+    .terapia-table td { border:1px solid #000; padding:1mm; min-height:6.5mm; height:6.5mm; vertical-align:middle; line-height:1.2; }
     .data-cell  { width:18mm; text-align:center; font-size:7pt; }
     .firma-cell { width:20mm; }
-    .drug-cell  { text-align:left; font-size:7.5pt; }
-    .or-cell    { width:9mm; text-align:center; font-size:7pt; }
-
-    /* TITOLI SEZIONE */
-    .sez-row td {
-      background:#d0d0d0; font-weight:bold; font-size:8pt;
-      text-transform:uppercase; letter-spacing:.04em;
-      padding:1.5mm 2mm; border:1px solid #000;
-    }
-
-    /* FOOTER */
-    .footer-aggiornata {
-      font-size:7.5pt; margin-top:2mm;
-      display:flex; justify-content:space-between;
-    }
-    .footer-ente {
-      font-size:7pt; color:#333; text-align:center;
-      margin-top:1.5mm; border-top:1px solid #aaa; padding-top:1.5mm;
-    }
+    .drug-cell  { text-align:left; }
+    .drug-name  { font-family:'Arial',sans-serif; font-weight:bold; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.02em; }
+    .or-cell    { width:9mm; text-align:center; font-size:8.5pt; font-weight:bold; }
+    .la-eseguita{ width:28mm; text-align:center; font-size:7pt; }
+    .la-prossima{ text-align:center; font-size:7pt; }
+    .sez-row td { background:#d0d0d0; font-weight:bold; font-size:8pt; text-transform:uppercase; letter-spacing:.04em; padding:1.5mm 2mm; border:1px solid #000; }
+    .footer-aggiornata { font-size:7.5pt; margin-top:2mm; display:flex; justify-content:space-between; }
+    .footer-ente { font-size:7pt; color:#333; text-align:center; margin-top:1.5mm; border-top:1px solid #aaa; padding-top:1.5mm; }
     @page { size:A4 portrait; margin:8mm; }
   </style>
   </head><body>
   <div class="page">
 
-    <!-- INTESTAZIONE -->
     <table class="hdr-table">
       <tr>
         <td class="hdr-logo">
-          FONDAZIONE<br>EMILIA BOSIS
-          <span class="hdr-sub">Cascina Germoglio</span>
+          <span class="hdr-logo-main">Fondazione<br>Emilia Bosis</span>
+          <span class="hdr-logo-sub">Cascina Germoglio</span>
         </td>
         <td class="hdr-title">
           FOGLIO TERAPIA &nbsp; n.&nbsp;${nFoglio}
           <span class="hdr-sub">COMUNITÀ "IL GERMOGLIO" — VERDELLO (BG)</span>
         </td>
         <td class="hdr-pz">
-          <strong>${pz.cognome} ${pz.nome}</strong>
-          <span class="hdr-sub">${pz.allergie?'⚠ Allergie: '+pz.allergie:''}</span>
+          <span class="hdr-pz-name">${pz.cognome}<br>${pz.nome}</span>
+          <span class="hdr-pz-sub">${pz.allergie?'⚠ Allergie: '+pz.allergie:''}</span>
         </td>
       </tr>
     </table>
 
-    <!-- GRIGLIA PRINCIPALE -->
     <table class="terapia-table">
       <colgroup>
         <col style="width:18mm"><col style="width:20mm">
@@ -1461,8 +1456,6 @@ function stampaFoglioB(pid) {
         <col style="width:9mm"><col style="width:9mm">
         <col style="width:18mm"><col style="width:20mm">
       </colgroup>
-
-      <!-- HEADER COLONNE -->
       <thead>
         <tr>
           <th>DATA<br>INIZIO</th>
@@ -1473,53 +1466,36 @@ function stampaFoglioB(pid) {
           <th>FIRMA<br>MEDICO</th>
         </tr>
       </thead>
-
       <tbody>
-        <!-- 17 righe TERAPIA ORALE -->
         ${buildRighe('orale', 17)}
-
-        <!-- TERAPIA TOPICA -->
         <tr class="sez-row"><td colspan="9">Terapia Topica &nbsp;/&nbsp; I.M. &nbsp;/&nbsp; S.C. &nbsp;/&nbsp; E.V. &nbsp;/&nbsp; Varie</td></tr>
         ${buildRighe('topica', 3)}
-
-        <!-- TERAPIA AL BISOGNO -->
         <tr class="sez-row"><td colspan="9">Terapia al Bisogno</td></tr>
         ${buildRigheBisogno(5)}
-
-        <!-- TERAPIA LONG ACTING -->
-        <tr class="sez-row">
-          <td colspan="9">Terapia Long Acting${laGiorniLabel}</td>
-        </tr>
-        <!-- sub-header long acting -->
+        <tr class="sez-row"><td colspan="9">Terapia Long Acting${laGiorniLabel}</td></tr>
         <tr>
-          <th class="data-cell">DATA<br>INIZIO</th>
-          <th class="firma-cell">FIRMA<br>MEDICO</th>
-          <th class="drug-cell">FARMACO / DOSE / VIA</th>
-          <th class="data-cell" colspan="2">DATA<br>ESEGUITA</th>
-          <th class="firma-cell">FIRMA<br>INF.</th>
-          <th class="data-cell" colspan="3">DATA<br>PROSSIMA</th>
+          <th style="width:18mm">DATA<br>INIZIO</th>
+          <th style="width:20mm">FIRMA<br>MEDICO</th>
+          <th>FARMACO / DOSE / VIA</th>
+          <th style="width:28mm"></th>
+          <th>DATA<br>PROSSIMA</th>
         </tr>
         ${buildRigheLongActing(2)}
       </tbody>
     </table>
 
-    <!-- AGGIORNATA AL -->
     <div class="footer-aggiornata">
       <span>Aggiornata al: <strong>${oggi}</strong></span>
       <span>Foglio n.&nbsp;${nFoglio}</span>
     </div>
-
-    <!-- PIÈ DI PAGINA ENTE -->
     <div class="footer-ente">
       FONDAZIONE EMILIA BOSIS &nbsp;·&nbsp; www.fondazionebosis.it &nbsp;·&nbsp; verdello@fondazionebosis.it<br>
       COMUNITÀ "IL GERMOGLIO", VIA SOLFERINO 51 - 24049 VERDELLO (BG) &nbsp; TEL. 035/4813814
     </div>
-
   </div>
   <script>window.onload=()=>{window.print();}<\/script>
   </body></html>`;
 
-  // Incrementa numero foglio
   const cnt = loadO(SK.contatori);
   cnt[pid] = (cnt[pid]||1) + 1;
   save(SK.contatori, cnt);
@@ -1529,7 +1505,7 @@ function stampaFoglioB(pid) {
   w.document.close();
 
   renderScheda(pid);
-  toast('Foglio n°'+(cnt[pid]-1)+' inviato alla stampa');
+  toast('Foglio n\u00b0'+(cnt[pid]-1)+' inviato alla stampa');
 }
 
 

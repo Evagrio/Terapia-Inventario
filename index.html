@@ -1,0 +1,3198 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FarmaciaCRA — Cascina Germoglio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inconsolata:wght@400;500;600&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0F1117; --surface: #181C27; --surface2: #1E2333;
+  --border: #2A3045; --border-hi: #3A4560;
+  --text: #E8EAF0; --muted: #7A8099; --dim: #4A5270;
+  --gold: #E8B84B; --gold-bg: rgba(232,184,75,0.08);
+  --red: #E05252; --red-bg: #2A1515;
+  --amber: #E8913A; --amber-bg: #2A1E0E;
+  --green: #4DB87A; --green-bg: #0E2018;
+  --blue: #5B9BD5; --blue-bg: rgba(91,155,213,0.1);
+  --violet: #9B7FD4; --violet-bg: rgba(155,127,212,0.1);
+  --r: 12px;
+}
+body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+
+/* HEADER */
+header { background:var(--surface); border-bottom:1px solid var(--border); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; gap:12px; }
+.logo { font-family:'Playfair Display',serif; font-size:1.4rem; color:var(--gold); white-space:nowrap; }
+.logo em { font-style:italic; color:var(--text); font-size:1rem; }
+.hdr-tabs { display:flex; align-items:center; gap:2px; flex:1; margin:0 20px; }
+.htab { padding:6px 16px; font-size:0.82rem; font-weight:700; color:var(--muted); cursor:pointer;
+        border-radius:8px; transition:all .15s; white-space:nowrap; }
+.htab:hover { color:var(--text); background:var(--surface2); }
+.htab.active { color:var(--gold); background:var(--gold-bg); }
+.hdr-right { display:flex; align-items:center; gap:10px; }
+.clock { font-family:'Inconsolata',monospace; font-size:0.72rem; color:var(--muted); text-align:right; line-height:1.7; }
+
+/* NAV TABS */
+.nav-tabs { background:var(--surface); border-bottom:1px solid var(--border); padding:0 24px; display:flex; gap:0; }
+.tab { padding:12px 20px; font-size:0.82rem; font-weight:700; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; white-space:nowrap; }
+.tab:hover { color:var(--text); }
+.tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+
+/* CONTAINER */
+.container { max-width:1200px; margin:0 auto; padding:22px 24px; flex:1; }
+
+/* TOOLBAR */
+.toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px; }
+.toolbar h2 { font-family:'Playfair Display',serif; font-size:1.15rem; }
+.toolbar p  { font-size:0.75rem; color:var(--muted); margin-top:2px; }
+.tbar-right { display:flex; gap:8px; flex-wrap:wrap; }
+
+/* BUTTONS */
+.btn { display:inline-flex; align-items:center; gap:5px; padding:8px 15px; border-radius:8px; border:none; cursor:pointer; font-family:'Nunito',sans-serif; font-size:0.83rem; font-weight:700; transition:all .15s; white-space:nowrap; }
+.btn-gold  { background:var(--gold); color:#0F1117; }
+.btn-gold:hover { filter:brightness(1.1); }
+.btn-ghost { background:var(--surface2); color:var(--text); border:1px solid var(--border-hi); }
+.btn-ghost:hover { background:var(--border); }
+.btn-red   { background:var(--red-bg); color:var(--red); border:1px solid var(--red); }
+.btn-red:hover { background:var(--red); color:#fff; }
+.btn-blue  { background:var(--blue-bg); color:var(--blue); border:1px solid var(--blue); }
+.btn-blue:hover { background:var(--blue); color:#fff; }
+.btn-sm { padding:5px 10px; font-size:0.75rem; }
+
+/* GRID PAZIENTI */
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; }
+
+/* PATIENT CARD */
+.pcard { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; transition:box-shadow .2s, border-color .2s; cursor:pointer; }
+.pcard:hover { border-color:var(--gold); box-shadow:0 8px 32px rgba(0,0,0,.4); }
+.pcard-head { padding:14px 16px 12px; display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border); }
+.pname { font-family:'Playfair Display',serif; font-size:1.05rem; }
+.pmeta { font-family:'Inconsolata',monospace; font-size:0.65rem; color:var(--dim); margin-top:3px; }
+.pcard-body { padding:12px 16px; }
+.pcard-stats { display:flex; gap:14px; }
+.pstat { text-align:center; }
+.pstat-n { font-family:'Inconsolata',monospace; font-size:1.1rem; font-weight:600; color:var(--gold); }
+.pstat-l { font-size:0.65rem; color:var(--muted); margin-top:2px; }
+.pcard-actions { padding:10px 16px; border-top:1px solid var(--border); display:flex; gap:6px; }
+
+/* BADGE GRUPPO */
+.badge { font-family:'Inconsolata',monospace; font-size:0.62rem; font-weight:600; padding:2px 8px; border-radius:20px; letter-spacing:.06em; text-transform:uppercase; }
+.badge-cra { background:var(--gold-bg); color:var(--gold); border:1px solid rgba(232,184,75,.3); }
+.badge-cd  { background:var(--blue-bg); color:var(--blue); border:1px solid rgba(91,155,213,.3); }
+.badge-dim { background:var(--red-bg); color:var(--red); border:1px solid rgba(224,82,82,.3); }
+
+/* BADGE FONTE FARMACO */
+.fonte-cra  { background:var(--gold-bg); color:var(--gold); border:1px solid rgba(232,184,75,.25); font-size:0.6rem; padding:1px 6px; border-radius:10px; font-family:'Inconsolata',monospace; }
+.fonte-pers { background:var(--blue-bg); color:var(--blue); border:1px solid rgba(91,155,213,.25); font-size:0.6rem; padding:1px 6px; border-radius:10px; font-family:'Inconsolata',monospace; }
+
+/* MODAL */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:200; display:none; align-items:flex-start; justify-content:center; padding:24px; overflow-y:auto; }
+.overlay.open { display:flex; }
+.modal { background:var(--surface); border:1px solid var(--border-hi); border-radius:var(--r); width:100%; max-width:680px; margin:auto; }
+.modal-head { padding:18px 22px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.modal-title { font-family:'Playfair Display',serif; font-size:1.1rem; }
+.modal-body { padding:22px; display:flex; flex-direction:column; gap:16px; }
+.modal-foot { padding:14px 22px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end; }
+.close-btn { background:none; border:none; color:var(--muted); font-size:1.4rem; cursor:pointer; line-height:1; padding:2px 6px; }
+.close-btn:hover { color:var(--text); }
+
+/* FORM */
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+.form-group { display:flex; flex-direction:column; gap:5px; }
+.form-group.full { grid-column:1/-1; }
+label { font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+input, select, textarea {
+  background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+  color:var(--text); font-family:'Nunito',sans-serif; font-size:0.87rem;
+  padding:9px 12px; transition:border-color .15s; width:100%;
+}
+input:focus, select:focus, textarea:focus { outline:none; border-color:var(--gold); }
+textarea { resize:vertical; min-height:70px; }
+select option { background:var(--surface2); }
+
+/* SCHEDA TERAPEUTICA */
+.scheda-wrap { max-width:900px; }
+.scheda-header { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:16px 20px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+.scheda-pname { font-family:'Playfair Display',serif; font-size:1.3rem; }
+.scheda-meta { font-family:'Inconsolata',monospace; font-size:0.7rem; color:var(--muted); margin-top:4px; }
+.foglio-num { font-family:'Inconsolata',monospace; font-size:0.75rem; color:var(--gold); background:var(--gold-bg); border:1px solid rgba(232,184,75,.3); padding:4px 12px; border-radius:20px; }
+
+/* SEZIONI TERAPIA */
+.sezione { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); margin-bottom:14px; overflow:hidden; }
+.sezione-head { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.sezione-title { font-family:'Inconsolata',monospace; font-size:0.72rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; }
+.sezione-title.orale    { color:var(--gold); }
+.sezione-title.topica   { color:var(--amber); }
+.sezione-title.bisogno  { color:var(--violet); }
+.sezione-title.longact  { color:var(--green); }
+
+/* TABELLA FARMACI */
+.drug-table { width:100%; border-collapse:collapse; font-size:0.8rem; }
+.drug-table th { font-family:'Inconsolata',monospace; font-size:0.62rem; color:var(--muted); font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:8px 10px; border-bottom:1px solid var(--border); text-align:left; white-space:nowrap; }
+.drug-table td { padding:9px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.drug-table tr:last-child td { border-bottom:none; }
+.drug-table tr:hover td { background:var(--surface2); }
+.orario-dot { width:28px; height:28px; border-radius:50%; border:1px solid var(--border-hi); display:inline-flex; align-items:center; justify-content:center; font-family:'Inconsolata',monospace; font-size:0.65rem; color:var(--muted); }
+.orario-dot.attivo { background:var(--gold-bg); border-color:var(--gold); color:var(--gold); }
+.drug-nome { font-weight:700; }
+.drug-dose { font-family:'Inconsolata',monospace; font-size:0.75rem; color:var(--gold); }
+.drug-date { font-family:'Inconsolata',monospace; font-size:0.68rem; color:var(--muted); }
+.drug-sosp { font-family:'Inconsolata',monospace; font-size:0.68rem; color:var(--red); }
+.empty-row { text-align:center; padding:20px; color:var(--dim); font-size:0.8rem; font-style:italic; }
+
+/* LONG ACTING TABLE */
+.la-table { width:100%; border-collapse:collapse; font-size:0.8rem; }
+.la-table th { font-family:'Inconsolata',monospace; font-size:0.62rem; color:var(--muted); font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:8px 10px; border-bottom:1px solid var(--border); text-align:left; }
+.la-table td { padding:9px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.la-table tr:last-child td { border-bottom:none; }
+.prossima-ok   { color:var(--green); font-family:'Inconsolata',monospace; font-size:0.75rem; }
+.prossima-warn { color:var(--amber); font-family:'Inconsolata',monospace; font-size:0.75rem; }
+.prossima-late { color:var(--red); font-family:'Inconsolata',monospace; font-size:0.75rem; }
+
+/* AGGIORNAMENTO FOOTER */
+.scheda-footer { text-align:right; font-family:'Inconsolata',monospace; font-size:0.68rem; color:var(--dim); margin-top:8px; padding:10px 16px; }
+
+/* EMPTY STATE */
+.empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
+.empty-state .icon { font-size:3rem; margin-bottom:12px; opacity:.4; }
+.empty-state p { font-size:0.9rem; }
+
+/* MODAL GRANDE */
+.modal-lg { max-width:860px; }
+
+/* ORARI CHECKBOX */
+.orari-group { display:flex; gap:10px; flex-wrap:wrap; margin-top:4px; }
+.orario-check { display:flex; align-items:center; gap:5px; cursor:pointer; }
+.orario-check input { width:auto; }
+.orario-check span { font-family:'Inconsolata',monospace; font-size:0.82rem; }
+.orario-dose-row { display:flex; align-items:center; padding:4px 0; }
+
+/* CONVALIDA TERAPIA STAMPA */
+@media print {
+  .convalida-page { page-break-after: always; }
+  .convalida-page:last-child { page-break-after: avoid; }
+}
+
+/* PRINT STYLES */
+@media print {
+  body { background:#fff; color:#000; font-family:'Times New Roman',serif; }
+  .no-print { display:none !important; }
+  .print-only { display:block !important; }
+  .print-page { padding:15mm 15mm 10mm; }
+  .print-header { text-align:center; margin-bottom:8mm; border-bottom:2px solid #000; padding-bottom:4mm; }
+  .print-header h1 { font-size:14pt; font-weight:bold; }
+  .print-header h2 { font-size:11pt; margin-top:2mm; }
+  .print-header .foglio-info { font-size:9pt; margin-top:3mm; display:flex; justify-content:space-between; }
+  .print-section { margin-top:6mm; }
+  .print-section-title { font-size:9pt; font-weight:bold; text-transform:uppercase; border-bottom:1px solid #000; padding-bottom:1mm; margin-bottom:2mm; }
+  .print-table { width:100%; border-collapse:collapse; font-size:8pt; }
+  .print-table th { border:1px solid #000; padding:2mm 3mm; text-align:left; background:#f0f0f0; font-size:7pt; }
+  .print-table td { border:1px solid #000; padding:2mm 3mm; min-height:7mm; }
+  .print-table .firma-cell { width:28mm; }
+  .print-table .data-cell { width:22mm; }
+  .print-table .orario-cell { width:12mm; text-align:center; }
+  .print-footer { margin-top:8mm; border-top:1px solid #aaa; padding-top:3mm; font-size:7pt; color:#555; display:flex; justify-content:space-between; }
+  .print-ente { font-size:7pt; color:#555; text-align:center; margin-top:4mm; }
+  @page { size:A4 landscape; margin:10mm; }
+}
+.print-only { display:none; }
+
+/* ===== REPORT ===== */
+.report-table { width:100%; border-collapse:collapse; font-size:0.82rem; margin-bottom:20px; }
+.report-table th { font-family:'Inconsolata',monospace; font-size:0.62rem; color:var(--muted); font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:8px 12px; border-bottom:2px solid var(--border); text-align:left; white-space:nowrap; }
+.report-table td { padding:9px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.report-table tr:last-child td { border-bottom:none; }
+.report-table tr:hover td { background:var(--surface2); }
+.report-table .num { font-family:'Inconsolata',monospace; font-weight:600; }
+.stato-pill { font-family:'Inconsolata',monospace; font-size:0.6rem; font-weight:600; padding:2px 8px; border-radius:20px; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; }
+.stato-ok     { background:var(--green-bg); color:var(--green); border:1px solid rgba(77,184,122,.3); }
+.stato-warn   { background:var(--amber-bg); color:var(--amber); border:1px solid rgba(232,145,58,.3); }
+.stato-urgent { background:var(--red-bg);   color:var(--red);   border:1px solid rgba(224,82,82,.3); }
+.storico-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); margin-bottom:12px; overflow:hidden; }
+.storico-card-head { padding:12px 16px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
+.storico-card-head:hover { background:var(--surface2); }
+.storico-card-body { display:none; padding:16px; border-top:1px solid var(--border); }
+.storico-card-body.open { display:block; }
+.report-section-title { font-family:'Inconsolata',monospace; font-size:0.7rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:16px 0 8px; }
+
+/* SEARCH */
+.search-bar { position:relative; }
+.search-bar input { padding-left:32px; width:220px; }
+.search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:0.85rem; pointer-events:none; }
+
+/* TOAST */
+.toast { position:fixed; bottom:24px; right:24px; background:var(--surface); border:1px solid var(--green); border-radius:10px; padding:12px 18px; font-size:0.83rem; color:var(--green); z-index:999; display:none; animation:slideUp .2s; }
+.toast.show { display:block; }
+@keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+/* LOGIN */
+.login-screen { position:fixed; inset:0; z-index:1000; background:var(--bg); display:flex; align-items:center; justify-content:center; padding:24px; }
+.login-box { width:100%; max-width:380px; background:var(--surface); border:1px solid var(--border-hi); border-radius:18px; padding:34px 30px; box-shadow:0 24px 64px rgba(0,0,0,.55); text-align:center; }
+.login-box h1 { font-family:'Playfair Display',serif; color:var(--gold); font-size:1.8rem; margin-bottom:4px; }
+.login-box p { color:var(--muted); font-size:.82rem; margin-bottom:22px; }
+.login-box input { text-align:center; letter-spacing:.12em; font-size:1rem; }
+.login-error { min-height:20px; color:var(--red); font-size:.8rem; margin-top:10px; }
+
+/* PILL SEZIONE */
+.sezione-pill { font-size:0.62rem; padding:2px 8px; border-radius:10px; font-family:'Inconsolata',monospace; font-weight:600; text-transform:uppercase; }
+.pill-orale   { background:var(--gold-bg); color:var(--gold); }
+.pill-topica  { background:var(--amber-bg); color:var(--amber); }
+.pill-bisogno { background:var(--violet-bg); color:var(--violet); }
+.pill-longact { background:var(--green-bg); color:var(--green); }
+
+/* BACK BTN */
+.back-btn { display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:0.8rem; cursor:pointer; margin-bottom:16px; transition:color .15s; background:none; border:none; font-family:'Nunito',sans-serif; }
+.back-btn:hover { color:var(--text); }
+
+/* INVENTARIO */
+.inv-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:16px; }
+.inv-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; transition:border-color .2s, box-shadow .2s; }
+.inv-card.stato-ok     { border-left:4px solid var(--green); }
+.inv-card.stato-warn   { border-left:4px solid var(--amber); }
+.inv-card.stato-urgent { border-left:4px solid var(--red); }
+.inv-card-head { padding:14px 16px 10px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start; }
+.inv-nome { font-weight:700; font-size:0.95rem; }
+.inv-forma { font-family:'Inconsolata',monospace; font-size:0.65rem; color:var(--muted); margin-top:2px; }
+.inv-card-body { padding:12px 16px; display:flex; flex-direction:column; gap:10px; }
+.inv-row { display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; }
+.inv-label { color:var(--muted); }
+.inv-val { font-family:'Inconsolata',monospace; font-weight:600; }
+.inv-val.green  { color:var(--green); }
+.inv-val.amber  { color:var(--amber); }
+.inv-val.red    { color:var(--red); }
+/* DOSE CIRCLE — sostituisce orario-dot per terapie orali */
+.dose-circle {
+  width:36px; height:36px; border-radius:50%;
+  border:1.5px solid var(--border-hi);
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:'Inconsolata',monospace; font-size:0.8rem; color:var(--muted);
+  cursor:default; user-select:none; position:relative;
+}
+.dose-circle.attivo {
+  background:var(--gold-bg); border-color:var(--gold); color:var(--gold);
+  cursor:pointer; transition:box-shadow .15s, border-color .15s;
+}
+.dose-circle.attivo:hover { box-shadow:0 0 0 3px rgba(232,184,75,.25); border-color:var(--gold); }
+.dose-circle-val { line-height:1; font-weight:600; }
+
+/* POPUP DOSE INLINE */
+.dose-popup {
+  position:absolute; top:calc(100% + 6px); left:50%; transform:translateX(-50%);
+  background:var(--surface2); border:1px solid var(--gold);
+  border-radius:8px; padding:6px 8px; z-index:300; white-space:nowrap;
+  display:flex; align-items:center; gap:6px; box-shadow:0 4px 16px rgba(0,0,0,.4);
+}
+.dose-popup input {
+  width:64px; text-align:center; font-family:'Inconsolata',monospace;
+  font-size:0.88rem; padding:4px 6px; background:var(--surface); color:var(--gold);
+  border:1px solid var(--gold); border-radius:6px;
+}
+.dose-popup .dose-pop-ok {
+  background:var(--gold); color:#0F1117; border:none; border-radius:6px;
+  padding:4px 8px; cursor:pointer; font-weight:700; font-size:0.75rem;
+}
+
+/* ALERT BANNER INVENTARIO */
+.inv-alert { margin-bottom:18px; border-radius:var(--r); padding:13px 17px; }
+.inv-alert.urgent { background:var(--red-bg); border:1px solid var(--red); }
+.inv-alert.warn   { background:var(--amber-bg); border:1px solid var(--amber); }
+.inv-alert-ttl { font-family:'Inconsolata',monospace; font-size:0.68rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; margin-bottom:7px; }
+.inv-alert.urgent .inv-alert-ttl { color:var(--red); }
+.inv-alert.warn   .inv-alert-ttl { color:var(--amber); }
+.inv-chips { display:flex; flex-wrap:wrap; gap:5px; }
+.chip-urgent { font-size:0.78rem; padding:3px 10px; border-radius:20px; background:rgba(224,82,82,.15); border:1px solid rgba(224,82,82,.3); color:var(--text); }
+.chip-warn   { font-size:0.78rem; padding:3px 10px; border-radius:20px; background:rgba(232,145,58,.15); border:1px solid rgba(232,145,58,.3); color:var(--text); }
+
+/* MOVIMENTO LOG */
+.mov-list { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+.mov-row { display:flex; justify-content:space-between; align-items:center; background:var(--surface2); border-radius:8px; padding:8px 12px; font-size:0.78rem; }
+.mov-tipo { font-family:'Inconsolata',monospace; font-size:0.65rem; font-weight:600; text-transform:uppercase; }
+.mov-tipo.carico    { color:var(--green); }
+.mov-tipo.rettifica { color:var(--amber); }
+.mov-q { font-family:'Inconsolata',monospace; font-weight:700; }
+.mov-q.pos { color:var(--green); }
+.mov-q.neg { color:var(--red); }
+.mov-data { color:var(--dim); font-size:0.7rem; font-family:'Inconsolata',monospace; }
+
+/* SOMMARIO INVENTARIO */
+.inv-summary { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+.inv-stat { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 20px; flex:1; min-width:140px; }
+.inv-stat-n { font-family:'Inconsolata',monospace; font-size:1.4rem; font-weight:600; }
+.inv-stat-l { font-size:0.7rem; color:var(--muted); margin-top:3px; }
+</style>
+</head>
+<body>
+
+<div class="login-screen no-print" id="login-screen">
+  <div class="login-box">
+    <h1>Farmacia<em style="color:var(--text);font-size:1.1rem;">CRA</em></h1>
+    <p>Accesso protetto ai dati locali</p>
+    <input type="password" id="login-password" placeholder="Password" onkeydown="if(event.key==='Enter')loginApp()">
+    <label style="display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--muted);margin-top:10px;cursor:pointer;justify-content:center">
+      <input type="checkbox" id="ricorda-device" style="width:auto;accent-color:var(--gold)">
+      Ricorda su questo computer
+    </label>
+    <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:12px" onclick="loginApp()">Entra</button>
+    <div class="login-error" id="login-error"></div>
+    <p style="font-size:.68rem;margin-top:18px;margin-bottom:0;color:var(--dim)">Contatta l'amministratore per la password.</p>
+  </div>
+</div>
+
+<header class="no-print">
+  <div class="logo">Farmacia<em>CRA</em></div>
+  <div class="hdr-tabs no-print">
+    <div class="htab active" id="htab-pazienti" onclick="showTab('pazienti')">Pazienti</div>
+    <div class="htab" id="htab-inventario" onclick="showTab('inventario')">Inventario CRA</div>
+    <div class="htab" id="htab-report" onclick="showTab('report')">Report</div>
+  </div>
+  <div class="hdr-right">
+    <button class="btn btn-ghost btn-sm" onclick="esportaBackup()" title="Esporta backup dati">💾 Backup</button>
+    <label class="btn btn-ghost btn-sm" style="cursor:pointer" title="Importa backup dati">
+      📥 Importa <input type="file" id="import-file" accept=".json" style="display:none" onchange="importaBackup(this)">
+    </label>
+    <button class="btn btn-ghost btn-sm" onclick="openModalCambiaPassword()" title="Cambia password">🔑</button>
+
+    <div class="clock" id="clock"></div>
+  </div>
+</header>
+
+
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ===================== TAB PAZIENTI ===================== -->
+<div id="tab-pazienti" class="container">
+
+  <!-- BANNER ALERT FARMACI (visibile nella home) -->
+  <div id="home-alert-urgent" class="inv-alert urgent" style="display:none;margin-bottom:14px">
+    <div class="inv-alert-ttl">🚨 Farmaci CRITICI — scorte per meno di 3 giorni</div>
+    <div class="inv-chips" id="home-chips-urgent"></div>
+  </div>
+  <div id="home-alert-warn" class="inv-alert warn" style="display:none;margin-bottom:14px">
+    <div class="inv-alert-ttl">⚠ Farmaci in ATTENZIONE — scorte per meno di 7 giorni</div>
+    <div class="inv-chips" id="home-chips-warn"></div>
+  </div>
+  <!-- BANNER REPORT MENSILE -->
+  <div id="home-report-banner" style="display:none;margin-bottom:14px;background:var(--blue-bg);border:1px solid var(--blue);border-radius:var(--r);padding:13px 17px;">
+    <div style="font-family:'Inconsolata',monospace;font-size:0.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:7px">📊 Report mensile disponibile</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <span style="font-size:0.82rem" id="home-report-banner-msg"></span>
+      <button class="btn btn-blue btn-sm" onclick="generaESalvaReportMensile(true)">Genera e salva report</button>
+    </div>
+  </div>
+
+  <!-- VISTA LISTA PAZIENTI -->
+  <div id="vista-lista">
+    <div class="toolbar">
+      <div>
+        <h2>Pazienti</h2>
+        <p id="pz-count"></p>
+      </div>
+      <div class="tbar-right">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-pz" placeholder="Cerca paziente…" oninput="renderLista()">
+        </div>
+
+        <button class="btn btn-gold" onclick="openModalPaziente()">+ Nuovo paziente</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModalConvalida()">🗓 Convalida terapia</button>
+
+      </div>
+    </div>
+    <div class="grid" id="grid-pazienti"></div>
+  </div>
+
+  <!-- VISTA SCHEDA PAZIENTE -->
+  <div id="vista-scheda" style="display:none;">
+    <button class="back-btn no-print" onclick="tornaLista()">← Torna all'elenco</button>
+    <div class="scheda-wrap" id="scheda-content"></div>
+  </div>
+
+</div>
+
+<!-- ===================== TAB INVENTARIO ===================== -->
+<div id="tab-inventario" class="container" style="display:none;">
+
+  <div id="inv-alert-urgent" class="inv-alert urgent" style="display:none;">
+    <div class="inv-alert-ttl">⚠ Scorte esaurite / critiche</div>
+    <div class="inv-chips" id="inv-chips-urgent"></div>
+  </div>
+  <div id="inv-alert-warn" class="inv-alert warn" style="display:none;">
+    <div class="inv-alert-ttl">⬇ Scorte in esaurimento</div>
+    <div class="inv-chips" id="inv-chips-warn"></div>
+  </div>
+
+  <div class="inv-summary" id="inv-summary"></div>
+
+  <div class="toolbar">
+    <div>
+      <h2>Farmaci CRA — Magazzino</h2>
+      <p id="inv-count"></p>
+    </div>
+    <div class="tbar-right">
+      <input type="text" id="search-inv" placeholder="Cerca farmaco…" style="width:200px" oninput="renderInventario()">
+      <button class="btn btn-gold" onclick="openModalFarmacioCRA()">+ Nuovo farmaco</button>
+      <button class="btn btn-ghost btn-sm" onclick="openModalMovimenti()">📋 Log movimenti</button>
+    </div>
+  </div>
+
+  <div class="inv-grid" id="inv-grid"></div>
+</div>
+
+<!-- MODAL FARMACO CRA -->
+<div class="overlay" id="modal-farmaco-cra">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-fcra-title">Nuovo farmaco CRA</span>
+      <button class="close-btn" onclick="closeModal('modal-farmaco-cra')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nome farmaco *</label>
+          <input type="text" id="fcra-nome" placeholder="es. Aloperidolo 2mg">
+        </div>
+        <div class="form-group">
+          <label>Forma farmaceutica</label>
+          <select id="fcra-forma">
+            <option>Compresse</option><option>Capsule</option><option>Gocce</option>
+            <option>Fiala IM</option><option>Fiala EV</option><option>Cerotto</option>
+            <option>Soluzione orale</option><option>Sospensione</option><option>Altro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Unità per confezione *</label>
+          <input type="number" id="fcra-xconf" min="1" placeholder="es. 30">
+        </div>
+        <div class="form-group">
+          <label>Unità di misura</label>
+          <input type="text" id="fcra-udm" placeholder="es. cp, fl, ml…">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Scorta attuale (unità) *</label>
+          <input type="number" id="fcra-scorta" min="0" placeholder="es. 120">
+        </div>
+        <div class="form-group">
+          <label>Data riferimento scorta *</label>
+          <input type="date" id="fcra-lastsync">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>⬇ Alert scorte (giorni residui)</label>
+          <input type="number" id="fcra-warn-gg" min="1" value="8" placeholder="8">
+          <small style="color:var(--muted);font-size:0.68rem;margin-top:3px;display:block">Default 8 gg — calcolato sul consumo attuale</small>
+        </div>
+        <div class="form-group">
+          <label>⚠ Urgente (giorni residui)</label>
+          <input type="number" id="fcra-urgent-gg" min="1" value="3" placeholder="3">
+          <small style="color:var(--muted);font-size:0.68rem;margin-top:3px;display:block">Default 3 gg</small>
+        </div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:9px 12px;font-size:0.73rem;color:var(--muted);margin-top:-6px">
+        💡 Le soglie si basano sui giorni residui stimati. Con consumo giornaliero zero vengono ignorate.
+      </div>
+      <div class="form-group">
+        <label>Note</label>
+        <textarea id="fcra-note" placeholder="Note sul farmaco…" style="min-height:50px"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-farmaco-cra')">Annulla</button>
+      <button class="btn btn-gold" onclick="salvaFarmacioCRA()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CARICO SCORTE -->
+<div class="overlay" id="modal-carico">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Carico scorte</span>
+      <button class="close-btn" onclick="closeModal('modal-carico')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.82rem;color:var(--muted)" id="carico-farm-label"></p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Numero confezioni ricevute *</label>
+          <input type="number" id="carico-nconf" min="1" placeholder="es. 3" oninput="aggiornaTotaleCarico()">
+        </div>
+        <div class="form-group">
+          <label>Unità per confezione</label>
+          <input type="number" id="carico-xconf" min="1" readonly style="opacity:.6">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Totale unità in arrivo</label>
+        <input type="text" id="carico-totale" readonly style="opacity:.6;font-family:Inconsolata,monospace;font-weight:700;color:var(--green)">
+      </div>
+      <div class="form-group">
+        <label>Note (es. numero DDT, fornitore)</label>
+        <input type="text" id="carico-note" placeholder="DDT n° …">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-carico')">Annulla</button>
+      <button class="btn btn-gold" onclick="eseguiCarico()">Conferma carico</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RETTIFICA -->
+<div class="overlay" id="modal-rettifica">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Rettifica inventario</span>
+      <button class="close-btn" onclick="closeModal('modal-rettifica')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.82rem;color:var(--muted)" id="rett-farm-label"></p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Scorta reale contata (unità) *</label>
+          <input type="number" id="rett-scorta" min="0" placeholder="Unità effettivamente presenti">
+        </div>
+        <div class="form-group">
+          <label>Scorta calcolata dall'app</label>
+          <input type="text" id="rett-calcolata" readonly style="opacity:.6;font-family:Inconsolata,monospace;">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Motivazione rettifica *</label>
+        <input type="text" id="rett-note" placeholder="es. conta fisica mensile, farmaco scaduto…">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-rettifica')">Annulla</button>
+      <button class="btn btn-red" onclick="eseguiRettifica()">Applica rettifica</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LOG MOVIMENTI -->
+<div class="overlay" id="modal-movimenti">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <span class="modal-title">Log movimenti magazzino</span>
+      <button class="close-btn" onclick="closeModal('modal-movimenti')">×</button>
+    </div>
+    <div class="modal-body" style="max-height:65vh;overflow-y:auto;">
+      <div id="log-movimenti-content"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="stampaMovimenti()">🖨 Stampa log</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-movimenti')">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB REPORT ===================== -->
+<div id="tab-report" class="container" style="display:none;">
+
+  <div class="nav-tabs" style="margin:0 -24px 20px;padding:0 24px;">
+    <div class="tab active" id="rtab-scorte"  onclick="showReportTab('scorte')">📦 Scorte magazzino</div>
+    <div class="tab"        id="rtab-consumi" onclick="showReportTab('consumi')">📈 Farmaci in uso</div>
+    <div class="tab"        id="rtab-storico" onclick="showReportTab('storico')">🗂 Storico mensile</div>
+  </div>
+
+  <div id="rpanel-scorte">
+    <div class="toolbar" style="margin-bottom:14px">
+      <div><h2>Scorte magazzino</h2><p style="font-size:0.75rem;color:var(--muted)">Snapshot scorte residue stimate oggi</p></div>
+      <div class="tbar-right"><button class="btn btn-ghost btn-sm" onclick="stampaReportScorte()">🖨 Stampa</button></div>
+    </div>
+    <div id="report-scorte-content"></div>
+  </div>
+
+  <div id="rpanel-consumi" style="display:none">
+    <div class="toolbar" style="margin-bottom:14px">
+      <div><h2>Farmaci in uso</h2><p style="font-size:0.75rem;color:var(--muted)">Consumo mensile stimato e fabbisogno ordine</p></div>
+      <div class="tbar-right"><button class="btn btn-ghost btn-sm" onclick="stampaReportConsumi()">🖨 Stampa</button></div>
+    </div>
+    <div id="report-consumi-content"></div>
+  </div>
+
+  <div id="rpanel-storico" style="display:none">
+    <div class="toolbar" style="margin-bottom:14px">
+      <div><h2>Storico report mensili</h2><p style="font-size:0.75rem;color:var(--muted)" id="storico-count"></p></div>
+    </div>
+    <div id="report-storico-list"></div>
+  </div>
+
+</div>
+
+<!-- ===================== MODAL PAZIENTE ===================== -->
+<div class="overlay" id="modal-paziente">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-pz-title">Nuovo paziente</span>
+      <button class="close-btn" onclick="closeModal('modal-paziente')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cognome *</label>
+          <input type="text" id="pz-cognome" placeholder="Cognome">
+        </div>
+        <div class="form-group">
+          <label>Nome *</label>
+          <input type="text" id="pz-nome" placeholder="Nome">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Stato</label>
+          <select id="pz-attivo">
+            <option value="true">Attivo</option>
+            <option value="false">Dimesso</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Terapia</label>
+          <select id="pz-terapia-sospesa">
+            <option value="false">In corso</option>
+            <option value="true">Sospesa (assenza)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>⚠ Allergie / Intolleranze</label>
+        <input type="text" id="pz-allergie" placeholder="es. Penicilline, Lattice, FANS…" style="border-color:var(--amber)">
+      </div>
+      <div class="form-group">
+        <label>Note</label>
+        <textarea id="pz-note" placeholder="Note cliniche generali…"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-paziente')">Annulla</button>
+      <button class="btn btn-gold" onclick="salvaPaziente()">Salva paziente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL FARMACO ===================== -->
+<div class="overlay" id="modal-farmaco">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-farm-title">Aggiungi farmaco</span>
+      <button class="close-btn" onclick="closeModal('modal-farmaco')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nome farmaco *</label>
+          <input type="text" id="farm-nome" placeholder="es. Aloperidolo 2mg">
+        </div>
+        <div class="form-group">
+          <label>Sezione *</label>
+          <select id="farm-sezione" onchange="aggiornaCampiSezione()">
+            <option value="orale">Terapia Orale</option>
+            <option value="topica">Topica / IM / SC / EV / Varie</option>
+            <option value="bisogno">Al Bisogno</option>
+            <option value="longacting">Long Acting</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row" id="grp-via-row">
+        <div class="form-group" id="grp-via">
+          <label>Via di somministrazione</label>
+          <select id="farm-via">
+            <option value="">— seleziona —</option>
+            <option>Orale</option>
+            <option>IM</option>
+            <option>SC</option>
+            <option>EV</option>
+            <option>Topica</option>
+            <option>Sublinguale</option>
+            <option>Transdermica</option>
+            <option>Inalatoria</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Unità dose</label>
+          <select id="farm-dose-unit">
+            <option value="cp">cp</option>
+            <option value="gtt">gtt</option>
+            <option value="puff">puff</option>
+            <option value="ml">ml</option>
+            <option value="fl">fl</option>
+            <option value="unità">unità</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Orari + dosi per orario (solo per orale e topica) -->
+      <div class="form-group" id="grp-orari">
+        <label>Orari e dosi di somministrazione</label>
+        <div id="orari-dosi-grid" style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">
+          <div class="orario-dose-row" id="odr-8">
+            <label class="orario-check"><input type="checkbox" value="8" id="or8" onchange="toggleDoseOrario('8')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 8</span></label>
+            <input type="number" id="dose-or8" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 8">
+            <span id="dose-unit-label-8" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
+          </div>
+          <div class="orario-dose-row" id="odr-13">
+            <label class="orario-check"><input type="checkbox" value="13" id="or13" onchange="toggleDoseOrario('13')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 13</span></label>
+            <input type="number" id="dose-or13" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 13">
+            <span id="dose-unit-label-13" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
+          </div>
+          <div class="orario-dose-row" id="odr-15">
+            <label class="orario-check"><input type="checkbox" value="15" id="or15" onchange="toggleDoseOrario('15')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 15</span></label>
+            <input type="number" id="dose-or15" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 15">
+            <span id="dose-unit-label-15" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
+          </div>
+          <div class="orario-dose-row" id="odr-20">
+            <label class="orario-check"><input type="checkbox" value="20" id="or20" onchange="toggleDoseOrario('20')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 20</span></label>
+            <input type="number" id="dose-or20" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 20">
+            <span id="dose-unit-label-20" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Long Acting date -->
+      <div id="grp-longacting" style="display:none;">
+        <div class="form-row-3">
+          <div class="form-group">
+            <label>Dose (es. 1 fl, 2 mg…)</label>
+            <input type="text" id="farm-dose-la" placeholder="es. 1 fl">
+          </div>
+          <div class="form-group">
+            <label>Data ultima somministrazione</label>
+            <input type="date" id="farm-la-eseguita">
+          </div>
+          <div class="form-group">
+            <label>Data prossima somministrazione</label>
+            <input type="date" id="farm-la-prossima">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ogni (giorni)</label>
+            <input type="number" id="farm-la-giorni" min="1" max="365" placeholder="es. 28">
+          </div>
+          <div class="form-group">
+            <label>Dose numerica (per inventario)</label>
+            <input type="number" id="farm-dose-num-la" min="0" step="0.01" placeholder="es. 1">
+          </div>
+        </div>
+      </div>
+
+      <!-- Al bisogno: dose descrittiva + indicazione -->
+      <div id="grp-bisogno" style="display:none;">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Dose (es. 1 cp, 5 gtt…)</label>
+            <input type="text" id="farm-dose-bisogno" placeholder="es. 1 cp al bisogno">
+          </div>
+          <div class="form-group">
+            <label>Indicazione / condizione d'uso</label>
+            <input type="text" id="farm-indicazione" placeholder="es. in caso di agitazione…">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Data inizio prescrizione *</label>
+          <input type="date" id="farm-data-inizio">
+        </div>
+        <div class="form-group">
+          <label>Data sospensione</label>
+          <input type="date" id="farm-data-fine">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Note</label>
+        <input type="text" id="farm-note" placeholder="Note aggiuntive…">
+      </div>
+
+      <!-- campi legacy nascosti per compatibilità dati -->
+      <input type="hidden" id="farm-dose" value="">
+      <input type="hidden" id="farm-dose-num" value="">
+      <input type="hidden" id="farm-fonte" value="CRA">
+      <input type="hidden" id="farm-inv-enabled" value="true">
+      <input type="hidden" id="farm-cra-link" value="">
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-farmaco')">Annulla</button>
+      <button class="btn btn-gold" onclick="salvaFarmaco()">Aggiungi farmaco</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL IMPORTA RM ===================== -->
+<div class="overlay" id="modal-import">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Importa da RicettaManager</span>
+      <button class="close-btn" onclick="closeModal('modal-import')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.85rem;color:var(--muted);">Seleziona il file di backup JSON esportato da RicettaManager. I pazienti non ancora presenti verranno aggiunti automaticamente.</p>
+      <div class="form-group">
+        <label>File backup RicettaManager (.json)</label>
+        <input type="file" id="rm-file" accept=".json">
+      </div>
+      <div id="rm-preview" style="display:none; font-family:'Inconsolata',monospace; font-size:0.78rem; color:var(--muted); background:var(--surface2); border-radius:8px; padding:12px; margin-top:4px;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-import')">Annulla</button>
+      <button class="btn btn-gold" onclick="eseguiImport()">Importa pazienti</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== AREA DI STAMPA ===================== -->
+<div id="print-area" class="print-only"></div>
+
+<script>
+// ============================================================
+// STORAGE
+// ============================================================
+const SK = {
+  pazienti:   'fcra_pazienti',
+  terapie:    'fcra_terapie',
+  contatori:  'fcra_contatori',
+  movimenti:  'fcra_movimenti',
+};
+
+const DEVICE_KEY    = 'fcra_device_trusted';
+const PWD_KEY       = 'fcra_password';
+const DEFAULT_PWD   = 'farmacia2026';
+
+function storageGet(key) {
+  try { return localStorage.getItem(key); }
+  catch (err) { return null; }
+}
+
+function storageSet(key, value) {
+  try {
+    const previous = localStorage.getItem(key);
+    if (previous !== null) localStorage.setItem(key + '_last_good', previous);
+    localStorage.setItem(key, value);
+    return true;
+  } catch (err) {
+    alert('Salvataggio non riuscito: spazio locale esaurito o browser non disponibile. Esporta un backup prima di continuare.');
+    return false;
+  }
+}
+
+function safeParse(raw, fallback, key) {
+  if (!raw) return fallback;
+  try { return JSON.parse(raw); }
+  catch (err) {
+    const backup = storageGet(key + '_last_good');
+    if (backup) {
+      try { return JSON.parse(backup); } catch (_) {}
+    }
+    console.warn('Dato locale corrotto:', key);
+    return fallback;
+  }
+}
+
+const load  = k => {
+  const value = safeParse(storageGet(k), [], k);
+  return Array.isArray(value) ? value : [];
+};
+const loadO = k => {
+  const value = safeParse(storageGet(k), {}, k);
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+};
+const save  = (k,v) => storageSet(k, JSON.stringify(v));
+const uid   = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+function getPassword() {
+  return storageGet(PWD_KEY) || DEFAULT_PWD;
+}
+
+function loginApp() {
+  const pwd = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+  if (pwd === getPassword()) {
+    if (document.getElementById('ricorda-device') &&
+        document.getElementById('ricorda-device').checked) {
+      localStorage.setItem(DEVICE_KEY, 'true');
+    }
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('login-password').value = '';
+    err.textContent = '';
+  } else {
+    err.textContent = 'Password errata';
+    err.style.display = 'block';
+  }
+}
+
+function isMobile() {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+         (navigator.maxTouchPoints > 1 && window.innerWidth < 768);
+}
+
+function checkLogin() {
+  if (isMobile()) {
+    document.getElementById('login-screen').style.display = 'none';
+    return;
+  }
+  if (localStorage.getItem(DEVICE_KEY) === 'true') {
+    document.getElementById('login-screen').style.display = 'none';
+    return;
+  }
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function logoutApp() {
+  if (isMobile()) return;
+  localStorage.removeItem(DEVICE_KEY);
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ============================================================
+// STATO
+// ============================================================
+let pazienteAperto = null;   // id paziente nella vista scheda
+let farmacoEditId  = null;   // null = nuovo, stringa = modifica
+let farmacoEditPzId = null;
+
+// ============================================================
+// CLOCK
+// ============================================================
+(function tick() {
+  const d = new Date();
+  document.getElementById('clock').innerHTML =
+    d.toLocaleDateString('it-IT',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) +
+    '<br>' + d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  setTimeout(tick, 1000);
+})();
+
+// ============================================================
+// TAB NAVIGATION
+// ============================================================
+function showTab(t) {
+  ['pazienti','inventario','report'].forEach(x => {
+    document.getElementById('tab-'+x).style.display = x===t ? '' : 'none';
+    const el = document.getElementById('htab-'+x);
+    if (el) el.classList.toggle('active', x===t);
+  });
+  if (t==='inventario') renderInventario();
+  if (t==='report') { showReportTab('scorte'); }
+}
+
+// ============================================================
+// SOGLIE ALERT (default personalizzabili per farmaco)
+// ============================================================
+const DEFAULT_WARN_GG   = 7;
+const DEFAULT_URGENT_GG = 3;
+
+function getSoglie(farm) {
+  return {
+    warn:   farm.sogliaWarnGg   ?? DEFAULT_WARN_GG,
+    urgent: farm.sogliaUrgentGg ?? DEFAULT_URGENT_GG,
+  };
+}
+
+function statoFarmacoGiorni(farm) {
+  if (farm.alertSospeso) return { stato: 'ok', giorni: null };
+  const scorta  = calcolaScorta(farm);
+  const consumo = calcolaConsumoCRA(farm.id);
+  const soglie  = getSoglie(farm);
+  if (consumo <= 0) return { stato: 'ok', giorni: null };
+  const giorni = scorta / consumo;
+  if (giorni <= soglie.urgent) return { stato: 'urgent', giorni: Math.floor(giorni) };
+  if (giorni <= soglie.warn)   return { stato: 'warn',   giorni: Math.floor(giorni) };
+  return { stato: 'ok', giorni: Math.floor(giorni) };
+}
+
+// ============================================================
+// BANNER HOME — aggiorna alert farmaci + report mensile
+// ============================================================
+function aggiornaBannerHome() {
+  const farmaci = load(SK_FCRA);
+  const urgent  = farmaci.filter(f => statoFarmacoGiorni(f).stato === 'urgent');
+  const warn    = farmaci.filter(f => statoFarmacoGiorni(f).stato === 'warn');
+
+  const bu = document.getElementById('home-alert-urgent');
+  const bw = document.getElementById('home-alert-warn');
+  const cu = document.getElementById('home-chips-urgent');
+  const cw = document.getElementById('home-chips-warn');
+
+  if (bu) bu.style.display = urgent.length ? '' : 'none';
+  if (bw) bw.style.display = warn.length   ? '' : 'none';
+  if (cu) cu.innerHTML = urgent.map(f => {
+    const g = statoFarmacoGiorni(f);
+    return `<span class="chip-urgent">${f.nome} — ${g.giorni !== null ? g.giorni + ' gg' : '—'}</span>`;
+  }).join('');
+  if (cw) cw.innerHTML = warn.map(f => {
+    const g = statoFarmacoGiorni(f);
+    return `<span class="chip-warn">${f.nome} — ${g.giorni !== null ? g.giorni + ' gg' : '—'}</span>`;
+  }).join('');
+
+  // banner report mensile
+  controllaReportMensile();
+}
+
+// ============================================================
+// REPORT MENSILE — controllo e generazione automatica
+// ============================================================
+const SK_REPORTS = 'fcra_reports_mensili';
+
+function ultimoGiornoMese(data) {
+  const d = new Date(data.getFullYear(), data.getMonth() + 1, 0);
+  return d.getDate();
+}
+
+function chiaveReportMese(anno, mese) {
+  return anno + '-' + String(mese + 1).padStart(2, '0');
+}
+
+function controllaReportMensile() {
+  const oggi     = new Date();
+  const reports  = loadO(SK_REPORTS);
+  const banner   = document.getElementById('home-report-banner');
+  const msg      = document.getElementById('home-report-banner-msg');
+  if (!banner || !msg) return;
+
+  // mese corrente
+  const anno  = oggi.getFullYear();
+  const mese  = oggi.getMonth();
+  const giorno = oggi.getDate();
+  const ultimo = ultimoGiornoMese(oggi);
+  const chiave = chiaveReportMese(anno, mese);
+
+  // mese precedente
+  const dataPrec = new Date(anno, mese - 1, 1);
+  const chiavePrec = chiaveReportMese(dataPrec.getFullYear(), dataPrec.getMonth());
+
+  // genera automaticamente se: ultimo giorno del mese o primo giorno del mese successivo
+  // e il report di quel mese non esiste ancora
+  const meseTarget = giorno === ultimo ? chiave : null;
+  const meseTargetPrec = giorno <= 3 && !reports[chiavePrec] ? chiavePrec : null;
+
+  const target = meseTarget || meseTargetPrec;
+
+  if (target && !reports[target]) {
+    // genera automaticamente senza mostrare il banner
+    generaESalvaReportMensile(false, target);
+    banner.style.display = 'none';
+  } else if (meseTargetPrec && !reports[meseTargetPrec]) {
+    // report mese precedente mancante — mostra banner
+    const [a, m] = meseTargetPrec.split('-');
+    const nomeMese = new Date(a, m - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+    msg.textContent = 'Report di ' + nomeMese + ' non ancora generato.';
+    banner.style.display = '';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+function generaESalvaReportMensile(mostraToast, chiaveForzata) {
+  const oggi    = new Date();
+  const anno    = oggi.getFullYear();
+  const mese    = oggi.getMonth();
+  const chiave  = chiaveForzata || chiaveReportMese(anno, mese);
+  const [a, m]  = chiave.split('-');
+  const label   = new Date(a, m - 1, 1).toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+
+  const farmaci = load(SK_FCRA);
+  const snapshot = farmaci.map(f => {
+    const scorta   = calcolaScorta(f);
+    const consumo  = calcolaConsumoCRA(f.id);
+    const consMese = Math.round(consumo * 30);
+    const conf     = f.xconf || 1;
+    const daOrdinare = consumo > 0 ? Math.ceil(consMese / conf) : 0;
+    const { stato, giorni } = statoFarmacoGiorni(f);
+    return {
+      id: f.id, nome: f.nome, forma: f.forma || '',
+      udm: f.udm || 'u', xconf: conf,
+      scorta: Math.round(scorta),
+      consumoGiornaliero: parseFloat(consumo.toFixed(2)),
+      consumoMensile: consMese,
+      confezioniDaOrdinare: daOrdinare,
+      stato, giorni,
+    };
+  });
+
+  const report = {
+    chiave, label,
+    data: oggi.toISOString(),
+    snapshot,
+  };
+
+  const reports = loadO(SK_REPORTS);
+  reports[chiave] = report;
+  save(SK_REPORTS, reports);
+
+  if (mostraToast) {
+    toast('Report ' + label + ' salvato');
+    document.getElementById('home-report-banner').style.display = 'none';
+    showTab('report');
+    setTimeout(() => showReportTab('storico'), 100);
+  }
+  return report;
+}
+
+// ============================================================
+// REPORT TAB — sub-navigazione
+// ============================================================
+function showReportTab(tab) {
+  ['scorte','consumi','storico'].forEach(t => {
+    document.getElementById('rpanel-' + t).style.display = t === tab ? '' : 'none';
+    document.getElementById('rtab-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'scorte')  renderReportScorte();
+  if (tab === 'consumi') renderReportConsumi();
+  if (tab === 'storico') renderReportStorico();
+}
+
+// ============================================================
+// RENDER REPORT SCORTE
+// ============================================================
+function renderReportScorte() {
+  const farmaci = load(SK_FCRA);
+  const el = document.getElementById('report-scorte-content');
+  if (!farmaci.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">💊</div><p>Nessun farmaco in magazzino</p></div>';
+    return;
+  }
+
+  const oggi = new Date().toLocaleDateString('it-IT');
+  const righe = farmaci.map(f => {
+    const scorta  = Math.round(calcolaScorta(f));
+    const conf    = f.xconf || 1;
+    const confRim = (scorta / conf).toFixed(1);
+    const { stato, giorni } = statoFarmacoGiorni(f);
+    const pillClass = stato === 'urgent' ? 'stato-urgent' : stato === 'warn' ? 'stato-warn' : 'stato-ok';
+    const pillLabel = stato === 'urgent' ? 'CRITICO' : stato === 'warn' ? 'ATTENZIONE' : 'OK';
+    const giorniStr = giorni !== null ? giorni + ' gg' : '—';
+    return `<tr>
+      <td><strong>${f.nome}</strong><br><span style="font-size:0.7rem;color:var(--muted)">${f.forma||''}</span></td>
+      <td class="num">${scorta} ${f.udm||'u'}</td>
+      <td class="num">${confRim} conf</td>
+      <td class="num">${giorniStr}</td>
+      <td><span class="stato-pill ${pillClass}">${pillLabel}</span></td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">Aggiornato al: <strong>${oggi}</strong></p>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+      <table class="report-table">
+        <thead><tr>
+          <th>Farmaco</th>
+          <th>Scorta residua</th>
+          <th>Confezioni</th>
+          <th>Giorni residui</th>
+          <th>Stato</th>
+        </tr></thead>
+        <tbody>${righe}</tbody>
+      </table>
+    </div>`;
+}
+
+// ============================================================
+// RENDER REPORT CONSUMI
+// ============================================================
+function renderReportConsumi() {
+  const farmaci = load(SK_FCRA);
+  const el = document.getElementById('report-consumi-content');
+  if (!farmaci.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">💊</div><p>Nessun farmaco in magazzino</p></div>';
+    return;
+  }
+
+  const inUso    = farmaci.filter(f => calcolaConsumoCRA(f.id) > 0);
+  const nonInUso = farmaci.filter(f => calcolaConsumoCRA(f.id) <= 0);
+
+  const buildRighe = (lista) => lista.map(f => {
+    const consumo   = calcolaConsumoCRA(f.id);
+    const consMese  = Math.round(consumo * 30);
+    const conf      = f.xconf || 1;
+    const daOrdinare = consumo > 0 ? Math.ceil(consMese / conf) : 0;
+    const { stato, giorni } = statoFarmacoGiorni(f);
+    const pillClass = stato === 'urgent' ? 'stato-urgent' : stato === 'warn' ? 'stato-warn' : 'stato-ok';
+    const giorniStr = giorni !== null ? giorni + ' gg' : '—';
+    return `<tr>
+      <td><strong>${f.nome}</strong><br><span style="font-size:0.7rem;color:var(--muted)">${f.forma||''} · ${conf} ${f.udm||'u'}/conf</span></td>
+      <td class="num">${consumo > 0 ? consumo.toFixed(1) + ' ' + (f.udm||'u') + '/die' : '—'}</td>
+      <td class="num">${consMese > 0 ? consMese + ' ' + (f.udm||'u') : '—'}</td>
+      <td class="num" style="color:var(--gold);font-weight:700">${daOrdinare > 0 ? daOrdinare + ' conf' : '—'}</td>
+      <td class="num"><span class="stato-pill ${pillClass}">${giorniStr}</span></td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-family:'Inconsolata',monospace;font-size:0.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)">
+        Farmaci attualmente in uso (${inUso.length})
+      </div>
+      <table class="report-table">
+        <thead><tr>
+          <th>Farmaco</th>
+          <th>Consumo/die</th>
+          <th>Consumo mensile stimato</th>
+          <th>Confezioni da ordinare</th>
+          <th>Giorni residui</th>
+        </tr></thead>
+        <tbody>${inUso.length ? buildRighe(inUso) : '<tr><td colspan="5" class="empty-row">Nessun farmaco con consumo attivo</td></tr>'}</tbody>
+      </table>
+    </div>
+    ${nonInUso.length ? `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-family:'Inconsolata',monospace;font-size:0.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)">
+        Farmaci a magazzino non in uso (${nonInUso.length})
+      </div>
+      <table class="report-table">
+        <thead><tr><th>Farmaco</th><th>Scorta</th><th colspan="3" style="color:var(--dim)">Nessuna terapia attiva collegata</th></tr></thead>
+        <tbody>${buildRighe(nonInUso)}</tbody>
+      </table>
+    </div>` : ''}`;
+}
+
+// ============================================================
+// RENDER STORICO REPORT MENSILI
+// ============================================================
+function renderReportStorico() {
+  const reports = loadO(SK_REPORTS);
+  const el      = document.getElementById('report-storico-list');
+  const cnt     = document.getElementById('storico-count');
+  const chiavi  = Object.keys(reports).sort().reverse();
+
+  if (cnt) cnt.textContent = chiavi.length + ' report salvat' + (chiavi.length === 1 ? 'o' : 'i');
+
+  if (!chiavi.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">🗂</div><p>Nessun report mensile ancora generato</p></div>';
+    return;
+  }
+
+  el.innerHTML = chiavi.map(k => {
+    const r = reports[k];
+    const data = new Date(r.data).toLocaleDateString('it-IT');
+    const nFarmaci = (r.snapshot || []).length;
+    const urgenti  = (r.snapshot || []).filter(f => f.stato === 'urgent').length;
+    const warn     = (r.snapshot || []).filter(f => f.stato === 'warn').length;
+
+    const righe = (r.snapshot || []).map(f => `<tr>
+      <td><strong>${f.nome}</strong> <span style="font-size:0.7rem;color:var(--muted)">${f.forma||''}</span></td>
+      <td class="num">${f.scorta} ${f.udm||'u'}</td>
+      <td class="num">${f.consumoMensile > 0 ? f.consumoMensile + ' ' + f.udm : '—'}</td>
+      <td class="num" style="color:var(--gold)">${f.confezioniDaOrdinare > 0 ? f.confezioniDaOrdinare + ' conf' : '—'}</td>
+      <td><span class="stato-pill ${f.stato === 'urgent' ? 'stato-urgent' : f.stato === 'warn' ? 'stato-warn' : 'stato-ok'}">${f.stato === 'urgent' ? 'CRITICO' : f.stato === 'warn' ? 'ATTENZIONE' : 'OK'}</span></td>
+    </tr>`).join('');
+
+    return `<div class="storico-card">
+      <div class="storico-card-head" onclick="toggleStoricoCard('${k}')">
+        <div>
+          <strong style="font-family:'Playfair Display',serif">${r.label}</strong>
+          <span style="font-size:0.72rem;color:var(--muted);margin-left:10px">generato il ${data}</span>
+          ${urgenti ? `<span class="stato-pill stato-urgent" style="margin-left:8px">${urgenti} critici</span>` : ''}
+          ${warn    ? `<span class="stato-pill stato-warn"   style="margin-left:4px">${warn} attenzione</span>` : ''}
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:0.72rem;color:var(--muted)">${nFarmaci} farmaci</span>
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();stampaStorico('${k}')">🖨</button>
+          <button class="btn btn-red btn-sm" onclick="event.stopPropagation();eliminaReport('${k}')">🗑</button>
+          <span id="arrow-${k}" style="color:var(--muted)">▼</span>
+        </div>
+      </div>
+      <div class="storico-card-body" id="storico-body-${k}">
+        <table class="report-table">
+          <thead><tr>
+            <th>Farmaco</th><th>Scorta al ${data}</th>
+            <th>Consumo mensile</th><th>Conf. da ordinare</th><th>Stato</th>
+          </tr></thead>
+          <tbody>${righe}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleStoricoCard(k) {
+  const body  = document.getElementById('storico-body-' + k);
+  const arrow = document.getElementById('arrow-' + k);
+  if (!body) return;
+  body.classList.toggle('open');
+  if (arrow) arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+function eliminaReport(k) {
+  if (!confirm('Eliminare questo report mensile?')) return;
+  const reports = loadO(SK_REPORTS);
+  delete reports[k];
+  save(SK_REPORTS, reports);
+  renderReportStorico();
+  toast('Report eliminato');
+}
+
+// ============================================================
+// STAMPA REPORT SCORTE
+// ============================================================
+function stampaReportScorte() {
+  const farmaci = load(SK_FCRA);
+  const oggi = new Date().toLocaleDateString('it-IT');
+  const righe = farmaci.map(f => {
+    const scorta = Math.round(calcolaScorta(f));
+    const conf   = f.xconf || 1;
+    const confRim = (scorta / conf).toFixed(1);
+    const { stato, giorni } = statoFarmacoGiorni(f);
+    const statoLabel = stato === 'urgent' ? 'CRITICO' : stato === 'warn' ? 'ATTENZIONE' : 'OK';
+    return `<tr>
+      <td>${f.nome}</td><td>${f.forma||''}</td>
+      <td style="text-align:right">${scorta} ${f.udm||'u'}</td>
+      <td style="text-align:right">${confRim}</td>
+      <td style="text-align:center">${giorni !== null ? giorni + ' gg' : '—'}</td>
+      <td style="text-align:center;font-weight:bold">${statoLabel}</td>
+    </tr>`;
+  }).join('');
+  _apriStampaPulita('Inventario Scorte Magazzino', oggi, `
+    <table style="width:100%;border-collapse:collapse;font-size:9pt">
+      <thead><tr style="background:#e0e0e0">
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:left">Farmaco</th>
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:left">Forma</th>
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:right">Scorta</th>
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:right">Conf. rimanenti</th>
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:center">Giorni residui</th>
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:center">Stato</th>
+      </tr></thead>
+      <tbody>${righe}</tbody>
+    </table>`);
+}
+
+function stampaReportConsumi() {
+  const farmaci = load(SK_FCRA).filter(f => calcolaConsumoCRA(f.id) > 0);
+  const oggi = new Date().toLocaleDateString('it-IT');
+  const righe = farmaci.map(f => {
+    const consumo = calcolaConsumoCRA(f.id);
+    const consMese = Math.round(consumo * 30);
+    const conf = f.xconf || 1;
+    const daOrdinare = Math.ceil(consMese / conf);
+    return `<tr>
+      <td>${f.nome}</td>
+      <td style="text-align:right">${consumo.toFixed(1)} ${f.udm||'u'}/die</td>
+      <td style="text-align:right">${consMese} ${f.udm||'u'}</td>
+      <td style="text-align:right;font-weight:bold">${daOrdinare} conf</td>
+    </tr>`;
+  }).join('');
+  _apriStampaPulita('Farmaci in Uso — Consumo Mensile', oggi, `
+    <table style="width:100%;border-collapse:collapse;font-size:9pt">
+      <thead><tr style="background:#e0e0e0">
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:left">Farmaco</th>
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:right">Consumo/die</th>
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:right">Consumo mensile</th>
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:right">Conf. da ordinare</th>
+      </tr></thead>
+      <tbody>${righe}</tbody>
+    </table>`);
+}
+
+function stampaStorico(k) {
+  const reports = loadO(SK_REPORTS);
+  const r = reports[k];
+  if (!r) return;
+  const data = new Date(r.data).toLocaleDateString('it-IT');
+  const righe = (r.snapshot || []).map(f => `<tr>
+    <td>${f.nome}</td>
+    <td style="text-align:right">${f.scorta} ${f.udm||'u'}</td>
+    <td style="text-align:right">${f.consumoMensile > 0 ? f.consumoMensile + ' ' + f.udm : '—'}</td>
+    <td style="text-align:right;font-weight:bold">${f.confezioniDaOrdinare > 0 ? f.confezioniDaOrdinare + ' conf' : '—'}</td>
+    <td style="text-align:center">${f.stato === 'urgent' ? 'CRITICO' : f.stato === 'warn' ? 'ATTENZIONE' : 'OK'}</td>
+  </tr>`).join('');
+  _apriStampaPulita('Report Mensile — ' + r.label, 'Generato il ' + data, `
+    <table style="width:100%;border-collapse:collapse;font-size:9pt">
+      <thead><tr style="background:#e0e0e0">
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:left">Farmaco</th>
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:right">Scorta</th>
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:right">Consumo mensile</th>
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:right">Conf. da ordinare</th>
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:center">Stato</th>
+      </tr></thead>
+      <tbody>${righe}</tbody>
+    </table>`);
+}
+
+function _apriStampaPulita(titolo, sottotitolo, corpo) {
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>${titolo}</title>
+  <style>
+    body{font-family:'Times New Roman',serif;padding:15mm;font-size:9pt;}
+    h1{font-size:13pt;margin-bottom:2mm;}
+    p{font-size:8pt;color:#555;margin-bottom:6mm;}
+    td,th{border:1px solid #000;padding:1.5mm 3mm;}
+    @page{size:A4;margin:10mm;}
+  </style></head><body>
+  <h1>${titolo}</h1><p>${sottotitolo}</p>
+  ${corpo}
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.target = '_blank'; a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+}
+
+// ============================================================
+// RENDER LISTA PAZIENTI
+// ============================================================
+function renderLista() {
+  const pazienti = load(SK.pazienti);
+  const q = (document.getElementById('search-pz').value||'').toLowerCase();
+  const g = '';
+  const terapie = load(SK.terapie);
+
+  let lista = pazienti.filter(p => {
+    const nm = (p.cognome+' '+p.nome).toLowerCase();
+    return nm.includes(q) && (!g || p.gruppo===g);
+  });
+
+  const count = document.getElementById('pz-count');
+  count.textContent = lista.length + ' pazient' + (lista.length===1?'e':'i');
+
+  const grid = document.getElementById('grid-pazienti');
+  if (!lista.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">👤</div><p>Nessun paziente trovato</p></div>';
+    return;
+  }
+
+  grid.innerHTML = lista.map(p => {
+    const tt = terapie.filter(t => t.pazienteId===p.id && !t.dataFine);
+    const nOrale   = tt.filter(t=>t.sezione==='orale').length;
+    const nAltro   = tt.filter(t=>t.sezione!=='orale').length;
+    const badge = (p.attivo==='false'||p.attivo===false)
+      ? '<span class="badge badge-dim">Dimesso</span>' : '';
+    return `
+    <div class="pcard" onclick="apriScheda('${p.id}')">
+      <div class="pcard-head">
+        <div>
+          <div class="pname">${p.cognome} ${p.nome}</div>
+          <div class="pmeta">${p.attivo==='false'||p.attivo===false?'Dimesso':'Attivo'}${(p.terapiaSospesa===true||p.terapiaSospesa==='true') ? ' · <span style="color:var(--amber)">⏸ Terapia sospesa</span>' : ''}</div>
+          ${p.allergie ? `<div style="margin-top:4px;font-size:0.7rem;background:var(--amber-bg);border:1px solid var(--amber);color:var(--amber);border-radius:6px;padding:2px 7px;display:inline-block">⚠ ${p.allergie}</div>` : ''}
+        </div>
+        ${badge}
+      </div>
+      <div class="pcard-body">
+        <div class="pcard-stats">
+          <div class="pstat"><div class="pstat-n">${tt.length}</div><div class="pstat-l">farmaci attivi</div></div>
+          <div class="pstat"><div class="pstat-n">${nOrale}</div><div class="pstat-l">orali</div></div>
+          <div class="pstat"><div class="pstat-n">${nAltro}</div><div class="pstat-l">altri</div></div>
+        </div>
+      </div>
+      <div class="pcard-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-blue btn-sm" onclick="apriScheda('${p.id}')">📋 Scheda terapia</button>
+        <button class="btn ${(p.terapiaSospesa===true||p.terapiaSospesa==='true')?'btn-gold':'btn-ghost'} btn-sm" onclick="toggleTerapiaSospesa('${p.id}')">${(p.terapiaSospesa===true||p.terapiaSospesa==='true') ? '▶ Riprendi' : '⏸ Sospendi'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModalPaziente('${p.id}')">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="eliminaPaziente('${p.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// APRI SCHEDA PAZIENTE
+// ============================================================
+function apriScheda(pid) {
+  pazienteAperto = pid;
+  document.getElementById('vista-lista').style.display = 'none';
+  document.getElementById('vista-scheda').style.display = '';
+  renderScheda(pid);
+}
+
+function tornaLista() {
+  pazienteAperto = null;
+  document.getElementById('vista-scheda').style.display = 'none';
+  document.getElementById('vista-lista').style.display = '';
+  renderLista();
+}
+
+function renderScheda(pid) {
+  const pazienti = load(SK.pazienti);
+  const pz = pazienti.find(p=>p.id===pid);
+  if (!pz) return;
+
+  const terapie = load(SK.terapie);
+  const tt = terapie.filter(t=>t.pazienteId===pid);
+  const attive = tt.filter(t=>!t.dataFine);
+
+  const contatori = loadO(SK.contatori);
+  const nFoglio = contatori[pid] || 1;
+
+  const oggi = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  const badge = pz.gruppo==='CD'
+    ? '<span class="badge badge-cd">Pz CD</span>'
+    : '<span class="badge badge-cra">Pz CRA</span>';
+
+  const ORARI = ['8','13','15','20'];
+
+  const buildRow = (t) => {
+    const orari = ORARI.map(o => {
+      const on = t.orari && t.orari.includes(o);
+      // dose per questo orario: usa mappa dosi se disponibile, fallback a doseNum legacy
+      const doseVal = on
+        ? (t.dosi && t.dosi[o] != null ? t.dosi[o] : (t.doseNum != null ? t.doseNum : ''))
+        : '';
+      const unit = t.doseUnit || '';
+      if (on) {
+        return `<td style="text-align:center">
+          <span class="dose-circle attivo" onclick="editDoseOrario('${t.id}','${pid}','${o}',this)" title="Clicca per modificare dose ore ${o}">
+            <span class="dose-circle-val">${doseVal}</span>
+          </span>
+        </td>`;
+      }
+      return `<td style="text-align:center"><span class="orario-dot">—</span></td>`;
+    }).join('');
+    const sospCell = t.dataFine
+      ? `<td class="drug-sosp">${t.dataFine}<br><small style="color:var(--dim)">firma: ___</small></td>`
+      : `<td class="drug-date">—</td>`;
+    return `
+      <tr>
+        <td class="drug-date">${t.dataInizio||'—'}<br><small style="color:var(--dim)">firma: ___</small></td>
+        <td><span class="drug-nome">${t.farmaco}</span>${t.via?`<br><small style="color:var(--muted)">${t.via}</small>`:''}</td>
+        ${orari}
+        ${sospCell}
+        <td style="text-align:right">
+            <div style="display:flex;gap:4px;justify-content:flex-end">
+              <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
+              <button class="btn btn-ghost btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
+            </div>
+          </td>
+      </tr>`;
+  };
+
+  const buildTableOrale = (sezione, label, colorClass) => {
+    const rows = attive.filter(t=>t.sezione===sezione);
+    return `
+    <div class="sezione">
+      <div class="sezione-head">
+        <span class="sezione-title ${colorClass}">${label}</span>
+        <button class="btn btn-ghost btn-sm no-print" onclick="openModalFarmaco('${pid}','${sezione}')">+ Aggiungi</button>
+      </div>
+      <table class="drug-table">
+        <thead><tr>
+          <th style="width:90px">Data inizio<br>Firma medico</th>
+          <th>Farmaco / Dose</th>
+          <th style="width:38px;text-align:center">8</th>
+          <th style="width:38px;text-align:center">13</th>
+          <th style="width:38px;text-align:center">15</th>
+          <th style="width:38px;text-align:center">20</th>
+          <th style="width:90px">Data sosp.<br>Firma medico</th>
+          <th class="no-print" style="width:40px"></th>
+        </tr></thead>
+        <tbody>
+          ${rows.length ? rows.map(buildRow).join('') : `<tr><td colspan="8" class="empty-row">Nessuna terapia ${label.toLowerCase()} attiva</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+  };
+
+  // Sezione al bisogno (senza orari)
+  const buildTableBisogno = () => {
+    const rows = attive.filter(t=>t.sezione==='bisogno');
+    return `
+    <div class="sezione">
+      <div class="sezione-head">
+        <span class="sezione-title bisogno">Terapia al Bisogno</span>
+        <button class="btn btn-ghost btn-sm no-print" onclick="openModalFarmaco('${pid}','bisogno')">+ Aggiungi</button>
+      </div>
+      <table class="drug-table">
+        <thead><tr>
+          <th style="width:90px">Data inizio<br>Firma medico</th>
+          <th>Farmaco / Dose / Via</th>
+          <th>Indicazione</th>
+          <th style="width:90px">Data sosp.<br>Firma medico</th>
+          <th class="no-print" style="width:40px"></th>
+        </tr></thead>
+        <tbody>
+          ${rows.length ? rows.map(t => {
+            const sospCell = t.dataFine
+              ? `<td class="drug-sosp">${t.dataFine}<br><small style="color:var(--dim)">firma: ___</small></td>`
+              : `<td class="drug-date">—</td>`;
+            return `<tr>
+              <td class="drug-date">${t.dataInizio||'—'}<br><small style="color:var(--dim)">firma: ___</small></td>
+              <td><span class="drug-nome">${t.farmaco}</span>${t.via?`<br><small style="color:var(--muted)">${t.via}</small>`:''}<br><span class="drug-dose">${t.dose||''}</span></td>
+              <td style="font-size:0.78rem;color:var(--muted)">${t.indicazione||'—'}</td>
+              ${sospCell}
+              <td style="text-align:right">
+            <div style="display:flex;gap:4px;justify-content:flex-end">
+              <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
+              <button class="btn btn-ghost btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
+            </div>
+          </td>
+            </tr>`;
+          }).join('') : `<tr><td colspan="5" class="empty-row">Nessuna terapia al bisogno</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+  };
+
+  // Sezione Long Acting
+  const buildTableLongActing = () => {
+    const rows = attive.filter(t=>t.sezione==='longacting');
+    const oggi2 = new Date(); oggi2.setHours(0,0,0,0);
+    return `
+    <div class="sezione">
+      <div class="sezione-head">
+        <span class="sezione-title longact">Terapia Long Acting</span>
+        <button class="btn btn-ghost btn-sm no-print" onclick="openModalFarmaco('${pid}','longacting')">+ Aggiungi</button>
+      </div>
+      <table class="la-table">
+        <thead><tr>
+          <th>Farmaco / Dose</th>
+          <th style="width:55px;text-align:center">Ogni</th>
+          <th>Data eseguita</th>
+          <th>Firma I.P.</th>
+          <th>Data prossima</th>
+          <th style="width:90px">Data sosp.<br>Firma medico</th>
+          <th class="no-print" style="width:40px"></th>
+        </tr></thead>
+        <tbody>
+          ${rows.length ? rows.map(t => {
+            let prossimaClass = 'prossima-ok';
+            if (t.laProssima) {
+              const dp = new Date(t.laProssima); dp.setHours(0,0,0,0);
+              const diff = (dp-oggi2)/(86400000);
+              if (diff < 0) prossimaClass = 'prossima-late';
+              else if (diff <= 7) prossimaClass = 'prossima-warn';
+            }
+            const sospCell = t.dataFine
+              ? `<td class="drug-sosp">${t.dataFine}</td>`
+              : `<td class="drug-date">—</td>`;
+            return `<tr>
+              <td><span class="drug-nome">${t.farmaco}</span><br><span class="drug-dose">${t.dose||''}</span></td>
+              <td style="text-align:center;font-family:Inconsolata,monospace;font-size:0.8rem;color:var(--gold)">${t.laGiorni ? t.laGiorni+' gg' : '—'}</td>
+              <td class="drug-date">${t.laEseguita||'—'}</td>
+              <td style="width:80px;color:var(--dim);font-size:0.75rem">___________</td>
+              <td class="${prossimaClass}">${t.laProssima||'—'}</td>
+              ${sospCell}
+              <td style="text-align:right">
+            <div style="display:flex;gap:4px;justify-content:flex-end">
+              <button class="btn btn-ghost btn-sm no-print" onclick="editTerapia('${t.id}','${pid}')">✏️</button>
+              <button class="btn btn-ghost btn-sm no-print" onclick="eliminaTerapia('${t.id}','${pid}')">🗑</button>
+            </div>
+          </td>
+            </tr>`;
+          }).join('') : `<tr><td colspan="6" class="empty-row">Nessuna terapia long acting</td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+  };
+
+  const html = `
+    <div class="scheda-header">
+      <div>
+        <div class="scheda-pname">${pz.cognome} ${pz.nome}</div>
+        <div class="scheda-meta">${pz.attivo==='false'||pz.attivo===false?'Dimesso':'Attivo'} · ${attive.length} farmaci attivi</div>
+        ${(pz.terapiaSospesa===true||pz.terapiaSospesa==='true') ? '<div style="margin-top:6px;font-size:0.8rem;background:var(--amber-bg);border:1px solid var(--amber);color:var(--amber);border-radius:8px;padding:4px 12px;font-weight:700">⏸ TERAPIA SOSPESA — conteggio farmaci escluso</div>' : ''}
+        ${pz.allergie ? `<div style="margin-top:6px;font-size:0.8rem;background:var(--amber-bg);border:1px solid var(--amber);color:var(--amber);border-radius:8px;padding:4px 12px;font-weight:700">⚠ ALLERGIE: ${pz.allergie}</div>` : ''}
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        ${badge}
+        <span class="foglio-num" style="cursor:pointer" title="Clicca per modificare" onclick="editNFoglio('${pid}')">Foglio n° ${nFoglio} ✎</span>
+        <button class="btn btn-blue btn-sm no-print" onclick="stampaFoglioB('${pid}')">🖨 Stampa foglio B</button>
+        <button class="btn btn-ghost btn-sm no-print" onclick="openModalPaziente('${pid}')">✏️ Modifica</button>
+      </div>
+    </div>
+
+    ${buildTableOrale('orale','Terapia Orale','orale')}
+    ${buildTableOrale('topica','Terapia Topica / IM / SC / EV / Varie','topica')}
+    ${buildTableBisogno()}
+    ${buildTableLongActing()}
+
+    <div class="scheda-footer">Aggiornata al: ${oggi}</div>
+  `;
+
+  document.getElementById('scheda-content').innerHTML = html;
+}
+
+// ============================================================
+// STAMPA FOGLIO B
+// ============================================================
+function stampaFoglioB(pid) {
+  const pazienti = load(SK.pazienti);
+  const pz = pazienti.find(p=>p.id===pid);
+  if (!pz) return;
+
+  const terapie = load(SK.terapie);
+  const attive  = terapie.filter(t=>t.pazienteId===pid && !t.dataFine);
+  const contatori = loadO(SK.contatori);
+  const nFoglio = contatori[pid] || 1;
+  const oggi = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const ORARI = ['8','13','15','20'];
+
+  // Estrae solo il numero dalla stringa dose (es. "10 gtt" → "10", "1 cp" → "1", "0,5 cp" → "0,5")
+  const doseNum = (dose) => {
+    if (!dose) return '';
+    const m = dose.match(/^([0-9]+[,.]?[0-9]*\/?\s?[0-9]*[,.]?[0-9]*)/);
+    return m ? m[1].trim() : dose.split(' ')[0];
+  };
+
+  // Celle orario: mostra la quantità numerica solo negli orari attivi
+  const buildOrariCells = (t) => ORARI.map(o => {
+    const on = t.orari && t.orari.includes(o);
+    return `<td class="or-cell">${on ? doseNum(t.dose) : ''}</td>`;
+  }).join('');
+
+  // Righe per sezione con numero fisso di righe vuote
+  const buildRighe = (sezione, nRighe) => {
+    const rows = attive.filter(t=>t.sezione===sezione);
+    return Array.from({length: nRighe}, (_,i) => {
+      const t = rows[i];
+      if (t) {
+        const fonte = t.fonte==='personale'
+          ? '<span style="font-size:5.5pt;color:#888"> [P]</span>' : '';
+        return `<tr>
+          <td class="data-cell">${t.dataInizio||''}</td>
+          <td class="firma-cell"></td>
+          <td class="drug-cell">${t.farmaco.toUpperCase()}${fonte}</td>
+          ${buildOrariCells(t)}
+          <td class="data-cell">${t.dataFine||''}</td>
+          <td class="firma-cell"></td>
+        </tr>`;
+      }
+      return `<tr>
+        <td class="data-cell"></td><td class="firma-cell"></td>
+        <td class="drug-cell"></td>
+        <td class="or-cell"></td><td class="or-cell"></td>
+        <td class="or-cell"></td><td class="or-cell"></td>
+        <td class="data-cell"></td><td class="firma-cell"></td>
+      </tr>`;
+    }).join('');
+  };
+
+  const buildRigheBisogno = (nRighe) => {
+    const rows = attive.filter(t=>t.sezione==='bisogno');
+    return Array.from({length: nRighe}, (_,i) => {
+      const t = rows[i];
+      if (t) {
+        const fonte = t.fonte==='personale'
+          ? '<span style="font-size:5.5pt;color:#888"> [P]</span>' : '';
+        return `<tr>
+          <td class="data-cell">${t.dataInizio||''}</td>
+          <td class="firma-cell"></td>
+          <td class="drug-cell" colspan="5">${t.farmaco.toUpperCase()}${fonte}${t.dose?' — '+t.dose:''}${t.indicazione?' — '+t.indicazione:''}</td>
+          <td class="data-cell">${t.dataFine||''}</td>
+          <td class="firma-cell"></td>
+        </tr>`;
+      }
+      return `<tr>
+        <td class="data-cell"></td><td class="firma-cell"></td>
+        <td class="drug-cell" colspan="5"></td>
+        <td class="data-cell"></td><td class="firma-cell"></td>
+      </tr>`;
+    }).join('');
+  };
+
+  // Long Acting: colonne = DATA INIZIO | FIRMA MEDICO | FARMACO/DOSE/VIA | DATA ESEGUITA | FIRMA INF. | DATA PROSSIMA (colspan4)
+  const buildRigheLongActing = () => {
+    const rows = attive.filter(t=>t.sezione==='longacting');
+    const nLA = Math.max(rows.length, 2);
+    return Array.from({length: nLA}, (_, i) => {
+      const t = rows[i];
+      if (t) {
+        return `<tr>
+          <td class="data-cell">${t.dataInizio||''}</td>
+          <td class="firma-cell"></td>
+          <td class="drug-cell-la">${t.farmaco.toUpperCase()}${t.dose?' — '+t.dose:''}</td>
+          <td class="data-cell">${t.laEseguita||''}</td>
+          <td class="firma-cell"></td>
+          <td class="data-cell" colspan="4">${t.laProssima||''}</td>
+        </tr>`;
+      }
+      return `<tr>
+        <td class="data-cell"></td>
+        <td class="firma-cell"></td>
+        <td class="drug-cell-la"></td>
+        <td class="data-cell"></td>
+        <td class="firma-cell"></td>
+        <td class="data-cell" colspan="4"></td>
+      </tr>`;
+    }).join('');
+  };
+
+  const laRows = attive.filter(t=>t.sezione==='longacting');
+  const laGiorniLabel = laRows.length>0 && laRows[0].laGiorni
+    ? ` OGNI ${laRows[0].laGiorni} GIORNI` : '';
+
+  const orariHeader = ORARI.map(o=>`<th class="or-cell">${o}</th>`).join('');
+
+  const cognomeUpper = pz.cognome ? pz.cognome.toUpperCase() : '';
+  const nomeUpper    = pz.nome    ? pz.nome.toUpperCase()    : '';
+
+  // ── Calcolo adattivo righe per riempire esattamente una pagina A4 ──
+  // A4 297mm, @page margin 5mm*2=10mm → pagina utile 287mm
+  // .page padding top 6mm + bottom 4mm = 10mm → corpo = 267mm
+  // Fissi: hdr(14) + hdr-mb(3) + thead(8) + 3×sez-row(16.5) + thead-LA(8) + footer(8) = 57.5mm
+  // Disponibile per righe: 267 - 57.5 = 209.5mm; altezza riga fissa 6.2mm
+  const ROW_H = 6.2;
+  const disponibile = 209.5;
+
+  const nTopica  = Math.max(attive.filter(t=>t.sezione==='topica').length,  3);
+  const nBisogno = Math.max(attive.filter(t=>t.sezione==='bisogno').length, 4);
+  const nLA      = Math.max(attive.filter(t=>t.sezione==='longacting').length, 2);
+  const mmRigheFixed = (nTopica + nBisogno + nLA) * ROW_H;
+  const mmPerOrale = disponibile - mmRigheFixed;
+  const nOraleCalc = Math.floor(mmPerOrale / ROW_H);
+  const nOrale = Math.max(nOraleCalc, attive.filter(t=>t.sezione==='orale').length, 8);
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Foglio Terapia — ${pz.cognome} ${pz.nome}</title>
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:Arial,Helvetica,sans-serif; font-size:7.5pt; background:#fff; color:#000; }
+    .page { padding:6mm 8mm 4mm; }
+
+    /* INTESTAZIONE — 3 colonne come il prototipo */
+    .hdr-table { width:100%; border-collapse:collapse; margin-bottom:3mm; }
+    .hdr-logo {
+      width:28%; vertical-align:top;
+      font-size:9pt; font-weight:bold; line-height:1.45;
+      text-transform:uppercase; letter-spacing:.03em;
+    }
+    .hdr-logo span { font-weight:normal; font-size:7.5pt; display:block; margin-top:0.5mm; }
+    .hdr-title {
+      font-size:11pt; font-weight:bold; text-align:center;
+      vertical-align:middle; line-height:1.6; padding:0 4mm;
+    }
+    .hdr-title small { font-size:7.5pt; font-weight:normal; display:block; margin-top:0.5mm; }
+    .hdr-pz {
+      width:28%; text-align:center; vertical-align:middle;
+      font-size:11pt; font-weight:bold; line-height:1.5;
+      border:1.5px solid #000; padding:2mm 3mm;
+    }
+    .hdr-pz .allergia { font-size:6.5pt; color:#cc0000; font-weight:normal; margin-top:1mm; }
+
+    /* GRIGLIA */
+    .terapia-table { width:100%; border-collapse:collapse; font-size:7.5pt; table-layout:fixed; }
+    .terapia-table th {
+      border:1px solid #333; padding:1.2mm 0.8mm;
+      text-align:center; background:#d8d8d8;
+      font-size:6.8pt; font-weight:bold; line-height:1.2;
+    }
+    .terapia-table td {
+      border:1px solid #333; padding:0.5mm 1mm;
+      height:6.2mm; vertical-align:middle;
+    }
+    .data-cell  { width:16mm; text-align:center; font-size:6.8pt; }
+    .firma-cell { width:18mm; }
+    .drug-cell  { font-size:7.8pt; padding-left:1.5mm; }
+    .drug-cell-la { font-size:7.8pt; padding-left:1.5mm; }
+    .or-cell    { width:9mm; text-align:center; font-size:8pt; font-weight:bold; }
+
+    /* TITOLI SEZIONE */
+    .sez-row td {
+      background:#c0c0c0; font-weight:bold; font-size:7.5pt;
+      text-transform:uppercase; letter-spacing:.04em;
+      padding:1.2mm 2mm; border:1px solid #333; height:5.5mm;
+    }
+
+    /* FOOTER */
+    .footer-aggiornata { font-size:7pt; margin-top:2mm; display:flex; justify-content:space-between; }
+    .footer-ente { font-size:6pt; color:#444; text-align:center; margin-top:1mm; border-top:1px solid #bbb; padding-top:1mm; }
+
+    @page { size:A4 portrait; margin:5mm; }
+  </style>
+  </head><body>
+  <div class="page">
+
+    <table class="hdr-table">
+      <tr>
+        <td class="hdr-logo">
+          FONDAZIONE<br>EMILIA BOSIS
+          <span>Cascina Germoglio</span>
+        </td>
+        <td class="hdr-title">
+          FOGLIO TERAPIA &nbsp;&nbsp; n.&nbsp;${nFoglio}
+          <small>COMUNITÀ "IL GERMOGLIO" — VERDELLO (BG)</small>
+        </td>
+        <td class="hdr-pz">
+          ${cognomeUpper}<br>${nomeUpper}
+          ${pz.allergie?`<div class="allergia">⚠ ${pz.allergie}</div>`:''}
+        </td>
+      </tr>
+    </table>
+
+    <table class="terapia-table">
+      <colgroup>
+        <col style="width:16mm"><col style="width:18mm">
+        <col><col style="width:9mm"><col style="width:9mm">
+        <col style="width:9mm"><col style="width:9mm">
+        <col style="width:16mm"><col style="width:18mm">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>DATA<br>INIZIO</th><th>FIRMA<br>MEDICO</th>
+          <th>TERAPIA ORALE</th>
+          ${orariHeader}
+          <th>DATA<br>SOSP.</th><th>FIRMA<br>MEDICO</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${buildRighe('orale', nOrale)}
+        <tr class="sez-row"><td colspan="9">TERAPIA TOPICA &nbsp;/&nbsp; I.M. &nbsp;/&nbsp; S.C. &nbsp;/&nbsp; E.V. &nbsp;/&nbsp; VARIE</td></tr>
+        ${buildRighe('topica', nTopica)}
+        <tr class="sez-row"><td colspan="9">TERAPIA AL BISOGNO</td></tr>
+        ${buildRigheBisogno(nBisogno)}
+        <tr class="sez-row"><td colspan="9">TERAPIA LONG ACTING${laGiorniLabel}</td></tr>
+        <tr>
+          <th class="data-cell">DATA<br>INIZIO</th>
+          <th class="firma-cell">FIRMA<br>MEDICO</th>
+          <th class="drug-cell-la">FARMACO / DOSE / VIA</th>
+          <th class="data-cell">DATA<br>ESEGUITA</th>
+          <th class="firma-cell">FIRMA<br>INF.</th>
+          <th class="data-cell" colspan="4">DATA<br>PROSSIMA</th>
+        </tr>
+        ${buildRigheLongActing()}
+      </tbody>
+    </table>
+
+    <div class="footer-aggiornata">
+      <span>Aggiornata al: <strong>${oggi}</strong></span>
+      <span>Foglio n.&nbsp;${nFoglio}</span>
+    </div>
+    <div class="footer-ente">
+      FONDAZIONE EMILIA BOSIS &nbsp;&nbsp; www.fondazionebosis.it &nbsp;&nbsp; verdello@fondazionebosis.it<br>
+      COMUNITÀ "IL GERMOGLIO", VIA SOLFERINO 51 - 24049 VERDELLO (BG) &nbsp; TEL. 035/4813814
+    </div>
+  </div>
+  <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`;
+
+  const cnt = loadO(SK.contatori);
+  cnt[pid] = (cnt[pid]||1) + 1;
+  save(SK.contatori, cnt);
+
+  const blob = new Blob([html], {type: 'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.target = '_blank'; a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+  renderScheda(pid);
+  toast('Foglio n°'+(cnt[pid]-1)+' inviato alla stampa');
+}
+
+
+
+// ============================================================
+// MODAL PAZIENTE
+// ============================================================
+let editPzId = null;
+
+function openModalPaziente(pid) {
+  editPzId = pid || null;
+  document.getElementById('modal-pz-title').textContent = pid ? 'Modifica paziente' : 'Nuovo paziente';
+  if (pid) {
+    const pz = load(SK.pazienti).find(p=>p.id===pid);
+    if (pz) {
+      document.getElementById('pz-cognome').value   = pz.cognome||'';
+      document.getElementById('pz-nome').value      = pz.nome||'';
+      document.getElementById('pz-attivo').value    = String(pz.attivo!==false&&pz.attivo!=='false');
+      document.getElementById('pz-terapia-sospesa').value = String(pz.terapiaSospesa===true||pz.terapiaSospesa==='true');
+      document.getElementById('pz-allergie').value  = pz.allergie||'';
+      document.getElementById('pz-note').value      = pz.note||'';
+    }
+  } else {
+    ['pz-cognome','pz-nome','pz-allergie','pz-note'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('pz-attivo').value = 'true';
+    document.getElementById('pz-terapia-sospesa').value = 'false';
+  }
+  openModal('modal-paziente');
+}
+
+function salvaPaziente() {
+  const cognome = document.getElementById('pz-cognome').value.trim();
+  const nome    = document.getElementById('pz-nome').value.trim();
+  if (!cognome||!nome) { alert('Cognome e nome sono obbligatori'); return; }
+
+  const pazienti = load(SK.pazienti);
+  if (editPzId) {
+    const idx = pazienti.findIndex(p=>p.id===editPzId);
+    if (idx>=0) Object.assign(pazienti[idx], {
+      cognome, nome,
+      gruppo:   'CRA',
+      attivo:   document.getElementById('pz-attivo').value === 'true',
+      terapiaSospesa: document.getElementById('pz-terapia-sospesa').value === 'true',
+      allergie: document.getElementById('pz-allergie').value.trim(),
+      note:     document.getElementById('pz-note').value.trim(),
+    });
+  } else {
+    pazienti.push({ id:uid(), cognome, nome,
+      gruppo:   'CRA',
+      attivo:         true,
+      terapiaSospesa: false,
+      allergie: document.getElementById('pz-allergie').value.trim(),
+      note:     document.getElementById('pz-note').value.trim(),
+    });
+  }
+  save(SK.pazienti, pazienti);
+  closeModal('modal-paziente');
+  renderLista();
+  if (pazienteAperto) renderScheda(pazienteAperto);
+  toast(editPzId ? 'Paziente aggiornato' : 'Paziente aggiunto');
+}
+
+
+function toggleTerapiaSospesa(pid) {
+  const pazienti = load(SK.pazienti);
+  const idx = pazienti.findIndex(p=>p.id===pid);
+  if (idx<0) return;
+  pazienti[idx].terapiaSospesa = !(pazienti[idx].terapiaSospesa===true||pazienti[idx].terapiaSospesa==='true');
+  save(SK.pazienti, pazienti);
+  renderLista();
+  if (pazienteAperto===pid) renderScheda(pid);
+  toast(pazienti[idx].terapiaSospesa ? '⏸ Terapia sospesa — conteggio farmaci escluso' : '▶ Terapia ripresa');
+}
+
+function eliminaPaziente(pid) {
+  if (!confirm('Eliminare questo paziente e tutte le sue terapie?')) return;
+  save(SK.pazienti, load(SK.pazienti).filter(p=>p.id!==pid));
+  save(SK.terapie, load(SK.terapie).filter(t=>t.pazienteId!==pid));
+  tornaLista();
+  toast('Paziente eliminato');
+}
+
+// ============================================================
+// MODAL FARMACO
+// ============================================================
+function openModalFarmaco(pid, sezione) {
+  farmacoEditPzId = pid;
+  farmacoEditId = null;
+  document.getElementById('modal-farm-title').textContent = 'Aggiungi farmaco';
+  ['farm-nome','farm-note','farm-indicazione','farm-dose-la'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  ['farm-data-inizio','farm-data-fine','farm-la-eseguita','farm-la-prossima','farm-la-giorni','farm-dose-bisogno','farm-dose-num-la'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('farm-dose-unit').value = 'cp';
+  document.getElementById('farm-via').value = '';
+  document.getElementById('farm-sezione').value = sezione || 'orale';
+  ['8','13','15','20'].forEach(o => {
+    const cb = document.getElementById('or' + o);
+    const inp = document.getElementById('dose-or' + o);
+    const lbl = document.getElementById('dose-unit-label-' + o);
+    if (cb) cb.checked = false;
+    if (inp) { inp.value = ''; inp.style.display = 'none'; }
+    if (lbl) lbl.style.display = 'none';
+  });
+  document.getElementById('farm-data-inizio').value = new Date().toISOString().slice(0,10);
+  aggiornaCampiSezione();
+  openModal('modal-farmaco');
+}
+
+function aggiornaCampiSezione() {
+  const s = document.getElementById('farm-sezione').value;
+  document.getElementById('grp-orari').style.display        = (s==='orale'||s==='topica') ? '' : 'none';
+  document.getElementById('grp-longacting').style.display   = s==='longacting' ? '' : 'none';
+  document.getElementById('grp-bisogno').style.display      = s==='bisogno' ? '' : 'none';
+  const viaRow = document.getElementById('grp-via-row');
+  if (viaRow) viaRow.style.display = (s==='orale'||s==='bisogno'||s==='longacting') ? 'none' : '';
+  // sync unit labels
+  aggiornaLabelUnitaDose();
+}
+
+function aggiornaLabelUnitaDose() {
+  const unit = document.getElementById('farm-dose-unit')?.value || '';
+  ['8','13','15','20'].forEach(o => {
+    const lbl = document.getElementById('dose-unit-label-' + o);
+    if (lbl) lbl.textContent = unit;
+  });
+}
+
+function toggleDoseOrario(o) {
+  const cb    = document.getElementById('or' + o);
+  const inp   = document.getElementById('dose-or' + o);
+  const lbl   = document.getElementById('dose-unit-label-' + o);
+  if (!cb || !inp) return;
+  inp.style.display = cb.checked ? 'inline-block' : 'none';
+  if (lbl) lbl.style.display = cb.checked ? 'inline' : 'none';
+  if (cb.checked) inp.focus();
+}
+
+
+// ============================================================
+// MODIFICA TERAPIA ESISTENTE
+// ============================================================
+function editTerapia(tid, pid) {
+  const terapie = load(SK.terapie);
+  const t = terapie.find(x => x.id === tid);
+  if (!t) return;
+
+  farmacoEditId   = tid;
+  farmacoEditPzId = pid;
+
+  document.getElementById('modal-farm-title').textContent = 'Modifica farmaco';
+  document.getElementById('farm-nome').value        = t.farmaco || '';
+  document.getElementById('farm-sezione').value     = t.sezione || 'orale';
+  document.getElementById('farm-dose-unit').value   = t.doseUnit || 'cp';
+  document.getElementById('farm-via').value         = t.via || '';
+  document.getElementById('farm-note').value        = t.note || '';
+  document.getElementById('farm-data-inizio').value = t.dataInizio || '';
+  document.getElementById('farm-data-fine').value   = t.dataFine || '';
+
+  // sezione-specific fields
+  const elInd = document.getElementById('farm-indicazione'); if (elInd) elInd.value = t.indicazione || '';
+  const elDB  = document.getElementById('farm-dose-bisogno'); if (elDB)  elDB.value  = t.dose || '';
+  const elDLA = document.getElementById('farm-dose-la');     if (elDLA) elDLA.value  = t.dose || '';
+  const elDNLA= document.getElementById('farm-dose-num-la'); if (elDNLA) elDNLA.value = t.doseNum ?? '';
+  const elLAe = document.getElementById('farm-la-eseguita'); if (elLAe) elLAe.value  = t.laEseguita || '';
+  const elLAp = document.getElementById('farm-la-prossima'); if (elLAp) elLAp.value  = t.laProssima || '';
+  const elLAg = document.getElementById('farm-la-giorni');   if (elLAg) elLAg.value  = t.laGiorni || '';
+
+  // per-orario doses
+  ['8','13','15','20'].forEach(o => {
+    const cb  = document.getElementById('or' + o);
+    const inp = document.getElementById('dose-or' + o);
+    const lbl = document.getElementById('dose-unit-label-' + o);
+    const active = t.orari && t.orari.includes(o);
+    if (cb)  cb.checked = active;
+    if (inp) {
+      inp.value = active && t.dosi && t.dosi[o] != null ? t.dosi[o] : '';
+      inp.style.display = active ? 'inline-block' : 'none';
+    }
+    if (lbl) lbl.style.display = active ? 'inline' : 'none';
+  });
+
+  aggiornaCampiSezione();
+  openModal('modal-farmaco');
+}
+
+function salvaFarmaco() {
+  const nome    = document.getElementById('farm-nome').value.trim();
+  if (!nome) { alert('Il nome del farmaco è obbligatorio'); return; }
+
+  const sezione = document.getElementById('farm-sezione').value;
+  const unit    = document.getElementById('farm-dose-unit').value;
+
+  // raccoglie orari attivi e dosi per orario
+  const orari = [];
+  const dosi  = {};
+  if (sezione === 'orale' || sezione === 'topica') {
+    ['8','13','15','20'].forEach(o => {
+      const cb  = document.getElementById('or' + o);
+      const inp = document.getElementById('dose-or' + o);
+      if (cb && cb.checked) {
+        orari.push(o);
+        const v = parseFloat(inp ? inp.value : '');
+        dosi[o] = isNaN(v) ? 0 : v;
+      }
+    });
+  }
+
+  // doseNum = somma dosi per inventario (usato anche come fallback per long acting)
+  const doseNum = orari.reduce((s, o) => s + (dosi[o] || 0), 0);
+
+  // dose testuale (per stampa e bisogno)
+  let dose = '';
+  if (sezione === 'orale' || sezione === 'topica') {
+    // costruisci stringa tipo "5-5-10 gtt" dagli orari attivi
+    dose = orari.map(o => dosi[o]).join('-') + (unit ? ' ' + unit : '');
+  } else if (sezione === 'bisogno') {
+    dose = (document.getElementById('farm-dose-bisogno')?.value || '').trim();
+    if (!dose) { alert('Inserire la dose per la terapia al bisogno'); return; }
+  } else if (sezione === 'longacting') {
+    dose = (document.getElementById('farm-dose-la')?.value || '').trim();
+  }
+
+  const terapia = {
+    id:         uid(),
+    pazienteId: farmacoEditPzId,
+    farmaco:    nome,
+    sezione:    sezione,
+    dose:       dose,
+    doseNum:    doseNum || null,
+    doseUnit:   unit,
+    dosi:       dosi,           // mappa {orario: dose}
+    invEnabled: true,
+    fonte:      'CRA',
+    farmacoCRAid: null,
+    via:        document.getElementById('farm-via')?.value || '',
+    orari:      orari,
+    indicazione: (document.getElementById('farm-indicazione')?.value || '').trim(),
+    laEseguita:  document.getElementById('farm-la-eseguita')?.value || '',
+    laProssima:  document.getElementById('farm-la-prossima')?.value || '',
+    laGiorni:    parseInt(document.getElementById('farm-la-giorni')?.value) || null,
+    dataInizio:  document.getElementById('farm-data-inizio').value,
+    dataFine:    document.getElementById('farm-data-fine').value || null,
+    note:        document.getElementById('farm-note').value.trim(),
+    dataCreazione: new Date().toISOString(),
+  };
+
+  // collega farmaco CRA in magazzino: cerca per nome
+  const fcraList = load(SK_FCRA);
+  const match = fcraList.find(f => f.nome.toLowerCase() === nome.toLowerCase());
+  if (match) terapia.farmacoCRAid = match.id;
+
+  const terapie = load(SK.terapie);
+  if (farmacoEditId) {
+    const idx = terapie.findIndex(x => x.id === farmacoEditId);
+    if (idx >= 0) {
+      terapia.id = farmacoEditId;
+      terapia.dataCreazione = terapie[idx].dataCreazione;
+      terapie[idx] = terapia;
+    }
+  } else {
+    terapie.push(terapia);
+  }
+  save(SK.terapie, terapie);
+
+  closeModal('modal-farmaco');
+  renderScheda(farmacoEditPzId);
+  toast(farmacoEditId ? 'Farmaco aggiornato' : 'Farmaco aggiunto');
+  farmacoEditId = null;
+}
+
+function eliminaTerapia(tid, pid) {
+  if (!confirm('Eliminare questa riga terapia?')) return;
+  save(SK.terapie, load(SK.terapie).filter(t=>t.id!==tid));
+  renderScheda(pid);
+  toast('Farmaco rimosso');
+}
+
+// ============================================================
+// EDIT DOSE ORARIO INLINE (popup sul cerchio)
+// ============================================================
+let _dosePopupOpen = null;
+
+function editDoseOrario(tid, pid, orario, circleEl) {
+  // chiudi popup precedente
+  if (_dosePopupOpen) { _dosePopupOpen.remove(); _dosePopupOpen = null; }
+
+  const terapie = load(SK.terapie);
+  const t = terapie.find(x => x.id === tid);
+  if (!t) return;
+
+  const doseAttuale = t.dosi && t.dosi[orario] != null ? t.dosi[orario]
+                    : (t.doseNum != null ? t.doseNum : '');
+  const unit = t.doseUnit || '';
+
+  const popup = document.createElement('div');
+  popup.className = 'dose-popup no-print';
+  popup.innerHTML = `
+    <input type="number" id="dp-input" value="${doseAttuale}" min="0" step="0.5" style="width:64px">
+    <span style="font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted)">${unit}</span>
+    <button class="dose-pop-ok" onclick="salvaDoseOrario('${tid}','${pid}','${orario}')">✓</button>
+  `;
+  circleEl.style.position = 'relative';
+  circleEl.appendChild(popup);
+  _dosePopupOpen = popup;
+  popup.querySelector('#dp-input').focus();
+  popup.querySelector('#dp-input').select();
+
+  // chiudi cliccando fuori
+  setTimeout(() => {
+    document.addEventListener('click', function chiudi(e) {
+      if (!popup.contains(e.target) && e.target !== circleEl) {
+        popup.remove(); _dosePopupOpen = null;
+        document.removeEventListener('click', chiudi);
+      }
+    });
+  }, 50);
+
+  // invio con Enter
+  popup.querySelector('#dp-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') salvaDoseOrario(tid, pid, orario);
+    if (e.key === 'Escape') { popup.remove(); _dosePopupOpen = null; }
+  });
+}
+
+function salvaDoseOrario(tid, pid, orario) {
+  const inp = document.getElementById('dp-input');
+  if (!inp) return;
+  const nuovaDose = parseFloat(inp.value);
+  if (isNaN(nuovaDose) || nuovaDose < 0) { toast('Dose non valida'); return; }
+
+  const terapie = load(SK.terapie);
+  const idx = terapie.findIndex(x => x.id === tid);
+  if (idx < 0) return;
+  if (!terapie[idx].dosi) terapie[idx].dosi = {};
+  terapie[idx].dosi[orario] = nuovaDose;
+
+  // ricalcola doseNum come somma
+  const orariAttivi = terapie[idx].orari || [];
+  terapie[idx].doseNum = orariAttivi.reduce((s, o) => s + ((terapie[idx].dosi && terapie[idx].dosi[o]) || 0), 0);
+
+  // aggiorna dose testuale
+  terapie[idx].dose = orariAttivi.map(o => terapie[idx].dosi[o] || 0).join('-') +
+                      (terapie[idx].doseUnit ? ' ' + terapie[idx].doseUnit : '');
+
+  save(SK.terapie, terapie);
+  if (_dosePopupOpen) { _dosePopupOpen.remove(); _dosePopupOpen = null; }
+  renderScheda(pid);
+  toast('Dose aggiornata: ' + nuovaDose + ' ' + (terapie[idx].doseUnit||'') + ' ore ' + orario);
+}
+
+// ============================================================
+// IMPORTA DA RICETTAMANAGER
+// ============================================================
+function importaRicettaManager() {
+  document.getElementById('rm-file').value='';
+  document.getElementById('rm-preview').style.display='none';
+  openModal('modal-import');
+  document.getElementById('rm-file').onchange = function() {
+    const f = this.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        const patients = data.patients||[];
+        const prev = document.getElementById('rm-preview');
+        prev.style.display='';
+        prev.textContent = `Trovati ${patients.length} pazienti in RicettaManager:\n`+
+          patients.map(p=>`  • ${p.name} (${p.group})`).join('\n');
+      } catch(err) {
+        alert('File JSON non valido');
+      }
+    };
+    r.readAsText(f);
+  };
+}
+
+function eseguiImport() {
+  const f = document.getElementById('rm-file').files[0];
+  if (!f) { alert('Seleziona un file'); return; }
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const rmPatients = data.patients||[];
+      const pazienti = load(SK.pazienti);
+      let aggiunti = 0;
+      rmPatients.forEach(rmp => {
+        const parts = (rmp.name||'').trim().split(' ');
+        const cognome = parts[0]||'';
+        const nome = parts.slice(1).join(' ')||'';
+        // mappa gruppo RM → gruppo CRA app
+        const gruppo = rmp.group==='CD' ? 'CD' : 'CRA';
+        // controlla duplicati per nome
+        const dup = pazienti.some(p =>
+          p.cognome.toLowerCase()===cognome.toLowerCase() &&
+          p.nome.toLowerCase()===nome.toLowerCase()
+        );
+        if (!dup) {
+          pazienti.push({ id:uid(), cognome, nome, gruppo, attivo:true, note:'Importato da RicettaManager' });
+          aggiunti++;
+        }
+      });
+      save(SK.pazienti, pazienti);
+      closeModal('modal-import');
+      renderLista();
+      toast(`Importati ${aggiunti} pazienti (${rmPatients.length-aggiunti} già presenti)`);
+    } catch(err) {
+      alert('Errore durante l\'importazione');
+    }
+  };
+  r.readAsText(f);
+}
+
+
+// ============================================================
+// SESSIONE 2 — INVENTARIO FARMACI CRA
+// ============================================================
+
+let caricoFarmacoId  = null;
+let rettificaFarmacoId = null;
+let editFCRAid = null;
+
+// ---------- calcolo scorta residua ----------
+function calcolaScorta(farm) {
+  if (!farm.lastSync || farm.scorta === undefined) return 0;
+  const ls   = new Date(farm.lastSync); ls.setHours(0,0,0,0);
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  const giorni = Math.max(0, Math.round((oggi - ls) / 86400000));
+  const consumo = calcolaConsumoCRA(farm.id);
+  return Math.max(0, farm.scorta - giorni * consumo);
+}
+
+// consumo giornaliero = somma dosi per orario attivo (dosi map) per tutte le terapie CRA attive
+function calcolaConsumoCRA(farmId) {
+  const terapie = load(SK.terapie);
+  const pzList  = load(SK.pazienti);
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  return terapie
+    .filter(t => {
+      if (!t.farmacoCRAid || t.farmacoCRAid !== farmId) return false;
+      if (t.sezione === 'bisogno') return false;
+      // escludi pazienti con terapia sospesa
+      const pz = pzList.find(p => p.id === t.pazienteId);
+      if (pz && (pz.terapiaSospesa === true || pz.terapiaSospesa === 'true')) return false;
+      const di = t.dataInizio ? new Date(t.dataInizio) : null;
+      const df = t.dataFine   ? new Date(t.dataFine)   : null;
+      if (di && di > oggi) return false;
+      if (df && df < oggi) return false;
+      if (t.invEnabled === false) return false;
+      return true;
+    })
+    .reduce((acc, t) => {
+      if (t.sezione === 'longacting') {
+        // consumo long acting: dose / periodicità
+        const dose = Number.isFinite(parseFloat(t.doseNum)) ? parseFloat(t.doseNum) : 0;
+        if (t.laProssima && t.laEseguita) {
+          const dp = new Date(t.laProssima);
+          const de = new Date(t.laEseguita);
+          const per = Math.max(1, Math.round((dp - de) / 86400000));
+          return acc + dose / per;
+        }
+        return acc + dose;
+      }
+      // orale/topica: somma dosi per orario dalla mappa dosi
+      if (t.dosi && Object.keys(t.dosi).length > 0) {
+        const somma = (t.orari || []).reduce((s, o) => s + ((t.dosi[o]) || 0), 0);
+        return acc + somma;
+      }
+      // fallback legacy: doseNum × numero orari
+      const dose = Number.isFinite(parseFloat(t.doseNum)) ? parseFloat(t.doseNum) : 0;
+      const nOr  = (t.orari && t.orari.length) ? t.orari.length : 1;
+      return acc + dose * nOr;
+    }, 0);
+}
+
+function statoFarmaco(farm) {
+  if (farm.alertSospeso) return 'ok'; // alert silenziato manualmente
+  const scorta  = calcolaScorta(farm);
+  const consumo = calcolaConsumoCRA(farm.id);
+  if (consumo > 0) {
+    const giorniRes = scorta / consumo;
+    if (giorniRes <= (farm.sogliaUrgentGg||3)) return 'urgent';
+    if (giorniRes <= (farm.sogliaWarnGg||8))   return 'warn';
+  } else {
+    if (scorta <= (farm.sogliaUrgent||0)) return 'urgent';
+    if (scorta <= (farm.sogliaWarn||0))   return 'warn';
+  }
+  return 'ok';
+}
+
+// ---------- RENDER INVENTARIO ----------
+function renderInventario() {
+  const farmaci = load(SK.fcraFarmaci||'fcra_farmaci_cra');
+  const q = (document.getElementById('search-inv')?.value||'').toLowerCase();
+  const lista = farmaci.filter(f => f.nome.toLowerCase().includes(q));
+
+  // sommario
+  const urgenti = lista.filter(f=>statoFarmaco(f)==='urgent').length;
+  const warn    = lista.filter(f=>statoFarmaco(f)==='warn').length;
+  const ok      = lista.filter(f=>statoFarmaco(f)==='ok').length;
+  document.getElementById('inv-summary').innerHTML = `
+    <div class="inv-stat"><div class="inv-stat-n" style="color:var(--text)">${lista.length}</div><div class="inv-stat-l">Farmaci in magazzino</div></div>
+    <div class="inv-stat"><div class="inv-stat-n" style="color:var(--green)">${ok}</div><div class="inv-stat-l">Scorte ok</div></div>
+    <div class="inv-stat"><div class="inv-stat-n" style="color:var(--amber)">${warn}</div><div class="inv-stat-l">In esaurimento</div></div>
+    <div class="inv-stat"><div class="inv-stat-n" style="color:var(--red)">${urgenti}</div><div class="inv-stat-l">Critici / esauriti</div></div>
+  `;
+  document.getElementById('inv-count').textContent = lista.length + ' farmac' + (lista.length===1?'o':'i');
+
+  // alert banner
+  const chipUrg = lista.filter(f=>statoFarmaco(f)==='urgent').map(f=>`<span class="chip-urgent">${f.nome}</span>`).join('');
+  const chipWrn = lista.filter(f=>statoFarmaco(f)==='warn').map(f=>`<span class="chip-warn">${f.nome}</span>`).join('');
+  document.getElementById('inv-alert-urgent').style.display = urgenti ? '' : 'none';
+  document.getElementById('inv-alert-warn').style.display   = warn    ? '' : 'none';
+  document.getElementById('inv-chips-urgent').innerHTML = chipUrg;
+  document.getElementById('inv-chips-warn').innerHTML   = chipWrn;
+
+  const grid = document.getElementById('inv-grid');
+  if (!lista.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">💊</div><p>Nessun farmaco CRA registrato. Aggiungi il primo farmaco.</p></div>';
+    return;
+  }
+
+  grid.innerHTML = lista.map(f => {
+    const scorta   = calcolaScorta(f);
+    const consumo  = calcolaConsumoCRA(f.id);
+    const giorni   = consumo > 0 ? Math.floor(scorta / consumo) : null;
+    const stato    = statoFarmaco(f);
+    const pct      = f.scorta > 0 ? Math.min(100, Math.round(scorta / f.scorta * 100)) : 0;
+    const fillCls  = stato==='urgent'?'fill-red':stato==='warn'?'fill-amber':'fill-green';
+    const valCls   = stato==='urgent'?'red':stato==='warn'?'amber':'green';
+    const terapiePz = getTerapieFarmacoCRA(f.id);
+
+    return `
+    <div class="inv-card stato-${stato}">
+      <div class="inv-card-head">
+        <div>
+          <div class="inv-nome">${f.nome} ${f.alertSospeso ? '<span style="font-size:0.6rem;background:var(--surface2);border:1px solid var(--dim);color:var(--dim);border-radius:10px;padding:1px 7px;font-family:Inconsolata,monospace;vertical-align:middle">ALERT SOSPESO</span>' : ''}</div>
+          <div class="inv-forma">${f.forma||''} · ${f.udm||'unità'}/conf: ${f.xconf||'—'}</div>
+        </div>
+        <span class="badge ${stato==='ok'?'badge-cra':stato==='warn'?'' :''}" style="${stato==='urgent'?'background:var(--red-bg);color:var(--red);border:1px solid rgba(224,82,82,.3)':stato==='warn'?'background:var(--amber-bg);color:var(--amber);border:1px solid rgba(232,145,58,.3)':'background:var(--green-bg);color:var(--green);border:1px solid rgba(77,184,122,.3)'};font-family:Inconsolata,monospace;font-size:.6rem;padding:2px 8px;border-radius:20px;">
+          ${stato==='urgent'?'CRITICO':stato==='warn'?'ATTENZIONE':'OK'}
+        </span>
+      </div>
+      <div class="inv-card-body">
+        <div class="progress-bar"><div class="progress-fill ${fillCls}" style="width:${pct}%"></div></div>
+        <div class="inv-row">
+          <span class="inv-label">Scorta residua stimata</span>
+          <span class="inv-val ${valCls}">${Math.round(scorta)} ${f.udm||'unità'}</span>
+        </div>
+        <div class="inv-row">
+          <span class="inv-label">Consumo/die struttura</span>
+          <span class="inv-val">${consumo>0 ? consumo.toFixed(1)+' '+( f.udm||'u')+'/die' : '<span style="color:var(--dim)">nessuna terapia attiva</span>'}</span>
+        </div>
+        <div class="inv-row">
+          <span class="inv-label">Giorni residui stimati</span>
+          <span class="inv-val ${valCls}">${giorni!==null ? giorni+' gg' : '—'}</span>
+        </div>
+        <div class="inv-row" style="font-size:0.72rem">
+          <span class="inv-label" style="color:var(--dim)">Soglie alert / urgente</span>
+          <span style="font-family:Inconsolata,monospace;color:var(--dim)">${f.sogliaWarnGg||8} gg / ${f.sogliaUrgentGg||3} gg</span>
+        </div>
+        <div class="inv-row">
+          <span class="inv-label">Pazienti in terapia</span>
+          <span class="inv-val">${terapiePz.length}</span>
+        </div>
+        ${f.note ? `<div style="font-size:0.72rem;color:var(--muted);margin-top:2px">${f.note}</div>` : ''}
+      </div>
+      <div class="inv-card-foot">
+        <button class="btn btn-gold btn-sm" onclick="openModalCarico('${f.id}')">+ Carico</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModalRettifica('${f.id}')">⚖ Rettifica</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModalFarmacioCRA('${f.id}')">✏️</button>
+        <button class="btn btn-ghost btn-sm" title="${f.alertSospeso?'Riattiva alert':'Silenzia alert'}" onclick="toggleAlertSospeso('${f.id}')">${f.alertSospeso ? '🔔' : '🔕'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="eliminaFarmacioCRA('${f.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getTerapieFarmacoCRA(farmId) {
+  const terapie = load(SK.terapie);
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  return terapie.filter(t => {
+    if (t.farmacoCRAid !== farmId || t.fonte !== 'CRA') return false;
+    const df = t.dataFine ? new Date(t.dataFine) : null;
+    return !df || df >= oggi;
+  });
+}
+
+// ---------- MODAL FARMACO CRA ----------
+const SK_FCRA = 'fcra_farmaci_cra';
+
+function openModalFarmacioCRA(fid) {
+  editFCRAid = fid || null;
+  document.getElementById('modal-fcra-title').textContent = fid ? 'Modifica farmaco' : 'Nuovo farmaco CRA';
+  if (fid) {
+    const f = load(SK_FCRA).find(x=>x.id===fid);
+    if (f) {
+      document.getElementById('fcra-nome').value   = f.nome||'';
+      document.getElementById('fcra-forma').value  = f.forma||'Compresse';
+      document.getElementById('fcra-xconf').value  = f.xconf||'';
+      document.getElementById('fcra-udm').value    = f.udm||'';
+      document.getElementById('fcra-scorta').value = f.scorta||'';
+      document.getElementById('fcra-lastsync').value = f.lastSync||'';
+      const _c = calcolaConsumoCRA(f.id);
+      document.getElementById('fcra-warn-gg').value   = _c > 0 ? Math.round((f.sogliaWarn||0)/_c) : (f.sogliaWarnGg||8);
+      document.getElementById('fcra-urgent-gg').value = _c > 0 ? Math.round((f.sogliaUrgent||0)/_c) : (f.sogliaUrgentGg||3);
+      document.getElementById('fcra-note').value   = f.note||'';
+    }
+  } else {
+    ['fcra-nome','fcra-xconf','fcra-udm','fcra-scorta','fcra-note']
+      .forEach(id=>document.getElementById(id).value='');
+    document.getElementById('fcra-warn-gg').value   = 8;
+    document.getElementById('fcra-urgent-gg').value = 3;
+    document.getElementById('fcra-forma').value='Compresse';
+    document.getElementById('fcra-lastsync').value = new Date().toISOString().slice(0,10);
+  }
+  openModal('modal-farmaco-cra');
+}
+
+function salvaFarmacioCRA() {
+  const nome = document.getElementById('fcra-nome').value.trim();
+  const xconf = parseInt(document.getElementById('fcra-xconf').value)||0;
+  const scorta = parseFloat(document.getElementById('fcra-scorta').value);
+  const lastSync = document.getElementById('fcra-lastsync').value;
+  if (!nome||!xconf||isNaN(scorta)||!lastSync) { alert('Nome, unità/conf, scorta e data di riferimento sono obbligatori'); return; }
+
+  const farmaci = load(SK_FCRA);
+  const obj = {
+    nome, xconf, scorta, lastSync,
+    forma:       document.getElementById('fcra-forma').value,
+    udm:         document.getElementById('fcra-udm').value.trim(),
+    sogliaWarnGg:   parseInt(document.getElementById('fcra-warn-gg').value)||8,
+    sogliaUrgentGg: parseInt(document.getElementById('fcra-urgent-gg').value)||3,
+    note:        document.getElementById('fcra-note').value.trim(),
+    alertSospeso: editFCRAid ? (load(SK_FCRA).find(x=>x.id===editFCRAid)||{}).alertSospeso||false : false,
+  };
+
+  if (editFCRAid) {
+    const idx = farmaci.findIndex(x=>x.id===editFCRAid);
+    if (idx>=0) Object.assign(farmaci[idx], obj);
+  } else {
+    farmaci.push({ id:uid(), ...obj });
+  }
+  save(SK_FCRA, farmaci);
+  closeModal('modal-farmaco-cra');
+  renderInventario();
+  toast(editFCRAid ? 'Farmaco aggiornato' : 'Farmaco aggiunto al magazzino');
+}
+
+
+function toggleAlertSospeso(fid) {
+  const farmaci = load(SK_FCRA);
+  const idx = farmaci.findIndex(x=>x.id===fid);
+  if (idx<0) return;
+  farmaci[idx].alertSospeso = !farmaci[idx].alertSospeso;
+  save(SK_FCRA, farmaci);
+  renderInventario();
+  toast(farmaci[idx].alertSospeso ? 'Alert silenziato per questo farmaco' : 'Alert riattivato');
+}
+
+function eliminaFarmacioCRA(fid) {
+  if (!confirm('Eliminare questo farmaco dal magazzino?')) return;
+  save(SK_FCRA, load(SK_FCRA).filter(f=>f.id!==fid));
+  renderInventario();
+  toast('Farmaco eliminato');
+}
+
+// ---------- CARICO SCORTE ----------
+function openModalCarico(fid) {
+  caricoFarmacoId = fid;
+  const f = load(SK_FCRA).find(x=>x.id===fid);
+  if (!f) return;
+  document.getElementById('carico-farm-label').textContent = `Farmaco: ${f.nome} · ${f.forma||''} · scorta attuale stimata: ${Math.round(calcolaScorta(f))} ${f.udm||'unità'}`;
+  document.getElementById('carico-xconf').value = f.xconf||1;
+  document.getElementById('carico-nconf').value = '';
+  document.getElementById('carico-totale').value = '';
+  document.getElementById('carico-note').value = '';
+  openModal('modal-carico');
+}
+
+function aggiornaTotaleCarico() {
+  const n = parseInt(document.getElementById('carico-nconf').value)||0;
+  const x = parseInt(document.getElementById('carico-xconf').value)||1;
+  document.getElementById('carico-totale').value = (n*x) + ' unità';
+}
+// listener dinamico carico scorte
+document.addEventListener('input', e => {
+  if (e.target.id==='carico-nconf') aggiornaTotaleCarico();
+  if (e.target.id==='farm-dose-unit') aggiornaLabelUnitaDose();
+});
+
+function eseguiCarico() {
+  const nconf = parseInt(document.getElementById('carico-nconf').value);
+  if (!nconf||nconf<1) { alert('Inserire il numero di confezioni'); return; }
+  const f = load(SK_FCRA).find(x=>x.id===caricoFarmacoId);
+  if (!f) return;
+
+  // ricalcola la scorta attuale, poi aggiunge il carico
+  const scorta_ora = calcolaScorta(f);
+  const totale = nconf * (f.xconf||1);
+  const nuovaScorta = scorta_ora + totale;
+  const oggi = new Date().toISOString().slice(0,10);
+
+  // aggiorna farmaco
+  const farmaci = load(SK_FCRA);
+  const idx = farmaci.findIndex(x=>x.id===caricoFarmacoId);
+  farmaci[idx].scorta = nuovaScorta;
+  farmaci[idx].lastSync = oggi;
+  save(SK_FCRA, farmaci);
+
+  // log movimento
+  const movimenti = load(SK.movimenti);
+  movimenti.unshift({
+    id: uid(),
+    data: oggi,
+    tipo: 'carico',
+    farmacoId: caricoFarmacoId,
+    farmacoNome: f.nome,
+    quantita: +totale,
+    nconf,
+    note: document.getElementById('carico-note').value.trim(),
+  });
+  save(SK.movimenti, movimenti);
+
+  closeModal('modal-carico');
+  renderInventario();
+  toast(`Carico registrato: +${totale} ${f.udm||'unità'} di ${f.nome}`);
+}
+
+// ---------- RETTIFICA ----------
+function openModalRettifica(fid) {
+  rettificaFarmacoId = fid;
+  const f = load(SK_FCRA).find(x=>x.id===fid);
+  if (!f) return;
+  const calcolata = Math.round(calcolaScorta(f));
+  document.getElementById('rett-farm-label').textContent = `Farmaco: ${f.nome}`;
+  document.getElementById('rett-calcolata').value = calcolata + ' ' + (f.udm||'unità');
+  document.getElementById('rett-scorta').value = '';
+  document.getElementById('rett-note').value = '';
+  openModal('modal-rettifica');
+}
+
+function eseguiRettifica() {
+  const nuova = parseFloat(document.getElementById('rett-scorta').value);
+  const nota  = document.getElementById('rett-note').value.trim();
+  if (isNaN(nuova)||nuova<0) { alert('Inserire la scorta reale'); return; }
+  if (!nota) { alert('La motivazione della rettifica è obbligatoria'); return; }
+
+  const f = load(SK_FCRA).find(x=>x.id===rettificaFarmacoId);
+  const vecchia = Math.round(calcolaScorta(f));
+  const diff = nuova - vecchia;
+  const oggi = new Date().toISOString().slice(0,10);
+
+  const farmaci = load(SK_FCRA);
+  const idx = farmaci.findIndex(x=>x.id===rettificaFarmacoId);
+  farmaci[idx].scorta = nuova;
+  farmaci[idx].lastSync = oggi;
+  save(SK_FCRA, farmaci);
+
+  const movimenti = load(SK.movimenti);
+  movimenti.unshift({
+    id: uid(), data: oggi, tipo: 'rettifica',
+    farmacoId: rettificaFarmacoId, farmacoNome: f.nome,
+    quantita: diff, scorta_precedente: vecchia, scorta_nuova: nuova,
+    note: nota,
+  });
+  save(SK.movimenti, movimenti);
+
+  closeModal('modal-rettifica');
+  renderInventario();
+  toast(`Rettifica registrata: ${diff>=0?'+':''}${diff} ${f.udm||'unità'} su ${f.nome}`);
+}
+
+// ---------- LOG MOVIMENTI ----------
+function openModalMovimenti() {
+  const movimenti = load(SK.movimenti);
+  const el = document.getElementById('log-movimenti-content');
+  if (!movimenti.length) {
+    el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">Nessun movimento registrato</p>';
+  } else {
+    el.innerHTML = '<div class="mov-list">' + movimenti.map(m => {
+      const segno = m.quantita >= 0 ? '+' : '';
+      return `<div class="mov-row">
+        <div>
+          <span class="mov-tipo ${m.tipo}">${m.tipo.toUpperCase()}</span>
+          <span style="margin-left:8px;font-weight:700">${m.farmacoNome||'—'}</span>
+          ${m.note ? `<span style="color:var(--muted);font-size:0.72rem;margin-left:6px">· ${m.note}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:14px;align-items:center">
+          <span class="mov-q ${m.quantita>=0?'pos':'neg'}">${segno}${m.quantita}</span>
+          <span class="mov-data">${m.data||'—'}</span>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+  }
+  openModal('modal-movimenti');
+}
+
+function stampaMovimenti() {
+  const movimenti = load(SK.movimenti);
+  const farmaci   = load(SK_FCRA);
+  const oggi = new Date().toLocaleDateString('it-IT');
+  const righe = movimenti.map(m => `
+    <tr>
+      <td>${m.data||'—'}</td>
+      <td>${m.tipo.toUpperCase()}</td>
+      <td>${m.farmacoNome||'—'}</td>
+      <td style="text-align:right">${m.quantita>=0?'+':''}${m.quantita}</td>
+      <td>${m.note||''}</td>
+    </tr>`).join('');
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Log Movimenti Magazzino</title>
+  <style>
+    body{font-family:'Times New Roman',serif;padding:15mm;}
+    h1{font-size:13pt;margin-bottom:4mm;}
+    p{font-size:8pt;color:#555;margin-bottom:6mm;}
+    table{width:100%;border-collapse:collapse;font-size:8pt;}
+    th{border:1px solid #000;padding:2mm;background:#f0f0f0;text-align:left;}
+    td{border:1px solid #000;padding:2mm;}
+    @page{size:A4;margin:10mm;}
+  </style></head><body>
+  <h1>Log Movimenti Magazzino — Farmaci CRA</h1>
+  <p>Stampato il: ${oggi} · ${movimenti.length} movimenti</p>
+  <table><thead><tr><th>Data</th><th>Tipo</th><th>Farmaco</th><th>Quantità</th><th>Note</th></tr></thead>
+  <tbody>${righe}</tbody></table>
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+}
+
+// SK_FCRA unificato con SK
+SK.fcraFarmaci = SK_FCRA;
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target===o) o.classList.remove('open'); });
+});
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+
+
+function editNFoglio(pid) {
+  const cnt = loadO(SK.contatori);
+  const attuale = cnt[pid] || 1;
+  const nuovo = prompt('Numero foglio attuale: ' + attuale + '\nInserisci il nuovo numero:', attuale);
+  if (nuovo === null) return;
+  const n = parseInt(nuovo);
+  if (isNaN(n) || n < 1) { alert('Numero non valido'); return; }
+  cnt[pid] = n;
+  save(SK.contatori, cnt);
+  renderScheda(pid);
+  toast('Numero foglio aggiornato a ' + n);
+}
+
+
+// ============================================================
+// CONVALIDA TERAPIA
+// ============================================================
+
+function openModalConvalida() {
+  // Preseleziona mese corrente
+  const now = new Date();
+  const mesi = ['GENNAIO','FEBBRAIO','MARZO','APRILE','MAGGIO','GIUGNO',
+                'LUGLIO','AGOSTO','SETTEMBRE','OTTOBRE','NOVEMBRE','DICEMBRE'];
+  document.getElementById('conv-mese').value = mesi[now.getMonth()];
+  document.getElementById('conv-anno').value = now.getFullYear();
+  document.getElementById('conv-pazienti-sel').value = 'tutti';
+  document.getElementById('conv-pz-singolo').style.display = 'none';
+
+  // Popola select paziente singolo
+  const pazienti = load(SK.pazienti).filter(p=>p.attivo!==false&&p.attivo!=='false');
+  const sel = document.getElementById('conv-pz-id');
+  sel.innerHTML = pazienti.map(p=>`<option value="${p.id}">${p.cognome} ${p.nome}</option>`).join('');
+
+  // Toggle singolo/tutti
+  document.getElementById('conv-pazienti-sel').onchange = function() {
+    document.getElementById('conv-pz-singolo').style.display =
+      this.value === 'singolo' ? '' : 'none';
+  };
+
+  openModal('modal-convalida');
+}
+
+function stampaConvalida() {
+  const mese  = document.getElementById('conv-mese').value;
+  const anno  = document.getElementById('conv-anno').value;
+  const modo  = document.getElementById('conv-pazienti-sel').value;
+
+  let pazienti = load(SK.pazienti).filter(p=>p.attivo!==false&&p.attivo!=='false');
+  if (modo === 'singolo') {
+    const pid = document.getElementById('conv-pz-id').value;
+    pazienti = pazienti.filter(p=>p.id===pid);
+  }
+
+  if (!pazienti.length) { toast('Nessun paziente attivo'); return; }
+
+  // Calcola numero giorni del mese
+  const meseIdx = ['GENNAIO','FEBBRAIO','MARZO','APRILE','MAGGIO','GIUGNO',
+    'LUGLIO','AGOSTO','SETTEMBRE','OTTOBRE','NOVEMBRE','DICEMBRE'].indexOf(mese);
+  const nGiorni = new Date(parseInt(anno), meseIdx+1, 0).getDate();
+  const ORARI = ['8','13','15','20'];
+
+  const buildFoglio = (pz) => {
+    const righeGiorni = Array.from({length: nGiorni}, (_,i) => `
+      <tr>
+        <td class="cv-gg">${i+1}</td>
+        <td class="cv-ann"></td>
+        <td class="cv-or"></td>
+        <td class="cv-or"></td>
+        <td class="cv-or"></td>
+        <td class="cv-or"></td>
+      </tr>`).join('');
+
+    return `
+    <div class="convalida-page">
+
+      <!-- INTESTAZIONE -->
+      <table class="cv-hdr-table">
+        <tr>
+          <td class="cv-logo">
+            FONDAZIONE<br>EMILIA BOSIS
+          </td>
+          <td class="cv-pz-box">
+            ${pz.cognome} ${pz.nome}
+          </td>
+        </tr>
+      </table>
+
+      <!-- TITOLO -->
+      <table class="cv-title-table">
+        <tr>
+          <td class="cv-title-left">convalida <strong>TERAPIA</strong></td>
+          <td class="cv-title-right"><strong>${mese} ${anno}</strong></td>
+        </tr>
+      </table>
+
+      <!-- GRIGLIA GIORNI -->
+      <table class="cv-table">
+        <thead>
+          <tr>
+            <th class="cv-gg">gg</th>
+            <th class="cv-ann">annotazioni</th>
+            ${ORARI.map(o=>`<th class="cv-or">${o}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${righeGiorni}
+        </tbody>
+      </table>
+
+    </div>`;
+  };
+
+  const allPages = pazienti.map(buildFoglio).join('');
+
+  // Altezza riga dinamica: spazio disponibile ÷ giorni
+  // A4 = 297mm, margini @page 6mm × 2 = 12mm → 285mm disponibili
+  // Intestazione ≈ 22mm, titolo ≈ 14mm, header tabella ≈ 7mm → corpo ≈ 242mm
+  const altRiga = Math.floor((242 / nGiorni) * 10) / 10; // in mm, 1 decimale
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Convalida Terapia — ${mese} ${anno}</title>
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:Arial,Helvetica,sans-serif; font-size:8pt; background:#fff; color:#000; }
+
+    .convalida-page {
+      padding: 6mm 10mm 4mm;
+      page-break-after: always;
+      height: 285mm;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .convalida-page:last-child { page-break-after: avoid; }
+
+    /* INTESTAZIONE */
+    .cv-hdr-table { width:100%; border-collapse:collapse; margin-bottom:4mm; }
+    .cv-logo { font-size:7.5pt; font-weight:bold; width:38%; vertical-align:top; text-transform:uppercase; letter-spacing:.03em; }
+    .cv-pz-box {
+      width:58%; text-align:center; font-size:12pt; font-weight:bold;
+      border:1.5px solid #000; padding:2mm 4mm; vertical-align:middle;
+    }
+
+    /* TITOLO */
+    .cv-title-table { width:100%; border-collapse:collapse; margin-bottom:3mm; }
+    .cv-title-left  { font-size:10pt; width:50%; vertical-align:bottom; }
+    .cv-title-right { font-size:14pt; font-weight:bold; text-align:right; vertical-align:bottom; }
+
+    /* GRIGLIA */
+    .cv-table { width:100%; border-collapse:collapse; flex:1; }
+    .cv-table th {
+      border:1px solid #555; padding:1mm;
+      text-align:center; font-size:7.5pt;
+      background:#e8e8e8;
+    }
+    .cv-table td { border:1px solid #bbb; padding:0; height:${altRiga}mm; }
+    .cv-gg  { width:10mm; text-align:center; font-size:7pt; border-right:1px solid #555 !important; }
+    .cv-ann { text-align:left; padding-left:2mm !important; }
+    .cv-or  { width:13mm; text-align:center; border-left:1px solid #555 !important; }
+
+    @page { size:A4 portrait; margin:6mm; }
+  </style>
+  </head><body>
+  ${allPages}
+  <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`;
+
+  closeModal('modal-convalida');
+  const blob = new Blob([html], {type: 'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.target = '_blank'; a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+  toast('Convalida terapia inviata alla stampa');
+}
+
+// ============================================================
+// BACKUP ESPORTA / IMPORTA
+// ============================================================
+function esportaBackup() {
+  const data = {
+    versione: '1.0',
+    data: new Date().toISOString(),
+    fcra_pazienti:  load(SK.pazienti),
+    fcra_terapie:   load(SK.terapie),
+    fcra_contatori: loadO(SK.contatori),
+    fcra_farmaci:   load(SK_FCRA),
+    fcra_movimenti: load(SK.movimenti),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const oggi = new Date().toISOString().slice(0,10);
+  a.download = `farmacia-cra-backup-${oggi}.json`;
+  a.click();
+  toast('Backup esportato');
+}
+
+function importaBackup(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (!confirm('Importare il backup? I dati attuali verranno SOSTITUITI completamente.')) {
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      save(SK.pazienti,   Array.isArray(data.fcra_pazienti) ? data.fcra_pazienti : []);
+      save(SK.terapie,    Array.isArray(data.fcra_terapie) ? data.fcra_terapie : []);
+      save(SK.contatori,  data.fcra_contatori && typeof data.fcra_contatori === 'object' && !Array.isArray(data.fcra_contatori) ? data.fcra_contatori : {});
+      save(SK_FCRA,       Array.isArray(data.fcra_farmaci) ? data.fcra_farmaci : []);
+      save(SK.movimenti,  Array.isArray(data.fcra_movimenti) ? data.fcra_movimenti : []);
+      input.value = '';
+      renderLista();
+      toast('Backup importato correttamente');
+    } catch(err) {
+      alert('File non valido o corrotto.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+
+// ============================================================
+// CAMBIO PASSWORD
+// ============================================================
+function openModalCambiaPassword() {
+  ['pwd-attuale','pwd-nuova','pwd-conferma'].forEach(id =>
+    document.getElementById(id).value = '');
+  document.getElementById('pwd-error').style.display = 'none';
+  openModal('modal-cambia-pwd');
+}
+
+function eseguiCambioPassword() {
+  const attuale  = document.getElementById('pwd-attuale').value;
+  const nuova    = document.getElementById('pwd-nuova').value;
+  const conferma = document.getElementById('pwd-conferma').value;
+  const errEl    = document.getElementById('pwd-error');
+  if (attuale !== getPassword()) {
+    errEl.textContent = 'Password attuale errata'; errEl.style.display='block'; return;
+  }
+  if (nuova.length < 6) {
+    errEl.textContent = 'Min. 6 caratteri'; errEl.style.display='block'; return;
+  }
+  if (nuova !== conferma) {
+    errEl.textContent = 'Le password non coincidono'; errEl.style.display='block'; return;
+  }
+  storageSet(PWD_KEY, nuova);
+  closeModal('modal-cambia-pwd');
+  toast('Password aggiornata');
+}
+
+
+// ============================================================
+// PRELOAD FARMACI CRA (primo avvio)
+// ============================================================
+(function() {
+  const existing = load(SK_FCRA);
+  if (!existing || existing.length === 0) {
+    save(SK_FCRA, [{"id": "fcra0001", "nome": "Abilify (Aripiprazolo) 5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0002", "nome": "Abilify (Aripiprazolo) 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0003", "nome": "Abilify (Aripiprazolo) 15 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0004", "nome": "Akineton 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0005", "nome": "Akineton 4 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0006", "nome": "Atarax 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0007", "nome": "Clozapina (Leponex) 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0008", "nome": "Clozapina (Leponex) 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0009", "nome": "Delorazepam (EN) 1 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0010", "nome": "Delorazepam (EN) 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0011", "nome": "Depakin Chrono 300 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0012", "nome": "Depakin Chrono 500 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0013", "nome": "Diazepam (Valium) 5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0014", "nome": "Domperidone 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0015", "nome": "Entumin (Clotiapina) 40 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0016", "nome": "Fluoxetina 20 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0017", "nome": "Fluvoxamina 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0018", "nome": "Fluvoxamina 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0019", "nome": "Gabapentin 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0020", "nome": "Gabapentin 300 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0021", "nome": "Gabapentin 400 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0022", "nome": "Haldol (Aloperidolo) 1 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0023", "nome": "Largactil 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0024", "nome": "Largactil 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0025", "nome": "Latuda 37 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0026", "nome": "Latuda 74 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0027", "nome": "Litio Carbonato 300 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0028", "nome": "Litio Resilient 83 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0029", "nome": "Lorazepam (Tavor) 1 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0030", "nome": "Lorazepam (Tavor) 2,5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0031", "nome": "Mirtazapina 30 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0032", "nome": "Nozinam 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0033", "nome": "Nozinam 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0034", "nome": "Olanzapina 5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0035", "nome": "Olanzapina 10 mg velotab", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0036", "nome": "Oxibutina e.g. 5 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0037", "nome": "Paliperidone 6 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0038", "nome": "Paroxetina 20 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0039", "nome": "Pregabalin 25 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0040", "nome": "Pregabalin 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0041", "nome": "Pregabalin 75 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0042", "nome": "Pregabalin 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0043", "nome": "Pregabalin 150 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0044", "nome": "Quetiapina 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0045", "nome": "Quetiapina RP 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0046", "nome": "Quetiapina RP 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0047", "nome": "Quetiapina 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0048", "nome": "Quetiapina 150 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0049", "nome": "Quetiapina RP 200 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0050", "nome": "Quetiapina 200 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0051", "nome": "Quetiapina RP 300 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0052", "nome": "Quetiapina RP 400 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0053", "nome": "Resilient 83 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0054", "nome": "Risperidone 1 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0055", "nome": "Risperidone 3 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0056", "nome": "Rivotril 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0057", "nome": "Rxulti 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0058", "nome": "Sertralina 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0059", "nome": "Strattera 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0060", "nome": "Strattera 25 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0061", "nome": "Strattera 40 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0062", "nome": "Strattera 60 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0063", "nome": "Tegretol (Carbamazepina) 200 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0064", "nome": "Trittico 75 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0065", "nome": "Trittico 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0066", "nome": "Trittico 150 mg RP", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0067", "nome": "Valdorm (Flurazepam) 15 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0068", "nome": "Valdorm (Flurazepam) 30 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0069", "nome": "Zolpidem 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0070", "nome": "Lamotrigina eg 50 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0071", "nome": "Allopurinolo 300 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0072", "nome": "Carvasin 10 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0073", "nome": "Citalopram 20 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0074", "nome": "Deltacortene", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0075", "nome": "Gaviscon", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0076", "nome": "Ibuprofene 600 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0077", "nome": "Loperamide 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0078", "nome": "Muscoril", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0079", "nome": "Nimesulide 100 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0080", "nome": "Nimesulide 100 mg bustine", "forma": "Bustine", "udm": "bust", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0081", "nome": "Pantoprazolo 20 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0082", "nome": "Paracetamolo 500 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0083", "nome": "Pursennid", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0084", "nome": "Vatran 2 mg", "forma": "Compresse", "udm": "cp", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0085", "nome": "Clonazepam (Rivotril) gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0086", "nome": "Diazepam gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0087", "nome": "Delorazepam (EN) gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0088", "nome": "Entumin gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0089", "nome": "Haldol (Serenase) 2 mg/ml gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0090", "nome": "Haldol (Serenase) 10 mg/ml gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0091", "nome": "Talofen gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0092", "nome": "Bromazepam 2,5 mg/ml gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0093", "nome": "Lormetazepam 2,5 mg/ml gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0094", "nome": "Efortil gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0095", "nome": "Brintellix gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0096", "nome": "Didergot gtt", "forma": "Gocce", "udm": "gtt", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0097", "nome": "Depakin Soluzione 200 mg/ml", "forma": "Soluzione orale", "udm": "ml", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0098", "nome": "EN (Delorazepam) 2 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0099", "nome": "EN (Delorazepam) 5 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0100", "nome": "Entumin fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0101", "nome": "Diazepam (Valium) 10 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0102", "nome": "Haldol 5 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0103", "nome": "Haldol Decanoas 50 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0104", "nome": "Haldol Decanoas 150 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0105", "nome": "Talofen 25 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0106", "nome": "Largactil 50 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0107", "nome": "Aloperidolo 2 mg fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0108", "nome": "Diclofenac fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0109", "nome": "Plasil fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0110", "nome": "Buscopan fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0111", "nome": "Betametasone 4 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0112", "nome": "Farganesse fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0113", "nome": "Ugoral 500 mg fiale", "forma": "Fiala EV", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0114", "nome": "Tocolchicoside eg 4 mg/ml fiale", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0115", "nome": "Abilify Maintena 400 mg", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0116", "nome": "Xeplion 100 mg", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0117", "nome": "Xeplion 150 mg", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0118", "nome": "Haldol Decanoato 150 mg/ml", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0119", "nome": "Haldol Decanoato 50 mg/ml", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0120", "nome": "Trevicta", "forma": "Fiala IM", "udm": "fl", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0121", "nome": "Foille crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0122", "nome": "Aureomicina crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0123", "nome": "Azolmel crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0124", "nome": "Gentalin crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0125", "nome": "Gentalin Beta crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0126", "nome": "Metazone crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0127", "nome": "Voltaren crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0128", "nome": "Vaselina", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}, {"id": "fcra0129", "nome": "Connettivina crema", "forma": "Altro", "udm": "tubo", "xconf": 0, "scorta": 0, "lastSync": "2026-06-02", "sogliaWarn": 0, "sogliaUrgent": 0, "note": ""}]);
+  }
+})();
+
+// ============================================================
+// INIT
+// ============================================================
+checkLogin();
+renderLista();
+aggiornaBannerHome();
+</script>
+
+<!-- MODAL CAMBIA PASSWORD -->
+<div class="overlay" id="modal-cambia-pwd">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <span class="modal-title">🔑 Cambia password</span>
+      <button class="close-btn" onclick="closeModal('modal-cambia-pwd')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Password attuale</label>
+        <input type="password" id="pwd-attuale" placeholder="Password attuale">
+      </div>
+      <div class="form-group">
+        <label>Nuova password</label>
+        <input type="password" id="pwd-nuova" placeholder="Min. 6 caratteri">
+      </div>
+      <div class="form-group">
+        <label>Conferma nuova password</label>
+        <input type="password" id="pwd-conferma" placeholder="Ripeti la nuova password">
+      </div>
+      <div id="pwd-error" style="color:var(--red);font-size:0.78rem;display:none;margin-top:4px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-cambia-pwd')">Annulla</button>
+      <button class="btn btn-gold" onclick="eseguiCambioPassword()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONVALIDA TERAPIA -->
+<div class="overlay" id="modal-convalida">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <span class="modal-title">🗓 Convalida Terapia — Stampa</span>
+      <button class="close-btn" onclick="closeModal('modal-convalida')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:4px">
+        Inserisci mese e anno una volta sola — verranno riportati su tutti i fogli.
+      </p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Mese</label>
+          <select id="conv-mese">
+            <option value="GENNAIO">Gennaio</option>
+            <option value="FEBBRAIO">Febbraio</option>
+            <option value="MARZO">Marzo</option>
+            <option value="APRILE">Aprile</option>
+            <option value="MAGGIO">Maggio</option>
+            <option value="GIUGNO">Giugno</option>
+            <option value="LUGLIO">Luglio</option>
+            <option value="AGOSTO">Agosto</option>
+            <option value="SETTEMBRE">Settembre</option>
+            <option value="OTTOBRE">Ottobre</option>
+            <option value="NOVEMBRE">Novembre</option>
+            <option value="DICEMBRE">Dicembre</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Anno</label>
+          <input type="number" id="conv-anno" value="2026" min="2024" max="2099">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Pazienti da stampare</label>
+        <select id="conv-pazienti-sel">
+          <option value="tutti">Tutti i pazienti attivi</option>
+          <option value="singolo">Paziente singolo</option>
+        </select>
+      </div>
+      <div class="form-group" id="conv-pz-singolo" style="display:none">
+        <label>Seleziona paziente</label>
+        <select id="conv-pz-id"></select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-convalida')">Annulla</button>
+      <button class="btn btn-gold" onclick="stampaConvalida()">🖨 Stampa tutti</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

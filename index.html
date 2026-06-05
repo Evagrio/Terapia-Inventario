@@ -2964,10 +2964,12 @@ function stampaConvalida() {
 
   const allPages = pazienti.map(buildFoglio).join('');
 
-  // Altezza riga dinamica: spazio disponibile ÷ giorni
-  // A4 = 297mm, margini @page 6mm × 2 = 12mm → 285mm disponibili
-  // Intestazione ≈ 22mm, titolo ≈ 14mm, header tabella ≈ 7mm → corpo ≈ 242mm
-  const altRiga = Math.floor((242 / nGiorni) * 10) / 10; // in mm, 1 decimale
+  // Calcolo altezza riga per riempire la pagina fino a ~3cm dal fondo
+  // A4 297mm - @page margins 12mm = 285mm utili
+  // padding pagina 10mm → corpo 275mm
+  // fissi: intestazione 18mm + titolo 11mm + thead 7mm + margine inf. 30mm = 66mm
+  // disponibile per righe = 209mm
+  const altRiga = Math.round((209 / nGiorni) * 10) / 10; // mm, 1 decimale
 
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>Convalida Terapia — ${mese} ${anno}</title>
@@ -2976,8 +2978,9 @@ function stampaConvalida() {
     body { font-family:Arial,Helvetica,sans-serif; font-size:8pt; background:#fff; color:#000; }
 
     .convalida-page {
-      padding: 6mm 10mm 4mm;
+      padding: 6mm 10mm 30mm;
       page-break-after: always;
+      page-break-inside: avoid;
       height: 285mm;
       overflow: hidden;
       display: flex;

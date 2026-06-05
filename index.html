@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FarmaciaCRA — Cascina Germoglio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inconsolata:wght@400;500;600&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="login-screen no-print" id="login-screen">
+  <div class="login-box">
+    <h1>Farmacia<em style="color:var(--text);font-size:1.1rem;">CRA</em></h1>
+    <p>Accesso protetto ai dati locali</p>
+    <input type="password" id="login-password" placeholder="Password" onkeydown="if(event.key==='Enter')loginApp()">
+    <label style="display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--muted);margin-top:10px;cursor:pointer;justify-content:center">
+      <input type="checkbox" id="ricorda-device" style="width:auto;accent-color:var(--gold)">
+      Ricorda su questo computer
+    </label>
+    <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:12px" onclick="loginApp()">Entra</button>
+    <div class="login-error" id="login-error"></div>
+    <p style="font-size:.68rem;margin-top:18px;margin-bottom:0;color:var(--dim)">Contatta l'amministratore per la password.</p>
+  </div>
+</div>
+
+<header class="no-print">
+  <div class="logo">Farmacia<em>CRA</em></div>
+  <div class="hdr-tabs no-print">
+    <div class="htab active" id="htab-pazienti" onclick="showTab('pazienti')">Pazienti</div>
+    <div class="htab" id="htab-inventario" onclick="showTab('inventario')">Inventario CRA</div>
+    <div class="htab" id="htab-report" onclick="showTab('report')">Report</div>
+  </div>
+  <div class="hdr-right">
+    <button class="btn btn-ghost btn-sm" onclick="esportaBackup()" title="Esporta backup dati">💾 Backup</button>
+    <label class="btn btn-ghost btn-sm" style="cursor:pointer" title="Importa backup dati">
+      📥 Importa <input type="file" id="import-file" accept=".json" style="display:none" onchange="importaBackup(this)">
+    </label>
+    <button class="btn btn-ghost btn-sm" onclick="openModalCambiaPassword()" title="Cambia password">🔑</button>
+
+    <div class="clock" id="clock"></div>
+  </div>
+</header>
+
+
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ===================== TAB PAZIENTI ===================== -->
+<div id="tab-pazienti" class="container">
+
+  <!-- BANNER ALERT FARMACI (visibile nella home) -->
+  <div id="home-alert-urgent" class="inv-alert urgent" style="display:none;margin-bottom:14px">
+    <div class="inv-alert-ttl">🚨 Farmaci CRITICI — scorte per meno di 3 giorni</div>
+    <div class="inv-chips" id="home-chips-urgent"></div>
+  </div>
+  <div id="home-alert-warn" class="inv-alert warn" style="display:none;margin-bottom:14px">
+    <div class="inv-alert-ttl">⚠ Farmaci in ATTENZIONE — scorte per meno di 7 giorni</div>
+    <div class="inv-chips" id="home-chips-warn"></div>
+  </div>
+  <!-- BANNER REPORT MENSILE -->
+  <div id="home-report-banner" style="display:none;margin-bottom:14px;background:var(--blue-bg);border:1px solid var(--blue);border-radius:var(--r);padding:13px 17px;">
+    <div style="font-family:'Inconsolata',monospace;font-size:0.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:7px">📊 Report mensile disponibile</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <span style="font-size:0.82rem" id="home-report-banner-msg"></span>
+      <button class="btn btn-blue btn-sm" onclick="generaESalvaReportMensile(true)">Genera e salva report</button>
+    </div>
+  </div>
+
+  <!-- VISTA LISTA PAZIENTI -->
+  <div id="vista-lista">
+    <div class="toolbar">
+      <div>
+        <h2>Pazienti</h2>
+        <p id="pz-count"></p>
+      </div>
+      <div class="tbar-right">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-pz" placeholder="Cerca paziente…" oninput="renderLista()">
+        </div>
+
+        <button class="btn btn-gold" onclick="openModalPaziente()">+ Nuovo paziente</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModalConvalida()">🗓 Convalida terapia</button>
+
+      </div>
+    </div>
+    <div class="grid" id="grid-pazienti"></div>
+  </div>
+
+  <!-- VISTA SCHEDA PAZIENTE -->
+  <div id="vista-scheda" style="display:none;">
+    <button class="back-btn no-print" onclick="tornaLista()">← Torna all'elenco</button>
+    <div class="scheda-wrap" id="scheda-content"></div>
+  </div>
+
+</div>
+
+<!-- ===================== TAB INVENTARIO ===================== -->
+<div id="tab-inventario" class="container" style="display:none;">
+
+  <div id="inv-alert-urgent" class="inv-alert urgent" style="display:none;">
+    <div class="inv-alert-ttl">⚠ Scorte esaurite / critiche</div>
+    <div class="inv-chips" id="inv-chips-urgent"></div>
+  </div>
+  <div id="inv-alert-warn" class="inv-alert warn" style="display:none;">
+    <div class="inv-alert-ttl">⬇ Scorte in esaurimento</div>
+    <div class="inv-chips" id="inv-chips-warn"></div>
+  </div>
+
+  <div class="inv-summary" id="inv-summary"></div>
+
+  <div class="toolbar">
+    <div>
+      <h2>Farmaci CRA — Magazzino</h2>
+      <p id="inv-count"></p>
+    </div>
+    <div class="tbar-right">
+      <input type="text" id="search-inv" placeholder="Cerca farmaco…" style="width:200px" oninput="renderInventario()">
+      <button class="btn btn-gold" onclick="openModalFarmacioCRA()">+ Nuovo farmaco</button>
+      <button class="btn btn-ghost btn-sm" onclick="openModalMovimenti()">📋 Log movimenti</button>
+    </div>
+  </div>
+
+  <div class="inv-grid" id="inv-grid"></div>
+</div>
+
+<!-- MODAL FARMACO CRA -->
+<div class="overlay" id="modal-farmaco-cra">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-fcra-title">Nuovo farmaco CRA</span>
+      <button class="close-btn" onclick="closeModal('modal-farmaco-cra')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nome farmaco *</label>
+          <input type="text" id="fcra-nome" placeholder="es. Aloperidolo 2mg">
+        </div>
+        <div class="form-group">
+          <label>Forma farmaceutica</label>
+          <select id="fcra-forma">
+            <option>Compresse</option><option>Capsule</option><option>Gocce</option>
+            <option>Fiala IM</option><option>Fiala EV</option><option>Cerotto</option>
+            <option>Soluzione orale</option><option>Sospensione</option><option>Altro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Unità per confezione *</label>
+          <input type="number" id="fcra-xconf" min="1" placeholder="es. 30">
+        </div>
+        <div class="form-group">
+          <label>Unità di misura</label>
+          <input type="text" id="fcra-udm" placeholder="es. cp, fl, ml…">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Scorta attuale (unità) *</label>
+          <input type="number" id="fcra-scorta" min="0" placeholder="es. 120">
+        </div>
+        <div class="form-group">
+          <label>Data riferimento scorta *</label>
+          <input type="date" id="fcra-lastsync">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>⬇ Alert scorte (giorni residui)</label>
+          <input type="number" id="fcra-warn-gg" min="1" value="8" placeholder="8">
+          <small style="color:var(--muted);font-size:0.68rem;margin-top:3px;display:block">Default 8 gg — calcolato sul consumo attuale</small>
+        </div>
+        <div class="form-group">
+          <label>⚠ Urgente (giorni residui)</label>
+          <input type="number" id="fcra-urgent-gg" min="1" value="3" placeholder="3">
+          <small style="color:var(--muted);font-size:0.68rem;margin-top:3px;display:block">Default 3 gg</small>
+        </div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:9px 12px;font-size:0.73rem;color:var(--muted);margin-top:-6px">
+        💡 Le soglie si basano sui giorni residui stimati. Con consumo giornaliero zero vengono ignorate.
+      </div>
+      <div class="form-group">
+        <label>Note</label>
+        <textarea id="fcra-note" placeholder="Note sul farmaco…" style="min-height:50px"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-farmaco-cra')">Annulla</button>
+      <button class="btn btn-gold" onclick="salvaFarmacioCRA()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CARICO SCORTE -->
+<div class="overlay" id="modal-carico">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Carico scorte</span>
+      <button class="close-btn" onclick="closeModal('modal-carico')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.82rem;color:var(--muted)" id="carico-farm-label"></p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Numero confezioni ricevute *</label>
+          <input type="number" id="carico-nconf" min="1" placeholder="es. 3" oninput="aggiornaTotaleCarico()">
+        </div>
+        <div class="form-group">
+          <label>Unità per confezione</label>
+          <input type="number" id="carico-xconf" min="1" readonly style="opacity:.6">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Totale unità in arrivo</label>
+        <input type="text" id="carico-totale" readonly style="opacity:.6;font-family:Inconsolata,monospace;font-weight:700;color:var(--green)">
+      </div>
+      <div class="form-group">
+        <label>Note (es. numero DDT, fornitore)</label>
+        <input type="text" id="carico-note" placeholder="DDT n° …">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-carico')">Annulla</button>
+      <button class="btn btn-gold" onclick="eseguiCarico()">Conferma carico</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RETTIFICA -->
+<div class="overlay" id="modal-rettifica">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Rettifica inventario</span>
+      <button class="close-btn" onclick="closeModal('modal-rettifica')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.82rem;color:var(--muted)" id="rett-farm-label"></p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Scorta reale contata (unità) *</label>
+          <input type="number" id="rett-scorta" min="0" placeholder="Unità effettivamente presenti">
+        </div>
+        <div class="form-group">
+          <label>Scorta calcolata dall'app</label>
+          <input type="text" id="rett-calcolata" readonly style="opacity:.6;font-family:Inconsolata,monospace;">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Motivazione rettifica *</label>
+        <input type="text" id="rett-note" placeholder="es. conta fisica mensile, farmaco scaduto…">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-rettifica')">Annulla</button>
+      <button class="btn btn-red" onclick="eseguiRettifica()">Applica rettifica</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LOG MOVIMENTI -->
+<div class="overlay" id="modal-movimenti">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <span class="modal-title">Log movimenti magazzino</span>
+      <button class="close-btn" onclick="closeModal('modal-movimenti')">×</button>
+    </div>
+    <div class="modal-body" style="max-height:65vh;overflow-y:auto;">
+      <div id="log-movimenti-content"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="stampaMovimenti()">🖨 Stampa log</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-movimenti')">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB REPORT ===================== -->
+<div id="tab-report" class="container" style="display:none;">
+
+  <div class="nav-tabs" style="margin:0 -24px 20px;padding:0 24px;">
+    <div class="tab active" id="rtab-scorte"  onclick="showReportTab('scorte')">📦 Scorte magazzino</div>
+    <div class="tab"        id="rtab-consumi" onclick="showReportTab('consumi')">📈 Farmaci in uso</div>
+    <div class="tab"        id="rtab-storico" onclick="showReportTab('storico')">🗂 Storico mensile</div>
+  </div>
+
+  <div id="rpanel-scorte">
+    <div class="toolbar" style="margin-bottom:14px">
+      <div><h2>Scorte magazzino</h2><p style="font-size:0.75rem;color:var(--muted)">Snapshot scorte residue stimate oggi</p></div>
+      <div class="tbar-right"><button class="btn btn-ghost btn-sm" onclick="stampaReportScorte()">🖨 Stampa</button></div>
+    </div>
+    <div id="report-scorte-content"></div>
+  </div>
+
+  <div id="rpanel-consumi" style="display:none">
+    <div class="toolbar" style="margin-bottom:14px">
+      <div><h2>Farmaci in uso</h2><p style="font-size:0.75rem;color:var(--muted)">Consumo mensile stimato e fabbisogno ordine</p></div>
+      <div class="tbar-right"><button class="btn btn-ghost btn-sm" onclick="stampaReportConsumi()">🖨 Stampa</button></div>
+    </div>
+    <div id="report-consumi-content"></div>
+  </div>
+
+  <div id="rpanel-storico" style="display:none">
+    <div class="toolbar" style="margin-bottom:14px">
+      <div><h2>Storico report mensili</h2><p style="font-size:0.75rem;color:var(--muted)" id="storico-count"></p></div>
+    </div>
+    <div id="report-storico-list"></div>
+  </div>
+
+</div>
+
+<!-- ===================== MODAL PAZIENTE ===================== -->
+<div class="overlay" id="modal-paziente">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-pz-title">Nuovo paziente</span>
+      <button class="close-btn" onclick="closeModal('modal-paziente')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cognome *</label>
+          <input type="text" id="pz-cognome" placeholder="Cognome">
+        </div>
+        <div class="form-group">
+          <label>Nome *</label>
+          <input type="text" id="pz-nome" placeholder="Nome">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Stato</label>
+          <select id="pz-attivo">
+            <option value="true">Attivo</option>
+            <option value="false">Dimesso</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Terapia</label>
+          <select id="pz-terapia-sospesa">
+            <option value="false">In corso</option>
+            <option value="true">Sospesa (assenza)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>⚠ Allergie / Intolleranze</label>
+        <input type="text" id="pz-allergie" placeholder="es. Penicilline, Lattice, FANS…" style="border-color:var(--amber)">
+      </div>
+      <div class="form-group">
+        <label>Note</label>
+        <textarea id="pz-note" placeholder="Note cliniche generali…"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-paziente')">Annulla</button>
+      <button class="btn btn-gold" onclick="salvaPaziente()">Salva paziente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL FARMACO ===================== -->
+<div class="overlay" id="modal-farmaco">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-farm-title">Aggiungi farmaco</span>
+      <button class="close-btn" onclick="closeModal('modal-farmaco')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nome farmaco *</label>
+          <input type="text" id="farm-nome" placeholder="es. Aloperidolo 2mg">
+        </div>
+        <div class="form-group">
+          <label>Sezione *</label>
+          <select id="farm-sezione" onchange="aggiornaCampiSezione()">
+            <option value="orale">Terapia Orale</option>
+            <option value="topica">Topica / IM / SC / EV / Varie</option>
+            <option value="bisogno">Al Bisogno</option>
+            <option value="longacting">Long Acting</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row" id="grp-via-row">
+        <div class="form-group" id="grp-via">
+          <label>Via di somministrazione</label>
+          <select id="farm-via">
+            <option value="">— seleziona —</option>
+            <option>Orale</option>
+            <option>IM</option>
+            <option>SC</option>
+            <option>EV</option>
+            <option>Topica</option>
+            <option>Sublinguale</option>
+            <option>Transdermica</option>
+            <option>Inalatoria</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Unità dose</label>
+          <select id="farm-dose-unit">
+            <option value="cp">cp</option>
+            <option value="gtt">gtt</option>
+            <option value="puff">puff</option>
+            <option value="ml">ml</option>
+            <option value="fl">fl</option>
+            <option value="unità">unità</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Orari + dosi per orario (solo per orale e topica) -->
+      <div class="form-group" id="grp-orari">
+        <label>Orari e dosi di somministrazione</label>
+        <div id="orari-dosi-grid" style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">
+          <div class="orario-dose-row" id="odr-8">
+            <label class="orario-check"><input type="checkbox" value="8" id="or8" onchange="toggleDoseOrario('8')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 8</span></label>
+            <input type="number" id="dose-or8" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 8">
+            <span id="dose-unit-label-8" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
+          </div>
+          <div class="orario-dose-row" id="odr-13">
+            <label class="orario-check"><input type="checkbox" value="13" id="or13" onchange="toggleDoseOrario('13')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 13</span></label>
+            <input type="number" id="dose-or13" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 13">
+            <span id="dose-unit-label-13" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
+          </div>
+          <div class="orario-dose-row" id="odr-15">
+            <label class="orario-check"><input type="checkbox" value="15" id="or15" onchange="toggleDoseOrario('15')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 15</span></label>
+            <input type="number" id="dose-or15" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 15">
+            <span id="dose-unit-label-15" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
+          </div>
+          <div class="orario-dose-row" id="odr-20">
+            <label class="orario-check"><input type="checkbox" value="20" id="or20" onchange="toggleDoseOrario('20')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 20</span></label>
+            <input type="number" id="dose-or20" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 20">
+            <span id="dose-unit-label-20" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Long Acting date -->
+      <div id="grp-longacting" style="display:none;">
+        <div class="form-row-3">
+          <div class="form-group">
+            <label>Dose (es. 1 fl, 2 mg…)</label>
+            <input type="text" id="farm-dose-la" placeholder="es. 1 fl">
+          </div>
+          <div class="form-group">
+            <label>Data ultima somministrazione</label>
+            <input type="date" id="farm-la-eseguita">
+          </div>
+          <div class="form-group">
+            <label>Data prossima somministrazione</label>
+            <input type="date" id="farm-la-prossima">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ogni (giorni)</label>
+            <input type="number" id="farm-la-giorni" min="1" max="365" placeholder="es. 28">
+          </div>
+          <div class="form-group">
+            <label>Dose numerica (per inventario)</label>
+            <input type="number" id="farm-dose-num-la" min="0" step="0.01" placeholder="es. 1">
+          </div>
+        </div>
+      </div>
+
+      <!-- Al bisogno: dose descrittiva + indicazione -->
+      <div id="grp-bisogno" style="display:none;">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Dose (es. 1 cp, 5 gtt…)</label>
+            <input type="text" id="farm-dose-bisogno" placeholder="es. 1 cp al bisogno">
+          </div>
+          <div class="form-group">
+            <label>Indicazione / condizione d'uso</label>
+            <input type="text" id="farm-indicazione" placeholder="es. in caso di agitazione…">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Data inizio prescrizione *</label>
+          <input type="date" id="farm-data-inizio">
+        </div>
+        <div class="form-group">
+          <label>Data sospensione</label>
+          <input type="date" id="farm-data-fine">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Note</label>
+        <input type="text" id="farm-note" placeholder="Note aggiuntive…">
+      </div>
+
+      <!-- campi legacy nascosti per compatibilità dati -->
+      <input type="hidden" id="farm-dose" value="">
+      <input type="hidden" id="farm-dose-num" value="">
+      <input type="hidden" id="farm-fonte" value="CRA">
+      <input type="hidden" id="farm-inv-enabled" value="true">
+      <input type="hidden" id="farm-cra-link" value="">
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-farmaco')">Annulla</button>
+      <button class="btn btn-gold" onclick="salvaFarmaco()">Aggiungi farmaco</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL IMPORTA RM ===================== -->
+<div class="overlay" id="modal-import">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Importa da RicettaManager</span>
+      <button class="close-btn" onclick="closeModal('modal-import')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.85rem;color:var(--muted);">Seleziona il file di backup JSON esportato da RicettaManager. I pazienti non ancora presenti verranno aggiunti automaticamente.</p>
+      <div class="form-group">
+        <label>File backup RicettaManager (.json)</label>
+        <input type="file" id="rm-file" accept=".json">
+      </div>
+      <div id="rm-preview" style="display:none; font-family:'Inconsolata',monospace; font-size:0.78rem; color:var(--muted); background:var(--surface2); border-radius:8px; padding:12px; margin-top:4px;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-import')">Annulla</button>
+      <button class="btn btn-gold" onclick="eseguiImport()">Importa pazienti</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== AREA DI STAMPA ===================== -->
+<div id="print-area" class="print-only"></div>
+
+
+<script src="js/storage.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/pazienti.js"></script>
+<script src="js/inventario.js"></script>
+<script src="js/report.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,316 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0F1117; --surface: #181C27; --surface2: #1E2333;
+  --border: #2A3045; --border-hi: #3A4560;
+  --text: #E8EAF0; --muted: #7A8099; --dim: #4A5270;
+  --gold: #E8B84B; --gold-bg: rgba(232,184,75,0.08);
+  --red: #E05252; --red-bg: #2A1515;
+  --amber: #E8913A; --amber-bg: #2A1E0E;
+  --green: #4DB87A; --green-bg: #0E2018;
+  --blue: #5B9BD5; --blue-bg: rgba(91,155,213,0.1);
+  --violet: #9B7FD4; --violet-bg: rgba(155,127,212,0.1);
+  --r: 12px;
+}
+body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+
+/* HEADER */
+header { background:var(--surface); border-bottom:1px solid var(--border); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; gap:12px; }
+.logo { font-family:'Playfair Display',serif; font-size:1.4rem; color:var(--gold); white-space:nowrap; }
+.logo em { font-style:italic; color:var(--text); font-size:1rem; }
+.hdr-tabs { display:flex; align-items:center; gap:2px; flex:1; margin:0 20px; }
+.htab { padding:6px 16px; font-size:0.82rem; font-weight:700; color:var(--muted); cursor:pointer;
+        border-radius:8px; transition:all .15s; white-space:nowrap; }
+.htab:hover { color:var(--text); background:var(--surface2); }
+.htab.active { color:var(--gold); background:var(--gold-bg); }
+.hdr-right { display:flex; align-items:center; gap:10px; }
+.clock { font-family:'Inconsolata',monospace; font-size:0.72rem; color:var(--muted); text-align:right; line-height:1.7; }
+
+/* NAV TABS */
+.nav-tabs { background:var(--surface); border-bottom:1px solid var(--border); padding:0 24px; display:flex; gap:0; }
+.tab { padding:12px 20px; font-size:0.82rem; font-weight:700; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; white-space:nowrap; }
+.tab:hover { color:var(--text); }
+.tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+
+/* CONTAINER */
+.container { max-width:1200px; margin:0 auto; padding:22px 24px; flex:1; }
+
+/* TOOLBAR */
+.toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px; }
+.toolbar h2 { font-family:'Playfair Display',serif; font-size:1.15rem; }
+.toolbar p  { font-size:0.75rem; color:var(--muted); margin-top:2px; }
+.tbar-right { display:flex; gap:8px; flex-wrap:wrap; }
+
+/* BUTTONS */
+.btn { display:inline-flex; align-items:center; gap:5px; padding:8px 15px; border-radius:8px; border:none; cursor:pointer; font-family:'Nunito',sans-serif; font-size:0.83rem; font-weight:700; transition:all .15s; white-space:nowrap; }
+.btn-gold  { background:var(--gold); color:#0F1117; }
+.btn-gold:hover { filter:brightness(1.1); }
+.btn-ghost { background:var(--surface2); color:var(--text); border:1px solid var(--border-hi); }
+.btn-ghost:hover { background:var(--border); }
+.btn-red   { background:var(--red-bg); color:var(--red); border:1px solid var(--red); }
+.btn-red:hover { background:var(--red); color:#fff; }
+.btn-blue  { background:var(--blue-bg); color:var(--blue); border:1px solid var(--blue); }
+.btn-blue:hover { background:var(--blue); color:#fff; }
+.btn-sm { padding:5px 10px; font-size:0.75rem; }
+
+/* GRID PAZIENTI */
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; }
+
+/* PATIENT CARD */
+.pcard { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; transition:box-shadow .2s, border-color .2s; cursor:pointer; }
+.pcard:hover { border-color:var(--gold); box-shadow:0 8px 32px rgba(0,0,0,.4); }
+.pcard-head { padding:14px 16px 12px; display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border); }
+.pname { font-family:'Playfair Display',serif; font-size:1.05rem; }
+.pmeta { font-family:'Inconsolata',monospace; font-size:0.65rem; color:var(--dim); margin-top:3px; }
+.pcard-body { padding:12px 16px; }
+.pcard-stats { display:flex; gap:14px; }
+.pstat { text-align:center; }
+.pstat-n { font-family:'Inconsolata',monospace; font-size:1.1rem; font-weight:600; color:var(--gold); }
+.pstat-l { font-size:0.65rem; color:var(--muted); margin-top:2px; }
+.pcard-actions { padding:10px 16px; border-top:1px solid var(--border); display:flex; gap:6px; }
+
+/* BADGE GRUPPO */
+.badge { font-family:'Inconsolata',monospace; font-size:0.62rem; font-weight:600; padding:2px 8px; border-radius:20px; letter-spacing:.06em; text-transform:uppercase; }
+.badge-cra { background:var(--gold-bg); color:var(--gold); border:1px solid rgba(232,184,75,.3); }
+.badge-cd  { background:var(--blue-bg); color:var(--blue); border:1px solid rgba(91,155,213,.3); }
+.badge-dim { background:var(--red-bg); color:var(--red); border:1px solid rgba(224,82,82,.3); }
+
+/* BADGE FONTE FARMACO */
+.fonte-cra  { background:var(--gold-bg); color:var(--gold); border:1px solid rgba(232,184,75,.25); font-size:0.6rem; padding:1px 6px; border-radius:10px; font-family:'Inconsolata',monospace; }
+.fonte-pers { background:var(--blue-bg); color:var(--blue); border:1px solid rgba(91,155,213,.25); font-size:0.6rem; padding:1px 6px; border-radius:10px; font-family:'Inconsolata',monospace; }
+
+/* MODAL */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:200; display:none; align-items:flex-start; justify-content:center; padding:24px; overflow-y:auto; }
+.overlay.open { display:flex; }
+.modal { background:var(--surface); border:1px solid var(--border-hi); border-radius:var(--r); width:100%; max-width:680px; margin:auto; }
+.modal-head { padding:18px 22px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.modal-title { font-family:'Playfair Display',serif; font-size:1.1rem; }
+.modal-body { padding:22px; display:flex; flex-direction:column; gap:16px; }
+.modal-foot { padding:14px 22px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end; }
+.close-btn { background:none; border:none; color:var(--muted); font-size:1.4rem; cursor:pointer; line-height:1; padding:2px 6px; }
+.close-btn:hover { color:var(--text); }
+
+/* FORM */
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+.form-group { display:flex; flex-direction:column; gap:5px; }
+.form-group.full { grid-column:1/-1; }
+label { font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+input, select, textarea {
+  background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+  color:var(--text); font-family:'Nunito',sans-serif; font-size:0.87rem;
+  padding:9px 12px; transition:border-color .15s; width:100%;
+}
+input:focus, select:focus, textarea:focus { outline:none; border-color:var(--gold); }
+textarea { resize:vertical; min-height:70px; }
+select option { background:var(--surface2); }
+
+/* SCHEDA TERAPEUTICA */
+.scheda-wrap { max-width:900px; }
+.scheda-header { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:16px 20px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+.scheda-pname { font-family:'Playfair Display',serif; font-size:1.3rem; }
+.scheda-meta { font-family:'Inconsolata',monospace; font-size:0.7rem; color:var(--muted); margin-top:4px; }
+.foglio-num { font-family:'Inconsolata',monospace; font-size:0.75rem; color:var(--gold); background:var(--gold-bg); border:1px solid rgba(232,184,75,.3); padding:4px 12px; border-radius:20px; }
+
+/* SEZIONI TERAPIA */
+.sezione { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); margin-bottom:14px; overflow:hidden; }
+.sezione-head { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.sezione-title { font-family:'Inconsolata',monospace; font-size:0.72rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; }
+.sezione-title.orale    { color:var(--gold); }
+.sezione-title.topica   { color:var(--amber); }
+.sezione-title.bisogno  { color:var(--violet); }
+.sezione-title.longact  { color:var(--green); }
+
+/* TABELLA FARMACI */
+.drug-table { width:100%; border-collapse:collapse; font-size:0.8rem; }
+.drug-table th { font-family:'Inconsolata',monospace; font-size:0.62rem; color:var(--muted); font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:8px 10px; border-bottom:1px solid var(--border); text-align:left; white-space:nowrap; }
+.drug-table td { padding:9px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.drug-table tr:last-child td { border-bottom:none; }
+.drug-table tr:hover td { background:var(--surface2); }
+.orario-dot { width:28px; height:28px; border-radius:50%; border:1px solid var(--border-hi); display:inline-flex; align-items:center; justify-content:center; font-family:'Inconsolata',monospace; font-size:0.65rem; color:var(--muted); }
+.orario-dot.attivo { background:var(--gold-bg); border-color:var(--gold); color:var(--gold); }
+.drug-nome { font-weight:700; }
+.drug-dose { font-family:'Inconsolata',monospace; font-size:0.75rem; color:var(--gold); }
+.drug-date { font-family:'Inconsolata',monospace; font-size:0.68rem; color:var(--muted); }
+.drug-sosp { font-family:'Inconsolata',monospace; font-size:0.68rem; color:var(--red); }
+.empty-row { text-align:center; padding:20px; color:var(--dim); font-size:0.8rem; font-style:italic; }
+
+/* LONG ACTING TABLE */
+.la-table { width:100%; border-collapse:collapse; font-size:0.8rem; }
+.la-table th { font-family:'Inconsolata',monospace; font-size:0.62rem; color:var(--muted); font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:8px 10px; border-bottom:1px solid var(--border); text-align:left; }
+.la-table td { padding:9px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.la-table tr:last-child td { border-bottom:none; }
+.prossima-ok   { color:var(--green); font-family:'Inconsolata',monospace; font-size:0.75rem; }
+.prossima-warn { color:var(--amber); font-family:'Inconsolata',monospace; font-size:0.75rem; }
+.prossima-late { color:var(--red); font-family:'Inconsolata',monospace; font-size:0.75rem; }
+
+/* AGGIORNAMENTO FOOTER */
+.scheda-footer { text-align:right; font-family:'Inconsolata',monospace; font-size:0.68rem; color:var(--dim); margin-top:8px; padding:10px 16px; }
+
+/* EMPTY STATE */
+.empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
+.empty-state .icon { font-size:3rem; margin-bottom:12px; opacity:.4; }
+.empty-state p { font-size:0.9rem; }
+
+/* MODAL GRANDE */
+.modal-lg { max-width:860px; }
+
+/* ORARI CHECKBOX */
+.orari-group { display:flex; gap:10px; flex-wrap:wrap; margin-top:4px; }
+.orario-check { display:flex; align-items:center; gap:5px; cursor:pointer; }
+.orario-check input { width:auto; }
+.orario-check span { font-family:'Inconsolata',monospace; font-size:0.82rem; }
+.orario-dose-row { display:flex; align-items:center; padding:4px 0; }
+
+/* CONVALIDA TERAPIA STAMPA */
+@media print {
+  .convalida-page { page-break-after: always; }
+  .convalida-page:last-child { page-break-after: avoid; }
+}
+
+/* PRINT STYLES */
+@media print {
+  body { background:#fff; color:#000; font-family:'Times New Roman',serif; }
+  .no-print { display:none !important; }
+  .print-only { display:block !important; }
+  .print-page { padding:15mm 15mm 10mm; }
+  .print-header { text-align:center; margin-bottom:8mm; border-bottom:2px solid #000; padding-bottom:4mm; }
+  .print-header h1 { font-size:14pt; font-weight:bold; }
+  .print-header h2 { font-size:11pt; margin-top:2mm; }
+  .print-header .foglio-info { font-size:9pt; margin-top:3mm; display:flex; justify-content:space-between; }
+  .print-section { margin-top:6mm; }
+  .print-section-title { font-size:9pt; font-weight:bold; text-transform:uppercase; border-bottom:1px solid #000; padding-bottom:1mm; margin-bottom:2mm; }
+  .print-table { width:100%; border-collapse:collapse; font-size:8pt; }
+  .print-table th { border:1px solid #000; padding:2mm 3mm; text-align:left; background:#f0f0f0; font-size:7pt; }
+  .print-table td { border:1px solid #000; padding:2mm 3mm; min-height:7mm; }
+  .print-table .firma-cell { width:28mm; }
+  .print-table .data-cell { width:22mm; }
+  .print-table .orario-cell { width:12mm; text-align:center; }
+  .print-footer { margin-top:8mm; border-top:1px solid #aaa; padding-top:3mm; font-size:7pt; color:#555; display:flex; justify-content:space-between; }
+  .print-ente { font-size:7pt; color:#555; text-align:center; margin-top:4mm; }
+  @page { size:A4 landscape; margin:10mm; }
+}
+.print-only { display:none; }
+
+/* ===== REPORT ===== */
+.report-table { width:100%; border-collapse:collapse; font-size:0.82rem; margin-bottom:20px; }
+.report-table th { font-family:'Inconsolata',monospace; font-size:0.62rem; color:var(--muted); font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:8px 12px; border-bottom:2px solid var(--border); text-align:left; white-space:nowrap; }
+.report-table td { padding:9px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.report-table tr:last-child td { border-bottom:none; }
+.report-table tr:hover td { background:var(--surface2); }
+.report-table .num { font-family:'Inconsolata',monospace; font-weight:600; }
+.stato-pill { font-family:'Inconsolata',monospace; font-size:0.6rem; font-weight:600; padding:2px 8px; border-radius:20px; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; }
+.stato-ok     { background:var(--green-bg); color:var(--green); border:1px solid rgba(77,184,122,.3); }
+.stato-warn   { background:var(--amber-bg); color:var(--amber); border:1px solid rgba(232,145,58,.3); }
+.stato-urgent { background:var(--red-bg);   color:var(--red);   border:1px solid rgba(224,82,82,.3); }
+.storico-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); margin-bottom:12px; overflow:hidden; }
+.storico-card-head { padding:12px 16px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
+.storico-card-head:hover { background:var(--surface2); }
+.storico-card-body { display:none; padding:16px; border-top:1px solid var(--border); }
+.storico-card-body.open { display:block; }
+.report-section-title { font-family:'Inconsolata',monospace; font-size:0.7rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:16px 0 8px; }
+
+/* SEARCH */
+.search-bar { position:relative; }
+.search-bar input { padding-left:32px; width:220px; }
+.search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:0.85rem; pointer-events:none; }
+
+/* TOAST */
+.toast { position:fixed; bottom:24px; right:24px; background:var(--surface); border:1px solid var(--green); border-radius:10px; padding:12px 18px; font-size:0.83rem; color:var(--green); z-index:999; display:none; animation:slideUp .2s; }
+.toast.show { display:block; }
+@keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+/* LOGIN */
+.login-screen { position:fixed; inset:0; z-index:1000; background:var(--bg); display:flex; align-items:center; justify-content:center; padding:24px; }
+.login-box { width:100%; max-width:380px; background:var(--surface); border:1px solid var(--border-hi); border-radius:18px; padding:34px 30px; box-shadow:0 24px 64px rgba(0,0,0,.55); text-align:center; }
+.login-box h1 { font-family:'Playfair Display',serif; color:var(--gold); font-size:1.8rem; margin-bottom:4px; }
+.login-box p { color:var(--muted); font-size:.82rem; margin-bottom:22px; }
+.login-box input { text-align:center; letter-spacing:.12em; font-size:1rem; }
+.login-error { min-height:20px; color:var(--red); font-size:.8rem; margin-top:10px; }
+
+/* PILL SEZIONE */
+.sezione-pill { font-size:0.62rem; padding:2px 8px; border-radius:10px; font-family:'Inconsolata',monospace; font-weight:600; text-transform:uppercase; }
+.pill-orale   { background:var(--gold-bg); color:var(--gold); }
+.pill-topica  { background:var(--amber-bg); color:var(--amber); }
+.pill-bisogno { background:var(--violet-bg); color:var(--violet); }
+.pill-longact { background:var(--green-bg); color:var(--green); }
+
+/* BACK BTN */
+.back-btn { display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:0.8rem; cursor:pointer; margin-bottom:16px; transition:color .15s; background:none; border:none; font-family:'Nunito',sans-serif; }
+.back-btn:hover { color:var(--text); }
+
+/* INVENTARIO */
+.inv-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:16px; }
+.inv-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; transition:border-color .2s, box-shadow .2s; }
+.inv-card.stato-ok     { border-left:4px solid var(--green); }
+.inv-card.stato-warn   { border-left:4px solid var(--amber); }
+.inv-card.stato-urgent { border-left:4px solid var(--red); }
+.inv-card-head { padding:14px 16px 10px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start; }
+.inv-nome { font-weight:700; font-size:0.95rem; }
+.inv-forma { font-family:'Inconsolata',monospace; font-size:0.65rem; color:var(--muted); margin-top:2px; }
+.inv-card-body { padding:12px 16px; display:flex; flex-direction:column; gap:10px; }
+.inv-row { display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; }
+.inv-label { color:var(--muted); }
+.inv-val { font-family:'Inconsolata',monospace; font-weight:600; }
+.inv-val.green  { color:var(--green); }
+.inv-val.amber  { color:var(--amber); }
+.inv-val.red    { color:var(--red); }
+/* DOSE CIRCLE — sostituisce orario-dot per terapie orali */
+.dose-circle {
+  width:36px; height:36px; border-radius:50%;
+  border:1.5px solid var(--border-hi);
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:'Inconsolata',monospace; font-size:0.8rem; color:var(--muted);
+  cursor:default; user-select:none; position:relative;
+}
+.dose-circle.attivo {
+  background:var(--gold-bg); border-color:var(--gold); color:var(--gold);
+  cursor:pointer; transition:box-shadow .15s, border-color .15s;
+}
+.dose-circle.attivo:hover { box-shadow:0 0 0 3px rgba(232,184,75,.25); border-color:var(--gold); }
+.dose-circle-val { line-height:1; font-weight:600; }
+
+/* POPUP DOSE INLINE */
+.dose-popup {
+  position:absolute; top:calc(100% + 6px); left:50%; transform:translateX(-50%);
+  background:var(--surface2); border:1px solid var(--gold);
+  border-radius:8px; padding:6px 8px; z-index:300; white-space:nowrap;
+  display:flex; align-items:center; gap:6px; box-shadow:0 4px 16px rgba(0,0,0,.4);
+}
+.dose-popup input {
+  width:64px; text-align:center; font-family:'Inconsolata',monospace;
+  font-size:0.88rem; padding:4px 6px; background:var(--surface); color:var(--gold);
+  border:1px solid var(--gold); border-radius:6px;
+}
+.dose-popup .dose-pop-ok {
+  background:var(--gold); color:#0F1117; border:none; border-radius:6px;
+  padding:4px 8px; cursor:pointer; font-weight:700; font-size:0.75rem;
+}
+
+/* ALERT BANNER INVENTARIO */
+.inv-alert { margin-bottom:18px; border-radius:var(--r); padding:13px 17px; }
+.inv-alert.urgent { background:var(--red-bg); border:1px solid var(--red); }
+.inv-alert.warn   { background:var(--amber-bg); border:1px solid var(--amber); }
+.inv-alert-ttl { font-family:'Inconsolata',monospace; font-size:0.68rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; margin-bottom:7px; }
+.inv-alert.urgent .inv-alert-ttl { color:var(--red); }
+.inv-alert.warn   .inv-alert-ttl { color:var(--amber); }
+.inv-chips { display:flex; flex-wrap:wrap; gap:5px; }
+.chip-urgent { font-size:0.78rem; padding:3px 10px; border-radius:20px; background:rgba(224,82,82,.15); border:1px solid rgba(224,82,82,.3); color:var(--text); }
+.chip-warn   { font-size:0.78rem; padding:3px 10px; border-radius:20px; background:rgba(232,145,58,.15); border:1px solid rgba(232,145,58,.3); color:var(--text); }
+
+/* MOVIMENTO LOG */
+.mov-list { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+.mov-row { display:flex; justify-content:space-between; align-items:center; background:var(--surface2); border-radius:8px; padding:8px 12px; font-size:0.78rem; }
+.mov-tipo { font-family:'Inconsolata',monospace; font-size:0.65rem; font-weight:600; text-transform:uppercase; }
+.mov-tipo.carico    { color:var(--green); }
+.mov-tipo.rettifica { color:var(--amber); }
+.mov-q { font-family:'Inconsolata',monospace; font-weight:700; }
+.mov-q.pos { color:var(--green); }
+.mov-q.neg { color:var(--red); }
+.mov-data { color:var(--dim); font-size:0.7rem; font-family:'Inconsolata',monospace; }
+
+/* SOMMARIO INVENTARIO */
+.inv-summary { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+.inv-stat { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 20px; flex:1; min-width:140px; }
+.inv-stat-n { font-family:'Inconsolata',monospace; font-size:1.4rem; font-weight:600; }
+.inv-stat-l { font-size:0.7rem; color:var(--muted); margin-top:3px; }

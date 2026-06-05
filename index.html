@@ -1831,14 +1831,15 @@ function stampaFoglioB(pid) {
 
   // ── Calcolo adattivo righe per riempire esattamente una pagina A4 ──
   // A4 297mm, @page margin 5mm*2=10mm → pagina utile 287mm
-  // .page padding top 6mm + bottom 4mm = 10mm → corpo = 267mm
-  // Fissi: hdr(14) + hdr-mb(3) + thead(8) + 3×sez-row(16.5) + thead-LA(8) + footer(8) = 57.5mm
-  // Disponibile per righe: 267 - 57.5 = 209.5mm; altezza riga fissa 6.2mm
+  // .page padding top 6mm + bottom 5mm = 11mm → corpo = 276mm
+  // Fissi: hdr(14) + hdr-mb(3) + thead(8) + 3×sez-row(16.5) + thead-LA(8) + footer(11) = 60.5mm
+  // Disponibile per righe: 276 - 60.5 = 215.5mm; altezza riga fissa 6.2mm
+  // bisogno minimo = farmaci bisogno + 3 extra vuote
   const ROW_H = 6.2;
-  const disponibile = 209.5;
+  const disponibile = 204.5; // footer ora dentro tabella (~11mm)
 
   const nTopica  = Math.max(attive.filter(t=>t.sezione==='topica').length,  3);
-  const nBisogno = Math.max(attive.filter(t=>t.sezione==='bisogno').length, 4);
+  const nBisogno = Math.max(attive.filter(t=>t.sezione==='bisogno').length + 3, 7);
   const nLA      = Math.max(attive.filter(t=>t.sezione==='longacting').length, 2);
   const mmRigheFixed = (nTopica + nBisogno + nLA) * ROW_H;
   const mmPerOrale = disponibile - mmRigheFixed;
@@ -1850,7 +1851,7 @@ function stampaFoglioB(pid) {
   <style>
     * { box-sizing:border-box; margin:0; padding:0; }
     body { font-family:Arial,Helvetica,sans-serif; font-size:7.5pt; background:#fff; color:#000; }
-    .page { padding:6mm 8mm 4mm; }
+    .page { padding:6mm 8mm 5mm; }
 
     /* INTESTAZIONE — 3 colonne come il prototipo */
     .hdr-table { width:100%; border-collapse:collapse; margin-bottom:3mm; }
@@ -1894,10 +1895,11 @@ function stampaFoglioB(pid) {
       background:#c0c0c0; font-weight:bold; font-size:7.5pt;
       text-transform:uppercase; letter-spacing:.04em;
       padding:1.2mm 2mm; border:1px solid #333; height:5.5mm;
+      text-align:center;
     }
 
     /* FOOTER */
-    .footer-aggiornata { font-size:7pt; margin-top:2mm; display:flex; justify-content:space-between; }
+    .footer-aggiornata { font-size:7pt; margin-top:1.5mm; display:flex; justify-content:space-between; }
     .footer-ente { font-size:6pt; color:#444; text-align:center; margin-top:1mm; border-top:1px solid #bbb; padding-top:1mm; }
 
     @page { size:A4 portrait; margin:5mm; }
@@ -1954,16 +1956,20 @@ function stampaFoglioB(pid) {
         </tr>
         ${buildRigheLongActing()}
       </tbody>
+        <tr>
+          <td colspan="9" style="border:none; padding-top:1.5mm; padding-bottom:0;">
+            <div style="display:flex; justify-content:space-between; font-size:7pt;">
+              <span>Aggiornata al: <strong>${oggi}</strong></span>
+              <span>Foglio n.&nbsp;${nFoglio}</span>
+            </div>
+            <div style="font-size:6pt; color:#444; text-align:center; margin-top:1mm; border-top:1px solid #bbb; padding-top:1mm;">
+              FONDAZIONE EMILIA BOSIS &nbsp;&nbsp; www.fondazionebosis.it &nbsp;&nbsp; verdello@fondazionebosis.it<br>
+              COMUNITÀ "IL GERMOGLIO", VIA SOLFERINO 51 - 24049 VERDELLO (BG) &nbsp; TEL. 035/4813814
+            </div>
+          </td>
+        </tr>
+      </tbody>
     </table>
-
-    <div class="footer-aggiornata">
-      <span>Aggiornata al: <strong>${oggi}</strong></span>
-      <span>Foglio n.&nbsp;${nFoglio}</span>
-    </div>
-    <div class="footer-ente">
-      FONDAZIONE EMILIA BOSIS &nbsp;&nbsp; www.fondazionebosis.it &nbsp;&nbsp; verdello@fondazionebosis.it<br>
-      COMUNITÀ "IL GERMOGLIO", VIA SOLFERINO 51 - 24049 VERDELLO (BG) &nbsp; TEL. 035/4813814
-    </div>
   </div>
   <script>window.onload=()=>{window.print();}<\/script>
   </body></html>`;

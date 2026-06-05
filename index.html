@@ -167,6 +167,7 @@ select option { background:var(--surface2); }
 .orario-check { display:flex; align-items:center; gap:5px; cursor:pointer; }
 .orario-check input { width:auto; }
 .orario-check span { font-family:'Inconsolata',monospace; font-size:0.82rem; }
+.orario-dose-row { display:flex; align-items:center; padding:4px 0; }
 
 /* CONVALIDA TERAPIA STAMPA */
 @media print {
@@ -244,12 +245,37 @@ select option { background:var(--surface2); }
 .inv-val.green  { color:var(--green); }
 .inv-val.amber  { color:var(--amber); }
 .inv-val.red    { color:var(--red); }
-.progress-bar { width:100%; height:6px; background:var(--surface2); border-radius:3px; overflow:hidden; }
-.progress-fill { height:100%; border-radius:3px; transition:width .4s; }
-.fill-green  { background:var(--green); }
-.fill-amber  { background:var(--amber); }
-.fill-red    { background:var(--red); }
-.inv-card-foot { padding:10px 16px; border-top:1px solid var(--border); display:flex; gap:6px; flex-wrap:wrap; }
+/* DOSE CIRCLE — sostituisce orario-dot per terapie orali */
+.dose-circle {
+  width:36px; height:36px; border-radius:50%;
+  border:1.5px solid var(--border-hi);
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:'Inconsolata',monospace; font-size:0.8rem; color:var(--muted);
+  cursor:default; user-select:none; position:relative;
+}
+.dose-circle.attivo {
+  background:var(--gold-bg); border-color:var(--gold); color:var(--gold);
+  cursor:pointer; transition:box-shadow .15s, border-color .15s;
+}
+.dose-circle.attivo:hover { box-shadow:0 0 0 3px rgba(232,184,75,.25); border-color:var(--gold); }
+.dose-circle-val { line-height:1; font-weight:600; }
+
+/* POPUP DOSE INLINE */
+.dose-popup {
+  position:absolute; top:calc(100% + 6px); left:50%; transform:translateX(-50%);
+  background:var(--surface2); border:1px solid var(--gold);
+  border-radius:8px; padding:6px 8px; z-index:300; white-space:nowrap;
+  display:flex; align-items:center; gap:6px; box-shadow:0 4px 16px rgba(0,0,0,.4);
+}
+.dose-popup input {
+  width:64px; text-align:center; font-family:'Inconsolata',monospace;
+  font-size:0.88rem; padding:4px 6px; background:var(--surface); color:var(--gold);
+  border:1px solid var(--gold); border-radius:6px;
+}
+.dose-popup .dose-pop-ok {
+  background:var(--gold); color:#0F1117; border:none; border-radius:6px;
+  padding:4px 8px; cursor:pointer; font-weight:700; font-size:0.75rem;
+}
 
 /* ALERT BANNER INVENTARIO */
 .inv-alert { margin-bottom:18px; border-radius:var(--r); padding:13px 17px; }
@@ -614,11 +640,8 @@ select option { background:var(--surface2); }
           </select>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Posologia descrittiva *</label>
-          <input type="text" id="farm-dose" placeholder="es. 1 cp, 2 mg, 5 gocce…">
-        </div>
+
+      <div class="form-row" id="grp-via-row">
         <div class="form-group" id="grp-via">
           <label>Via di somministrazione</label>
           <select id="farm-via">
@@ -633,13 +656,6 @@ select option { background:var(--surface2); }
             <option>Inalatoria</option>
           </select>
         </div>
-      </div>
-
-      <div class="form-row-3">
-        <div class="form-group">
-          <label>Dose numerica</label>
-          <input type="number" id="farm-dose-num" min="0" step="0.01" placeholder="es. 1">
-        </div>
         <div class="form-group">
           <label>Unità dose</label>
           <select id="farm-dose-unit">
@@ -651,29 +667,42 @@ select option { background:var(--surface2); }
             <option value="unità">unità</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Inventario</label>
-          <select id="farm-inv-enabled">
-            <option value="true">Scala scorta CRA</option>
-            <option value="false">Non scalare</option>
-          </select>
-        </div>
       </div>
 
-      <!-- Orari (solo per orale e topica) -->
+      <!-- Orari + dosi per orario (solo per orale e topica) -->
       <div class="form-group" id="grp-orari">
-        <label>Orari di somministrazione</label>
-        <div class="orari-group">
-          <label class="orario-check"><input type="checkbox" value="8" id="or8"> <span>ore 8</span></label>
-          <label class="orario-check"><input type="checkbox" value="13" id="or13"> <span>ore 13</span></label>
-          <label class="orario-check"><input type="checkbox" value="15" id="or15"> <span>ore 15</span></label>
-          <label class="orario-check"><input type="checkbox" value="20" id="or20"> <span>ore 20</span></label>
+        <label>Orari e dosi di somministrazione</label>
+        <div id="orari-dosi-grid" style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">
+          <div class="orario-dose-row" id="odr-8">
+            <label class="orario-check"><input type="checkbox" value="8" id="or8" onchange="toggleDoseOrario('8')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 8</span></label>
+            <input type="number" id="dose-or8" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 8">
+            <span id="dose-unit-label-8" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
+          </div>
+          <div class="orario-dose-row" id="odr-13">
+            <label class="orario-check"><input type="checkbox" value="13" id="or13" onchange="toggleDoseOrario('13')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 13</span></label>
+            <input type="number" id="dose-or13" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 13">
+            <span id="dose-unit-label-13" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
+          </div>
+          <div class="orario-dose-row" id="odr-15">
+            <label class="orario-check"><input type="checkbox" value="15" id="or15" onchange="toggleDoseOrario('15')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 15</span></label>
+            <input type="number" id="dose-or15" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 15">
+            <span id="dose-unit-label-15" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
+          </div>
+          <div class="orario-dose-row" id="odr-20">
+            <label class="orario-check"><input type="checkbox" value="20" id="or20" onchange="toggleDoseOrario('20')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 20</span></label>
+            <input type="number" id="dose-or20" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 20">
+            <span id="dose-unit-label-20" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
+          </div>
         </div>
       </div>
 
       <!-- Long Acting date -->
       <div id="grp-longacting" style="display:none;">
         <div class="form-row-3">
+          <div class="form-group">
+            <label>Dose (es. 1 fl, 2 mg…)</label>
+            <input type="text" id="farm-dose-la" placeholder="es. 1 fl">
+          </div>
           <div class="form-group">
             <label>Data ultima somministrazione</label>
             <input type="date" id="farm-la-eseguita">
@@ -682,17 +711,31 @@ select option { background:var(--surface2); }
             <label>Data prossima somministrazione</label>
             <input type="date" id="farm-la-prossima">
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label>Ogni (giorni)</label>
             <input type="number" id="farm-la-giorni" min="1" max="365" placeholder="es. 28">
           </div>
+          <div class="form-group">
+            <label>Dose numerica (per inventario)</label>
+            <input type="number" id="farm-dose-num-la" min="0" step="0.01" placeholder="es. 1">
+          </div>
         </div>
       </div>
 
-      <!-- Al bisogno indicazione -->
-      <div class="form-group" id="grp-indicazione" style="display:none;">
-        <label>Indicazione / condizione d'uso</label>
-        <input type="text" id="farm-indicazione" placeholder="es. in caso di agitazione…">
+      <!-- Al bisogno: dose descrittiva + indicazione -->
+      <div id="grp-bisogno" style="display:none;">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Dose (es. 1 cp, 5 gtt…)</label>
+            <input type="text" id="farm-dose-bisogno" placeholder="es. 1 cp al bisogno">
+          </div>
+          <div class="form-group">
+            <label>Indicazione / condizione d'uso</label>
+            <input type="text" id="farm-indicazione" placeholder="es. in caso di agitazione…">
+          </div>
+        </div>
       </div>
 
       <div class="form-row">
@@ -706,26 +749,17 @@ select option { background:var(--surface2); }
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label>Fonte farmaco</label>
-          <select id="farm-fonte" onchange="aggiornaCRAselect()">
-            <option value="CRA">Farmaci CRA (magazzino istituzione)</option>
-            <option value="personale">Farmaco personale (RicettaManager)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Note</label>
-          <input type="text" id="farm-note" placeholder="Note aggiuntive…">
-        </div>
+      <div class="form-group">
+        <label>Note</label>
+        <input type="text" id="farm-note" placeholder="Note aggiuntive…">
       </div>
-      <div class="form-group" id="grp-cra-link">
-        <label>Collega a farmaco in magazzino CRA</label>
-        <select id="farm-cra-link">
-          <option value="">— seleziona farmaco dal magazzino —</option>
-        </select>
-        <small style="color:var(--muted);font-size:0.7rem;margin-top:3px;display:block">Il consumo di questo farmaco scalerà dall'inventario CRA</small>
-      </div>
+
+      <!-- campi legacy nascosti per compatibilità dati -->
+      <input type="hidden" id="farm-dose" value="">
+      <input type="hidden" id="farm-dose-num" value="">
+      <input type="hidden" id="farm-fonte" value="CRA">
+      <input type="hidden" id="farm-inv-enabled" value="true">
+      <input type="hidden" id="farm-cra-link" value="">
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modal-farmaco')">Annulla</button>
@@ -986,18 +1020,27 @@ function renderScheda(pid) {
   const buildRow = (t) => {
     const orari = ORARI.map(o => {
       const on = t.orari && t.orari.includes(o);
-      return `<td style="text-align:center"><span class="orario-dot ${on?'attivo':''}">${on?o:'—'}</span></td>`;
+      // dose per questo orario: usa mappa dosi se disponibile, fallback a doseNum legacy
+      const doseVal = on
+        ? (t.dosi && t.dosi[o] != null ? t.dosi[o] : (t.doseNum != null ? t.doseNum : ''))
+        : '';
+      const unit = t.doseUnit || '';
+      if (on) {
+        return `<td style="text-align:center">
+          <span class="dose-circle attivo" onclick="editDoseOrario('${t.id}','${pid}','${o}',this)" title="Clicca per modificare dose ore ${o}">
+            <span class="dose-circle-val">${doseVal}</span>
+          </span>
+        </td>`;
+      }
+      return `<td style="text-align:center"><span class="orario-dot">—</span></td>`;
     }).join('');
-    const fonteBadge = t.fonte==='personale'
-      ? '<span class="fonte-pers">PERS</span>'
-      : '<span class="fonte-cra">CRA</span>';
     const sospCell = t.dataFine
       ? `<td class="drug-sosp">${t.dataFine}<br><small style="color:var(--dim)">firma: ___</small></td>`
       : `<td class="drug-date">—</td>`;
     return `
       <tr>
         <td class="drug-date">${t.dataInizio||'—'}<br><small style="color:var(--dim)">firma: ___</small></td>
-        <td><span class="drug-nome">${t.farmaco}</span> ${fonteBadge}<br><span class="drug-dose">${t.dose}</span>${t.via?`<br><small style="color:var(--muted)">${t.via}</small>`:''}</td>
+        <td><span class="drug-nome">${t.farmaco}</span>${t.via?`<br><small style="color:var(--muted)">${t.via}</small>`:''}</td>
         ${orari}
         ${sospCell}
         <td style="text-align:right">
@@ -1007,6 +1050,7 @@ function renderScheda(pid) {
             </div>
           </td>
       </tr>`;
+  };
   };
 
   const buildTableOrale = (sezione, label, colorClass) => {
@@ -1054,15 +1098,12 @@ function renderScheda(pid) {
         </tr></thead>
         <tbody>
           ${rows.length ? rows.map(t => {
-            const fonteBadge = t.fonte==='personale'
-              ? '<span class="fonte-pers">PERS</span>'
-              : '<span class="fonte-cra">CRA</span>';
             const sospCell = t.dataFine
               ? `<td class="drug-sosp">${t.dataFine}<br><small style="color:var(--dim)">firma: ___</small></td>`
               : `<td class="drug-date">—</td>`;
             return `<tr>
               <td class="drug-date">${t.dataInizio||'—'}<br><small style="color:var(--dim)">firma: ___</small></td>
-              <td><span class="drug-nome">${t.farmaco}</span> ${fonteBadge}<br><span class="drug-dose">${t.dose}</span>${t.via?`<br><small style="color:var(--muted)">${t.via}</small>`:''}</td>
+              <td><span class="drug-nome">${t.farmaco}</span>${t.via?`<br><small style="color:var(--muted)">${t.via}</small>`:''}<br><span class="drug-dose">${t.dose||''}</span></td>
               <td style="font-size:0.78rem;color:var(--muted)">${t.indicazione||'—'}</td>
               ${sospCell}
               <td style="text-align:right">
@@ -1100,9 +1141,6 @@ function renderScheda(pid) {
         </tr></thead>
         <tbody>
           ${rows.length ? rows.map(t => {
-            const fonteBadge = t.fonte==='personale'
-              ? '<span class="fonte-pers">PERS</span>'
-              : '<span class="fonte-cra">CRA</span>';
             let prossimaClass = 'prossima-ok';
             if (t.laProssima) {
               const dp = new Date(t.laProssima); dp.setHours(0,0,0,0);
@@ -1114,7 +1152,7 @@ function renderScheda(pid) {
               ? `<td class="drug-sosp">${t.dataFine}</td>`
               : `<td class="drug-date">—</td>`;
             return `<tr>
-              <td><span class="drug-nome">${t.farmaco}</span> ${fonteBadge}<br><span class="drug-dose">${t.dose}</span></td>
+              <td><span class="drug-nome">${t.farmaco}</span><br><span class="drug-dose">${t.dose||''}</span></td>
               <td style="text-align:center;font-family:Inconsolata,monospace;font-size:0.8rem;color:var(--gold)">${t.laGiorni ? t.laGiorni+' gg' : '—'}</td>
               <td class="drug-date">${t.laEseguita||'—'}</td>
               <td style="width:80px;color:var(--dim);font-size:0.75rem">___________</td>
@@ -1426,19 +1464,16 @@ function openModalPaziente(pid) {
     const pz = load(SK.pazienti).find(p=>p.id===pid);
     if (pz) {
       document.getElementById('pz-cognome').value   = pz.cognome||'';
-      document.getElementById('pz-nome').value     = pz.nome||'';
-
-      document.getElementById('pz-attivo').value          = String(pz.attivo!==false&&pz.attivo!=='false');
-      document.getElementById('pz-terapia-sospesa').value  = String(pz.terapiaSospesa===true||pz.terapiaSospesa==='true');
-      document.getElementById('pz-allergie').value = pz.allergie||'';
-      document.getElementById('pz-note').value     = pz.note||'';
+      document.getElementById('pz-nome').value      = pz.nome||'';
+      document.getElementById('pz-attivo').value    = String(pz.attivo!==false&&pz.attivo!=='false');
+      document.getElementById('pz-terapia-sospesa').value = String(pz.terapiaSospesa===true||pz.terapiaSospesa==='true');
+      document.getElementById('pz-allergie').value  = pz.allergie||'';
+      document.getElementById('pz-note').value      = pz.note||'';
     }
   } else {
     ['pz-cognome','pz-nome','pz-allergie','pz-note'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('pz-attivo').value = 'true';
-  document.getElementById('pz-terapia-sospesa').value = 'false';
-    document.getElementById('pz-gruppo').value='CRA';
-    document.getElementById('pz-attivo').value='true';
+    document.getElementById('pz-attivo').value = 'true';
+    document.getElementById('pz-terapia-sospesa').value = 'false';
   }
   openModal('modal-paziente');
 }
@@ -1455,6 +1490,7 @@ function salvaPaziente() {
       cognome, nome,
       gruppo:   'CRA',
       attivo:   document.getElementById('pz-attivo').value === 'true',
+      terapiaSospesa: document.getElementById('pz-terapia-sospesa').value === 'true',
       allergie: document.getElementById('pz-allergie').value.trim(),
       note:     document.getElementById('pz-note').value.trim(),
     });
@@ -1501,28 +1537,55 @@ function openModalFarmaco(pid, sezione) {
   farmacoEditPzId = pid;
   farmacoEditId = null;
   document.getElementById('modal-farm-title').textContent = 'Aggiungi farmaco';
-  ['farm-nome','farm-dose','farm-note','farm-indicazione'].forEach(id=>document.getElementById(id).value='');
-  ['farm-data-inizio','farm-data-fine','farm-la-eseguita','farm-la-prossima','farm-la-giorni'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('farm-dose-num').value = '';
+  ['farm-nome','farm-note','farm-indicazione','farm-dose-la'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  ['farm-data-inizio','farm-data-fine','farm-la-eseguita','farm-la-prossima','farm-la-giorni','farm-dose-bisogno','farm-dose-num-la'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
   document.getElementById('farm-dose-unit').value = 'cp';
-  document.getElementById('farm-inv-enabled').value = 'true';
-  document.getElementById('farm-via').value='';
-  document.getElementById('farm-fonte').value='CRA';
-  document.getElementById('farm-sezione').value = sezione||'orale';
-  ['or8','or13','or15','or20'].forEach(id=>document.getElementById(id).checked=false);
-  // default data inizio = oggi
+  document.getElementById('farm-via').value = '';
+  document.getElementById('farm-sezione').value = sezione || 'orale';
+  ['8','13','15','20'].forEach(o => {
+    const cb = document.getElementById('or' + o);
+    const inp = document.getElementById('dose-or' + o);
+    const lbl = document.getElementById('dose-unit-label-' + o);
+    if (cb) cb.checked = false;
+    if (inp) { inp.value = ''; inp.style.display = 'none'; }
+    if (lbl) lbl.style.display = 'none';
+  });
   document.getElementById('farm-data-inizio').value = new Date().toISOString().slice(0,10);
   aggiornaCampiSezione();
-  aggiornaCRAselect();
   openModal('modal-farmaco');
 }
 
 function aggiornaCampiSezione() {
   const s = document.getElementById('farm-sezione').value;
-  document.getElementById('grp-orari').style.display      = (s==='orale'||s==='topica') ? '' : 'none';
-  document.getElementById('grp-longacting').style.display = s==='longacting' ? '' : 'none';
-  document.getElementById('grp-indicazione').style.display= s==='bisogno' ? '' : 'none';
-  document.getElementById('grp-via').style.display        = s!=='orale' ? '' : 'none';
+  document.getElementById('grp-orari').style.display        = (s==='orale'||s==='topica') ? '' : 'none';
+  document.getElementById('grp-longacting').style.display   = s==='longacting' ? '' : 'none';
+  document.getElementById('grp-bisogno').style.display      = s==='bisogno' ? '' : 'none';
+  const viaRow = document.getElementById('grp-via-row');
+  if (viaRow) viaRow.style.display = (s==='orale'||s==='bisogno'||s==='longacting') ? 'none' : '';
+  // sync unit labels
+  aggiornaLabelUnitaDose();
+}
+
+function aggiornaLabelUnitaDose() {
+  const unit = document.getElementById('farm-dose-unit')?.value || '';
+  ['8','13','15','20'].forEach(o => {
+    const lbl = document.getElementById('dose-unit-label-' + o);
+    if (lbl) lbl.textContent = unit;
+  });
+}
+
+function toggleDoseOrario(o) {
+  const cb    = document.getElementById('or' + o);
+  const inp   = document.getElementById('dose-or' + o);
+  const lbl   = document.getElementById('dose-unit-label-' + o);
+  if (!cb || !inp) return;
+  inp.style.display = cb.checked ? 'inline-block' : 'none';
+  if (lbl) lbl.style.display = cb.checked ? 'inline' : 'none';
+  if (cb.checked) inp.focus();
 }
 
 
@@ -1540,47 +1603,75 @@ function editTerapia(tid, pid) {
   document.getElementById('modal-farm-title').textContent = 'Modifica farmaco';
   document.getElementById('farm-nome').value        = t.farmaco || '';
   document.getElementById('farm-sezione').value     = t.sezione || 'orale';
-  document.getElementById('farm-dose').value        = t.dose || '';
-  document.getElementById('farm-dose-num').value    = t.doseNum ?? '';
   document.getElementById('farm-dose-unit').value   = t.doseUnit || 'cp';
-  document.getElementById('farm-inv-enabled').value = String(t.invEnabled !== false);
   document.getElementById('farm-via').value         = t.via || '';
-  document.getElementById('farm-indicazione').value = t.indicazione || '';
-  document.getElementById('farm-la-eseguita').value = t.laEseguita || '';
-  document.getElementById('farm-la-prossima').value = t.laProssima || '';
-  document.getElementById('farm-la-giorni').value   = t.laGiorni || '';
-  document.getElementById('farm-fonte').value       = t.fonte || 'CRA';
   document.getElementById('farm-note').value        = t.note || '';
   document.getElementById('farm-data-inizio').value = t.dataInizio || '';
   document.getElementById('farm-data-fine').value   = t.dataFine || '';
 
-  // orari
+  // sezione-specific fields
+  const elInd = document.getElementById('farm-indicazione'); if (elInd) elInd.value = t.indicazione || '';
+  const elDB  = document.getElementById('farm-dose-bisogno'); if (elDB)  elDB.value  = t.dose || '';
+  const elDLA = document.getElementById('farm-dose-la');     if (elDLA) elDLA.value  = t.dose || '';
+  const elDNLA= document.getElementById('farm-dose-num-la'); if (elDNLA) elDNLA.value = t.doseNum ?? '';
+  const elLAe = document.getElementById('farm-la-eseguita'); if (elLAe) elLAe.value  = t.laEseguita || '';
+  const elLAp = document.getElementById('farm-la-prossima'); if (elLAp) elLAp.value  = t.laProssima || '';
+  const elLAg = document.getElementById('farm-la-giorni');   if (elLAg) elLAg.value  = t.laGiorni || '';
+
+  // per-orario doses
   ['8','13','15','20'].forEach(o => {
-    document.getElementById('or' + o).checked = t.orari && t.orari.includes(o);
+    const cb  = document.getElementById('or' + o);
+    const inp = document.getElementById('dose-or' + o);
+    const lbl = document.getElementById('dose-unit-label-' + o);
+    const active = t.orari && t.orari.includes(o);
+    if (cb)  cb.checked = active;
+    if (inp) {
+      inp.value = active && t.dosi && t.dosi[o] != null ? t.dosi[o] : '';
+      inp.style.display = active ? 'inline-block' : 'none';
+    }
+    if (lbl) lbl.style.display = active ? 'inline' : 'none';
   });
 
   aggiornaCampiSezione();
-  aggiornaCRAselect();
-
-  // preseleziona farmaco CRA se collegato
-  if (t.farmacoCRAid) {
-    const sel = document.getElementById('farm-cra-link');
-    if (sel) sel.value = t.farmacoCRAid;
-  }
-
   openModal('modal-farmaco');
 }
 
 function salvaFarmaco() {
-  const nome = document.getElementById('farm-nome').value.trim();
-  const dose = document.getElementById('farm-dose').value.trim();
-  if (!nome||!dose) { alert('Nome farmaco e dose sono obbligatori'); return; }
+  const nome    = document.getElementById('farm-nome').value.trim();
+  if (!nome) { alert('Il nome del farmaco è obbligatorio'); return; }
 
   const sezione = document.getElementById('farm-sezione').value;
-  const orari = ['8','13','15','20'].filter(o=>document.getElementById('or'+o).checked);
-  const doseNumRaw = document.getElementById('farm-dose-num').value;
-  const doseNum = doseNumRaw === '' ? null : parseFloat(doseNumRaw);
-  if (doseNum !== null && (isNaN(doseNum) || doseNum < 0)) { alert('La dose numerica deve essere un numero positivo.'); return; }
+  const unit    = document.getElementById('farm-dose-unit').value;
+
+  // raccoglie orari attivi e dosi per orario
+  const orari = [];
+  const dosi  = {};
+  if (sezione === 'orale' || sezione === 'topica') {
+    ['8','13','15','20'].forEach(o => {
+      const cb  = document.getElementById('or' + o);
+      const inp = document.getElementById('dose-or' + o);
+      if (cb && cb.checked) {
+        orari.push(o);
+        const v = parseFloat(inp ? inp.value : '');
+        dosi[o] = isNaN(v) ? 0 : v;
+      }
+    });
+  }
+
+  // doseNum = somma dosi per inventario (usato anche come fallback per long acting)
+  const doseNum = orari.reduce((s, o) => s + (dosi[o] || 0), 0);
+
+  // dose testuale (per stampa e bisogno)
+  let dose = '';
+  if (sezione === 'orale' || sezione === 'topica') {
+    // costruisci stringa tipo "5-5-10 gtt" dagli orari attivi
+    dose = orari.map(o => dosi[o]).join('-') + (unit ? ' ' + unit : '');
+  } else if (sezione === 'bisogno') {
+    dose = (document.getElementById('farm-dose-bisogno')?.value || '').trim();
+    if (!dose) { alert('Inserire la dose per la terapia al bisogno'); return; }
+  } else if (sezione === 'longacting') {
+    dose = (document.getElementById('farm-dose-la')?.value || '').trim();
+  }
 
   const terapia = {
     id:         uid(),
@@ -1588,26 +1679,31 @@ function salvaFarmaco() {
     farmaco:    nome,
     sezione:    sezione,
     dose:       dose,
-    doseNum:    doseNum,
-    doseUnit:   document.getElementById('farm-dose-unit').value,
-    invEnabled: document.getElementById('farm-inv-enabled').value === 'true',
-    via:        document.getElementById('farm-via').value,
+    doseNum:    doseNum || null,
+    doseUnit:   unit,
+    dosi:       dosi,           // mappa {orario: dose}
+    invEnabled: true,
+    fonte:      'CRA',
+    farmacoCRAid: null,
+    via:        document.getElementById('farm-via')?.value || '',
     orari:      orari,
-    indicazione:document.getElementById('farm-indicazione').value.trim(),
-    laEseguita: document.getElementById('farm-la-eseguita').value,
-    laProssima:  document.getElementById('farm-la-prossima').value,
-    laGiorni:    parseInt(document.getElementById('farm-la-giorni').value)||null,
-    fonte:       document.getElementById('farm-fonte').value,
-    farmacoCRAid: document.getElementById('farm-cra-link').value || null,
+    indicazione: (document.getElementById('farm-indicazione')?.value || '').trim(),
+    laEseguita:  document.getElementById('farm-la-eseguita')?.value || '',
+    laProssima:  document.getElementById('farm-la-prossima')?.value || '',
+    laGiorni:    parseInt(document.getElementById('farm-la-giorni')?.value) || null,
     dataInizio:  document.getElementById('farm-data-inizio').value,
-    dataFine:   document.getElementById('farm-data-fine').value || null,
-    note:       document.getElementById('farm-note').value.trim(),
+    dataFine:    document.getElementById('farm-data-fine').value || null,
+    note:        document.getElementById('farm-note').value.trim(),
     dataCreazione: new Date().toISOString(),
   };
 
+  // collega farmaco CRA in magazzino: cerca per nome
+  const fcraList = load(SK_FCRA);
+  const match = fcraList.find(f => f.nome.toLowerCase() === nome.toLowerCase());
+  if (match) terapia.farmacoCRAid = match.id;
+
   const terapie = load(SK.terapie);
   if (farmacoEditId) {
-    // MODIFICA
     const idx = terapie.findIndex(x => x.id === farmacoEditId);
     if (idx >= 0) {
       terapia.id = farmacoEditId;
@@ -1615,7 +1711,6 @@ function salvaFarmaco() {
       terapie[idx] = terapia;
     }
   } else {
-    // NUOVO
     terapie.push(terapia);
   }
   save(SK.terapie, terapie);
@@ -1631,6 +1726,79 @@ function eliminaTerapia(tid, pid) {
   save(SK.terapie, load(SK.terapie).filter(t=>t.id!==tid));
   renderScheda(pid);
   toast('Farmaco rimosso');
+}
+
+// ============================================================
+// EDIT DOSE ORARIO INLINE (popup sul cerchio)
+// ============================================================
+let _dosePopupOpen = null;
+
+function editDoseOrario(tid, pid, orario, circleEl) {
+  // chiudi popup precedente
+  if (_dosePopupOpen) { _dosePopupOpen.remove(); _dosePopupOpen = null; }
+
+  const terapie = load(SK.terapie);
+  const t = terapie.find(x => x.id === tid);
+  if (!t) return;
+
+  const doseAttuale = t.dosi && t.dosi[orario] != null ? t.dosi[orario]
+                    : (t.doseNum != null ? t.doseNum : '');
+  const unit = t.doseUnit || '';
+
+  const popup = document.createElement('div');
+  popup.className = 'dose-popup no-print';
+  popup.innerHTML = `
+    <input type="number" id="dp-input" value="${doseAttuale}" min="0" step="0.5" style="width:64px">
+    <span style="font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted)">${unit}</span>
+    <button class="dose-pop-ok" onclick="salvaDoseOrario('${tid}','${pid}','${orario}')">✓</button>
+  `;
+  circleEl.style.position = 'relative';
+  circleEl.appendChild(popup);
+  _dosePopupOpen = popup;
+  popup.querySelector('#dp-input').focus();
+  popup.querySelector('#dp-input').select();
+
+  // chiudi cliccando fuori
+  setTimeout(() => {
+    document.addEventListener('click', function chiudi(e) {
+      if (!popup.contains(e.target) && e.target !== circleEl) {
+        popup.remove(); _dosePopupOpen = null;
+        document.removeEventListener('click', chiudi);
+      }
+    });
+  }, 50);
+
+  // invio con Enter
+  popup.querySelector('#dp-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') salvaDoseOrario(tid, pid, orario);
+    if (e.key === 'Escape') { popup.remove(); _dosePopupOpen = null; }
+  });
+}
+
+function salvaDoseOrario(tid, pid, orario) {
+  const inp = document.getElementById('dp-input');
+  if (!inp) return;
+  const nuovaDose = parseFloat(inp.value);
+  if (isNaN(nuovaDose) || nuovaDose < 0) { toast('Dose non valida'); return; }
+
+  const terapie = load(SK.terapie);
+  const idx = terapie.findIndex(x => x.id === tid);
+  if (idx < 0) return;
+  if (!terapie[idx].dosi) terapie[idx].dosi = {};
+  terapie[idx].dosi[orario] = nuovaDose;
+
+  // ricalcola doseNum come somma
+  const orariAttivi = terapie[idx].orari || [];
+  terapie[idx].doseNum = orariAttivi.reduce((s, o) => s + ((terapie[idx].dosi && terapie[idx].dosi[o]) || 0), 0);
+
+  // aggiorna dose testuale
+  terapie[idx].dose = orariAttivi.map(o => terapie[idx].dosi[o] || 0).join('-') +
+                      (terapie[idx].doseUnit ? ' ' + terapie[idx].doseUnit : '');
+
+  save(SK.terapie, terapie);
+  if (_dosePopupOpen) { _dosePopupOpen.remove(); _dosePopupOpen = null; }
+  renderScheda(pid);
+  toast('Dose aggiornata: ' + nuovaDose + ' ' + (terapie[idx].doseUnit||'') + ' ore ' + orario);
 }
 
 // ============================================================
@@ -1716,37 +1884,46 @@ function calcolaScorta(farm) {
   return Math.max(0, farm.scorta - giorni * consumo);
 }
 
-// consumo giornaliero = somma dosi delle terapie CRA attive per quel farmaco
+// consumo giornaliero = somma dosi per orario attivo (dosi map) per tutte le terapie CRA attive
 function calcolaConsumoCRA(farmId) {
   const terapie = load(SK.terapie);
+  const pzList  = load(SK.pazienti);
   const oggi = new Date(); oggi.setHours(0,0,0,0);
   return terapie
     .filter(t => {
-      if (t.fonte !== 'CRA') return false;
       if (!t.farmacoCRAid || t.farmacoCRAid !== farmId) return false;
-      if (t.sezione === 'bisogno') return false; // aggiornamento manuale
-      // escludi pazienti con terapia temporaneamente sospesa
-      const pzList = load(SK.pazienti);
-      const pzT = pzList.find(p=>p.id===t.pazienteId);
-      if (pzT && (pzT.terapiaSospesa===true||pzT.terapiaSospesa==='true')) return false;
+      if (t.sezione === 'bisogno') return false;
+      // escludi pazienti con terapia sospesa
+      const pz = pzList.find(p => p.id === t.pazienteId);
+      if (pz && (pz.terapiaSospesa === true || pz.terapiaSospesa === 'true')) return false;
       const di = t.dataInizio ? new Date(t.dataInizio) : null;
       const df = t.dataFine   ? new Date(t.dataFine)   : null;
       if (di && di > oggi) return false;
       if (df && df < oggi) return false;
+      if (t.invEnabled === false) return false;
       return true;
     })
     .reduce((acc, t) => {
-      if (t.invEnabled === false) return acc;
-      const dose = Number.isFinite(parseFloat(t.doseNum)) ? parseFloat(t.doseNum) : 0;
-      // per long acting: consumo giornaliero = dose / periodicità giorni
-      if (t.sezione === 'longacting' && t.laProssima && t.laEseguita) {
-        const dp = new Date(t.laProssima);
-        const de = new Date(t.laEseguita);
-        const periodicita = Math.max(1, Math.round((dp-de)/86400000));
-        return acc + dose / periodicita;
+      if (t.sezione === 'longacting') {
+        // consumo long acting: dose / periodicità
+        const dose = Number.isFinite(parseFloat(t.doseNum)) ? parseFloat(t.doseNum) : 0;
+        if (t.laProssima && t.laEseguita) {
+          const dp = new Date(t.laProssima);
+          const de = new Date(t.laEseguita);
+          const per = Math.max(1, Math.round((dp - de) / 86400000));
+          return acc + dose / per;
+        }
+        return acc + dose;
       }
-      const somministrazioni = (t.orari && t.orari.length) ? t.orari.length : 1;
-      return acc + dose * somministrazioni;
+      // orale/topica: somma dosi per orario dalla mappa dosi
+      if (t.dosi && Object.keys(t.dosi).length > 0) {
+        const somma = (t.orari || []).reduce((s, o) => s + ((t.dosi[o]) || 0), 0);
+        return acc + somma;
+      }
+      // fallback legacy: doseNum × numero orari
+      const dose = Number.isFinite(parseFloat(t.doseNum)) ? parseFloat(t.doseNum) : 0;
+      const nOr  = (t.orari && t.orari.length) ? t.orari.length : 1;
+      return acc + dose * nOr;
     }, 0);
 }
 
@@ -1960,9 +2137,10 @@ function aggiornaTotaleCarico() {
   const x = parseInt(document.getElementById('carico-xconf').value)||1;
   document.getElementById('carico-totale').value = (n*x) + ' unità';
 }
-// listener dinamico
+// listener dinamico carico scorte
 document.addEventListener('input', e => {
   if (e.target.id==='carico-nconf') aggiornaTotaleCarico();
+  if (e.target.id==='farm-dose-unit') aggiornaLabelUnitaDose();
 });
 
 function eseguiCarico() {
@@ -2103,22 +2281,8 @@ function stampaMovimenti() {
   w.document.close();
 }
 
-// Aggiorna SK per SK_FCRA
+// SK_FCRA unificato con SK
 SK.fcraFarmaci = SK_FCRA;
-
-function aggiornaCRAselect() {
-  const fonte = document.getElementById('farm-fonte').value;
-  const grp   = document.getElementById('grp-cra-link');
-  grp.style.display = fonte==='CRA' ? '' : 'none';
-  if (fonte==='CRA') popola_CRA_select();
-}
-
-function popola_CRA_select() {
-  const farmaci = load(SK_FCRA);
-  const sel = document.getElementById('farm-cra-link');
-  sel.innerHTML = '<option value="">— seleziona farmaco dal magazzino —</option>' +
-    farmaci.map(f=>`<option value="${f.id}">${f.nome} (${f.forma||''})</option>`).join('');
-}
 
 // ============================================================
 // MODAL HELPERS
@@ -2403,7 +2567,6 @@ function eseguiCambioPassword() {
 // ============================================================
 checkLogin();
 renderLista();
-aggiornaCampiSezione();
 </script>
 
 <!-- MODAL CAMBIA PASSWORD -->

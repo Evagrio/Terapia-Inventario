@@ -1803,8 +1803,7 @@ function stampaFoglioB(pid) {
         return `<tr>
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
-          <td class="drug-cell-la">${t.farmaco.toUpperCase()}${t.dose?' — '+t.dose:''}</td>
-          <td class="data-cell-la" colspan="2">${t.laEseguita||''}</td>
+          <td class="drug-cell-la" colspan="3">${t.farmaco.toUpperCase()}${t.dose?' — '+t.dose:''}</td>
           <td class="firma-cell-la" colspan="2"></td>
           <td class="data-cell-la" colspan="2">${t.laProssima||''}</td>
         </tr>`;
@@ -1812,8 +1811,7 @@ function stampaFoglioB(pid) {
       return `<tr>
         <td class="data-cell"></td>
         <td class="firma-cell"></td>
-        <td class="drug-cell-la"></td>
-        <td class="data-cell-la" colspan="2"></td>
+        <td class="drug-cell-la" colspan="3"></td>
         <td class="firma-cell-la" colspan="2"></td>
         <td class="data-cell-la" colspan="2"></td>
       </tr>`;
@@ -1961,8 +1959,7 @@ function stampaFoglioB(pid) {
         <tr>
           <th class="data-cell">DATA<br>INIZIO</th>
           <th class="firma-cell">FIRMA<br>MEDICO</th>
-          <th class="drug-cell-la">FARMACO / DOSE / VIA</th>
-          <th class="data-cell-la" colspan="2">DATA<br>ESEGUITA</th>
+          <th class="drug-cell-la" colspan="3">FARMACO / DOSE / VIA</th>
           <th class="firma-cell-la" colspan="2">FIRMA<br>INF.</th>
           <th class="data-cell-la" colspan="2">DATA<br>PROSSIMA</th>
         </tr>

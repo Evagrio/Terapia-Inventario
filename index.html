@@ -1420,8 +1420,7 @@ function stampaStorico(k) {
 }
 
 function _apriStampaPulita(titolo, sottotitolo, corpo) {
-  const w = window.open('', '_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>${titolo}</title>
   <style>
     body{font-family:'Times New Roman',serif;padding:15mm;font-size:9pt;}
@@ -1433,8 +1432,14 @@ function _apriStampaPulita(titolo, sottotitolo, corpo) {
   <h1>${titolo}</h1><p>${sottotitolo}</p>
   ${corpo}
   <script>window.onload=()=>window.print()<\/script>
-  </body></html>`);
-  w.document.close();
+  </body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.target = '_blank'; a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
 }
 
 // ============================================================
@@ -1732,13 +1737,10 @@ function stampaFoglioB(pid) {
     return m ? m[1].trim() : dose.split(' ')[0];
   };
 
-  // Celle orario: mostra la dose per orario (dalla mappa dosi, o fallback doseNum)
+  // Celle orario: mostra la quantità numerica solo negli orari attivi
   const buildOrariCells = (t) => ORARI.map(o => {
     const on = t.orari && t.orari.includes(o);
-    if (!on) return `<td class="or-cell"></td>`;
-    const d = t.dosi && t.dosi[o] != null ? t.dosi[o]
-              : (t.doseNum != null ? t.doseNum : doseNum(t.dose));
-    return `<td class="or-cell">${d}</td>`;
+    return `<td class="or-cell">${on ? doseNum(t.dose) : ''}</td>`;
   }).join('');
 
   // Righe per sezione con numero fisso di righe vuote
@@ -1791,40 +1793,41 @@ function stampaFoglioB(pid) {
     }).join('');
   };
 
-  // Long Acting: 2 righe, senza colonna firma inf nelle prime 2, firma inf spostata alla terza riga
+  // Long Acting: per farmaco → riga dati + riga vuota firma
+  // Colonne: DATA INIZIO | FIRMA MEDICO | FARMACO/DOSE/VIA | FIRMA (rowspan2) | DATA PROSSIMA
   const buildRigheLongActing = () => {
     const rows = attive.filter(t=>t.sezione==='longacting');
-    // riga 1: data inizio / firma medico / farmaco+dose / data eseguita / data prossima
-    // riga 2: vuota o secondo farmaco
-    // "Firma Inf." appare come riga separata sotto data eseguita (2 righe più in basso)
     const result = [];
     for (let i = 0; i < 2; i++) {
       const t = rows[i];
       if (t) {
-        const fonte = t.fonte==='personale'
-          ? '<span style="font-size:5.5pt;color:#888"> [P]</span>' : '';
         result.push(`<tr>
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
-          <td class="drug-cell-la">${t.farmaco.toUpperCase()}${fonte}<br><span style="font-size:7pt">${t.dose||''}</span></td>
-          <td class="data-cell">${t.laEseguita||''}</td>
+          <td class="drug-cell-la">${t.farmaco.toUpperCase()}<br><span style="font-size:6.5pt">${t.dose||''}</span></td>
+          <td class="data-cell" rowspan="2" style="border:1px solid #000;vertical-align:bottom;padding-bottom:1mm"></td>
           <td class="data-cell">${t.laProssima||''}</td>
+        </tr><tr>
+          <td class="data-cell"></td>
+          <td class="firma-cell"></td>
+          <td class="drug-cell-la"></td>
+          <td class="data-cell"></td>
         </tr>`);
       } else {
         result.push(`<tr>
-          <td class="data-cell"></td><td class="firma-cell"></td>
+          <td class="data-cell"></td>
+          <td class="firma-cell"></td>
           <td class="drug-cell-la"></td>
-          <td class="data-cell"></td><td class="data-cell"></td>
+          <td class="data-cell" rowspan="2" style="border:1px solid #000"></td>
+          <td class="data-cell"></td>
+        </tr><tr>
+          <td class="data-cell"></td>
+          <td class="firma-cell"></td>
+          <td class="drug-cell-la"></td>
+          <td class="data-cell"></td>
         </tr>`);
       }
     }
-    // riga 3: firma inf. spostata 2 righe più in basso
-    result.push(`<tr>
-      <td class="data-cell"></td><td class="firma-cell"></td>
-      <td class="drug-cell-la"></td>
-      <td class="data-cell" style="font-size:6.5pt;color:#555;text-align:center;vertical-align:top;padding-top:1mm">Firma Inf.</td>
-      <td class="data-cell" style="font-size:6.5pt;color:#555;text-align:center;vertical-align:top;padding-top:1mm">Firma Inf.</td>
-    </tr>`);
     return result.join('');
   };
 
@@ -1834,75 +1837,60 @@ function stampaFoglioB(pid) {
 
   const orariHeader = ORARI.map(o=>`<th class="or-cell">${o}</th>`).join('');
 
-  const nOraleRighe   = Math.max(attive.filter(t=>t.sezione==='orale').length,    10);
-  const nTopicaRighe  = Math.max(attive.filter(t=>t.sezione==='topica').length,   2);
-  const nBisognoRighe = Math.max(attive.filter(t=>t.sezione==='bisogno').length,  3);
-
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>Foglio Terapia — ${pz.cognome} ${pz.nome}</title>
   <style>
     * { box-sizing:border-box; margin:0; padding:0; }
-    html, body { height:100%; }
-    body { font-family:'Times New Roman',serif; font-size:7.5pt; background:#fff; color:#000; }
-    .page {
-      width:190mm; margin:0 auto;
-      padding:5mm 6mm 4mm;
-      display:flex; flex-direction:column;
-      height:274mm;           /* A4 277mm - 2×margin 6mm = 265mm, +9 for safety */
-    }
+    body { font-family:'Times New Roman',serif; font-size:8pt; background:#fff; color:#000; }
+    .page { padding:7mm 9mm 5mm; }
 
     /* INTESTAZIONE */
-    .hdr-table { width:100%; border-collapse:collapse; margin-bottom:3mm; flex-shrink:0; }
+    .hdr-table { width:100%; border-collapse:collapse; margin-bottom:4mm; }
     .hdr-logo {
-      width:33%; vertical-align:top;
+      width:35%; vertical-align:top;
       font-family:'Brush Script MT','Segoe Script','URW Chancery L',cursive;
-      font-size:12pt; line-height:1.2; color:#222;
+      font-size:14pt; line-height:1.3; color:#222;
     }
     .hdr-title {
-      font-size:9pt; font-weight:bold; text-align:center;
-      vertical-align:middle; line-height:1.4;
+      font-size:10pt; font-weight:bold; text-align:center;
+      vertical-align:middle; line-height:1.5;
     }
     .hdr-pz {
-      width:30%; vertical-align:top;
-      font-size:12pt; font-weight:bold; line-height:1.3;
-      border:1.5px solid #000; padding:1.5mm 2mm; text-align:center;
+      width:30%; text-align:right; vertical-align:top;
+      font-size:14pt; font-weight:bold; line-height:1.4;
+      border:1.5px solid #000; padding:2mm 3mm; text-align:center;
     }
-    .hdr-sub { font-size:6pt; font-weight:normal; font-family:serif; display:block; margin-top:0.8mm; }
+    .hdr-sub { font-size:7pt; font-weight:normal; font-family:serif; display:block; margin-top:1mm; }
 
-    /* GRIGLIA — altezza righe ridotta, usa flex-grow per riempire la pagina */
-    .terapia-table { width:100%; border-collapse:collapse; font-size:7.5pt; table-layout:fixed; flex:1; }
+    /* GRIGLIA */
+    .terapia-table { width:100%; border-collapse:collapse; font-size:8pt; table-layout:fixed; }
     .terapia-table th {
-      border:1px solid #000; padding:1mm 0.8mm;
+      border:1px solid #000; padding:1.5mm 1mm;
       text-align:center; background:#e0e0e0;
-      font-size:6.5pt; font-weight:bold; line-height:1.1;
+      font-size:7pt; font-weight:bold; line-height:1.2;
     }
     .terapia-table td {
-      border:1px solid #000; padding:0 0.5mm;
-      height:5.8mm; vertical-align:middle;
+      border:1px solid #000; padding:0.8mm 1mm;
+      height:6.8mm; vertical-align:middle;
     }
-    .data-cell  { width:15mm; text-align:center; font-size:6.5pt; }
-    .firma-cell { width:17mm; }
-    .drug-cell  { font-size:8pt; font-weight:bold; letter-spacing:0.01em; }
-    .drug-cell-la { font-size:8pt; font-weight:bold; }
-    .or-cell    { width:9mm; text-align:center; font-size:8pt; font-weight:bold; }
+    .data-cell  { width:17mm; text-align:center; font-size:7pt; }
+    .firma-cell { width:19mm; }
+    .drug-cell  { font-size:8.5pt; font-weight:bold; letter-spacing:0.02em; }
+    .drug-cell-la { font-size:8.5pt; font-weight:bold; }
+    .or-cell    { width:10mm; text-align:center; font-size:8.5pt; font-weight:bold; }
 
     /* TITOLI SEZIONE */
     .sez-row td {
-      background:#c8c8c8; font-weight:bold; font-size:7pt;
-      text-transform:uppercase; letter-spacing:.04em;
-      padding:0.8mm 2mm; border:1px solid #000; height:5mm;
+      background:#c8c8c8; font-weight:bold; font-size:8pt;
+      text-transform:uppercase; letter-spacing:.05em;
+      padding:1.5mm 2mm; border:1px solid #000; height:6mm;
     }
 
     /* FOOTER */
-    .footer-wrap { flex-shrink:0; margin-top:1.5mm; }
-    .footer-aggiornata { font-size:7pt; display:flex; justify-content:space-between; }
-    .footer-ente { font-size:6pt; color:#333; text-align:center; margin-top:1mm; border-top:1px solid #aaa; padding-top:0.8mm; }
+    .footer-aggiornata { font-size:7.5pt; margin-top:2mm; display:flex; justify-content:space-between; }
+    .footer-ente { font-size:6.5pt; color:#333; text-align:center; margin-top:1.5mm; border-top:1px solid #aaa; padding-top:1mm; }
 
     @page { size:A4 portrait; margin:6mm; }
-    @media print {
-      html,body { height:auto; }
-      .page { height:auto; page-break-after:avoid; }
-    }
   </style>
   </head><body>
   <div class="page">
@@ -1919,17 +1907,17 @@ function stampaFoglioB(pid) {
         </td>
         <td class="hdr-pz">
           ${pz.cognome}<br>${pz.nome}
-          ${pz.allergie?`<div style="font-size:6pt;color:#cc0000;font-weight:normal;margin-top:0.8mm">⚠ ${pz.allergie}</div>`:''}
+          ${pz.allergie?`<div style="font-size:7pt;color:#cc0000;font-weight:normal;margin-top:1mm">⚠ ${pz.allergie}</div>`:''}
         </td>
       </tr>
     </table>
 
     <table class="terapia-table">
       <colgroup>
-        <col style="width:15mm"><col style="width:17mm">
-        <col><col style="width:9mm"><col style="width:9mm">
-        <col style="width:9mm"><col style="width:9mm">
-        <col style="width:15mm"><col style="width:17mm">
+        <col style="width:17mm"><col style="width:19mm">
+        <col><col style="width:10mm"><col style="width:10mm">
+        <col style="width:10mm"><col style="width:10mm">
+        <col style="width:17mm"><col style="width:19mm">
       </colgroup>
       <thead>
         <tr>
@@ -1940,32 +1928,30 @@ function stampaFoglioB(pid) {
         </tr>
       </thead>
       <tbody>
-        ${buildRighe('orale', nOraleRighe)}
+        ${buildRighe('orale', Math.max(attive.filter(t=>t.sezione==='orale').length, 12))}
         <tr class="sez-row"><td colspan="9">Terapia Topica &nbsp;/&nbsp; I.M. &nbsp;/&nbsp; S.C. &nbsp;/&nbsp; E.V. &nbsp;/&nbsp; Varie</td></tr>
-        ${buildRighe('topica', nTopicaRighe)}
+        ${buildRighe('topica', Math.max(attive.filter(t=>t.sezione==='topica').length, 3))}
         <tr class="sez-row"><td colspan="9">Terapia al Bisogno</td></tr>
-        ${buildRigheBisogno(nBisognoRighe)}
+        ${buildRigheBisogno(Math.max(attive.filter(t=>t.sezione==='bisogno').length, 4))}
         <tr class="sez-row"><td colspan="9">Terapia Long Acting${laGiorniLabel}</td></tr>
         <tr>
           <th class="data-cell">DATA<br>INIZIO</th>
           <th class="firma-cell">FIRMA<br>MEDICO</th>
           <th class="drug-cell-la">FARMACO / DOSE / VIA</th>
-          <th class="data-cell" colspan="2">DATA ESEGUITA</th>
+          <th class="data-cell" colspan="2">FIRMA</th>
           <th class="data-cell" colspan="4">DATA PROSSIMA</th>
         </tr>
         ${buildRigheLongActing()}
       </tbody>
     </table>
 
-    <div class="footer-wrap">
-      <div class="footer-aggiornata">
-        <span>Aggiornata al: <strong>${oggi}</strong></span>
-        <span>Foglio n.&nbsp;${nFoglio}</span>
-      </div>
-      <div class="footer-ente">
-        FONDAZIONE EMILIA BOSIS &nbsp;·&nbsp; www.fondazionebosis.it &nbsp;·&nbsp; verdello@fondazionebosis.it<br>
-        COMUNITÀ "IL GERMOGLIO", VIA SOLFERINO 51 - 24049 VERDELLO (BG) &nbsp; TEL. 035/4813814
-      </div>
+    <div class="footer-aggiornata">
+      <span>Aggiornata al: <strong>${oggi}</strong></span>
+      <span>Foglio n.&nbsp;${nFoglio}</span>
+    </div>
+    <div class="footer-ente">
+      FONDAZIONE EMILIA BOSIS &nbsp;·&nbsp; www.fondazionebosis.it &nbsp;·&nbsp; verdello@fondazionebosis.it<br>
+      COMUNITÀ "IL GERMOGLIO", VIA SOLFERINO 51 - 24049 VERDELLO (BG) &nbsp; TEL. 035/4813814
     </div>
   </div>
   <script>window.onload=()=>{window.print();}<\/script>
@@ -1975,9 +1961,13 @@ function stampaFoglioB(pid) {
   cnt[pid] = (cnt[pid]||1) + 1;
   save(SK.contatori, cnt);
 
-  const w = window.open('','_blank');
-  w.document.write(html);
-  w.document.close();
+  const blob = new Blob([html], {type: 'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.target = '_blank'; a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
   renderScheda(pid);
   toast('Foglio n°'+(cnt[pid]-1)+' inviato alla stampa');
 }
@@ -2901,7 +2891,7 @@ function stampaConvalida() {
   const buildFoglio = (pz) => {
     const righeGiorni = Array.from({length: nGiorni}, (_,i) => `
       <tr>
-        <td class="cv-gg" style="height:${rowH}mm;font-size:7.5pt;text-align:center;vertical-align:middle">${i+1}</td>
+        <td class="cv-gg">${i+1}</td>
         <td class="cv-ann"></td>
         <td class="cv-or"></td>
         <td class="cv-or"></td>
@@ -2909,9 +2899,8 @@ function stampaConvalida() {
         <td class="cv-or"></td>
       </tr>`).join('');
 
-    const rowH = Math.floor((274 - 55) / (nGiorni + 1) * 10) / 10;
     return `
-    <div class="convalida-page" style="--nrig:${nGiorni+1}">
+    <div class="convalida-page">
 
       <!-- INTESTAZIONE -->
       <table class="cv-hdr-table">
@@ -2959,49 +2948,40 @@ function stampaConvalida() {
     body { font-family:'Times New Roman',serif; font-size:9pt; background:#fff; color:#000; }
 
     .convalida-page {
-      padding: 7mm 9mm 6mm;
+      padding: 10mm 12mm 8mm;
       page-break-after: always;
-      page-break-inside: avoid;
+      min-height: 277mm;
       display: flex;
       flex-direction: column;
-      height: 274mm;
     }
     .convalida-page:last-child { page-break-after: avoid; }
 
     /* INTESTAZIONE */
-    .cv-hdr-table { width:100%; border-collapse:collapse; margin-bottom:4mm; flex-shrink:0; }
-    .cv-logo { font-size:7.5pt; font-weight:bold; width:38%; vertical-align:top; font-style:italic; }
+    .cv-hdr-table { width:100%; border-collapse:collapse; margin-bottom:6mm; }
+    .cv-logo { font-size:8pt; font-weight:bold; width:40%; vertical-align:top; font-style:italic; }
     .cv-pz-box {
-      width:58%; text-align:center; font-size:12pt; font-weight:bold;
-      border:1.5px solid #000; padding:2mm 4mm; vertical-align:middle;
+      width:55%; text-align:center; font-size:13pt; font-weight:bold;
+      border:1.5px solid #000; padding:3mm 5mm; vertical-align:middle;
     }
 
     /* TITOLO */
-    .cv-title-table { width:100%; border-collapse:collapse; margin-bottom:3mm; flex-shrink:0; }
-    .cv-title-left  { font-size:10pt; width:50%; vertical-align:bottom; }
-    .cv-title-right { font-size:14pt; font-weight:bold; text-align:right; vertical-align:bottom; }
+    .cv-title-table { width:100%; border-collapse:collapse; margin-bottom:5mm; }
+    .cv-title-left  { font-size:12pt; width:50%; vertical-align:bottom; }
+    .cv-title-right { font-size:16pt; font-weight:bold; text-align:right; vertical-align:bottom; }
 
-    /* GRIGLIA — altezza riga calcolata per stare su una pagina */
-    /* 274mm - 4(hdr) - 8(hdr-table) - 3(title) - 8(title-table) - 8(footer) = ~243mm per la griglia */
-    /* 31 righe (1 header + 30 giorni) → 243/31 ≈ 7.8mm → usiamo 7.5mm */
+    /* GRIGLIA */
     .cv-table { width:100%; border-collapse:collapse; flex:1; }
     .cv-table th {
-      border:1px solid #555; padding:1mm 0.8mm;
-      text-align:center; font-size:7.5pt;
+      border:1px solid #555; padding:1.5mm 1mm;
+      text-align:center; font-size:8pt;
       background:#f0f0f0;
     }
-    .cv-table td { border:1px solid #aaa; padding:0; }
-    .cv-table tbody tr { height: calc((274mm - 55mm) / var(--nrig)); }
-    .cv-gg  { width:10mm; text-align:center; font-size:7.5pt; border-right:1px solid #555 !important; }
+    .cv-table td { border:1px solid #aaa; padding:0; height:7.2mm; }
+    .cv-gg  { width:10mm; text-align:center; font-size:8pt; border-right:1px solid #555 !important; }
     .cv-ann { text-align:left; padding-left:2mm !important; }
     .cv-or  { width:13mm; text-align:center; border-left:1px solid #555 !important; }
 
     @page { size:A4 portrait; margin:6mm; }
-    @media print {
-      html, body { height: auto; }
-      .convalida-page { height: auto; }
-      .cv-table td { height: calc((274mm - 55mm) / var(--nrig)); }
-    }
   </style>
   </head><body>
   ${allPages}
@@ -3009,9 +2989,13 @@ function stampaConvalida() {
   </body></html>`;
 
   closeModal('modal-convalida');
-  const w = window.open('','_blank');
-  w.document.write(html);
-  w.document.close();
+  const blob = new Blob([html], {type: 'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.target = '_blank'; a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
   toast('Convalida terapia inviata alla stampa');
 }
 

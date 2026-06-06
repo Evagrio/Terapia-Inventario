@@ -2034,10 +2034,6 @@ function stampaFoglioB(pid) {
   <script>window.onload=()=>{window.print();}<\/script>
   </body></html>`;
 
-  const cnt = loadO(SK.contatori);
-  cnt[pid] = (cnt[pid]||1) + 1;
-  save(SK.contatori, cnt);
-
   const blob = new Blob([html], {type: 'text/html'});
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -2046,7 +2042,7 @@ function stampaFoglioB(pid) {
   a.click();
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
   renderScheda(pid);
-  toast('Foglio n°'+(cnt[pid]-1)+' inviato alla stampa');
+  toast('FUT n°'+nFoglio+' inviato alla stampa');
 }
 
 

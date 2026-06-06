@@ -2215,7 +2215,7 @@ function editTerapia(tid, pid) {
   document.getElementById('modal-farm-title').textContent = 'Modifica farmaco';
   document.getElementById('farm-nome').value        = t.farmaco || '';
   document.getElementById('farm-sezione').value     = t.sezione || 'orale';
-  document.getElementById('farm-dose-unit').value   = t.doseUnit || 'cp';
+  document.getElementById('farm-dose-unit').value   = t.doseUnit || '';
   document.getElementById('farm-via').value         = t.via || '';
   document.getElementById('farm-note').value        = t.note || '';
   document.getElementById('farm-data-inizio').value = t.dataInizio || '';
@@ -2285,6 +2285,15 @@ function salvaFarmaco() {
     dose = (document.getElementById('farm-dose-la')?.value || '').trim();
   }
 
+  // Se unit è vuota (farmaco vecchio), prova a recuperarla dalla stringa dose
+  const unitFinale = unit || (() => {
+    const m = dose.match(/[a-zA-Z]+$/);
+    if (!m) return '';
+    const MAP = {'gtt':'gtt','cp':'cp','bust':'bust','sci':'sci','fl':'fl',
+                 'cer':'cer','supp':'supp','spray':'spray','ml':'ml'};
+    return MAP[m[0].toLowerCase()] || '';
+  })();
+
   const terapia = {
     id:         uid(),
     pazienteId: farmacoEditPzId,
@@ -2292,7 +2301,7 @@ function salvaFarmaco() {
     sezione:    sezione,
     dose:       dose,
     doseNum:    doseNum || null,
-    doseUnit:   unit,
+    doseUnit:   unitFinale,
     dosi:       dosi,           // mappa {orario: dose}
     invEnabled: true,
     fonte:      'CRA',

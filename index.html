@@ -1870,15 +1870,22 @@ function stampaFoglioB(pid) {
   // Disponibile per righe: 276 - 60.5 = 215.5mm; altezza riga fissa 6.2mm
   // bisogno minimo = farmaci bisogno + 3 extra vuote
   const ROW_H = 7.5;
-  const disponibile = 186.0; // ridotto per garantire tutto su 1 pagina
+  // A4 297mm - margin@page 10mm - padding .page 11mm - fissi hdr/thead/sezrow/footer ≈ 61mm = ~215mm
+  // Budget conservativo a 178mm per garantire 1 sola pagina in tutti i casi
+  const disponibile = 178.0;
 
-  const nTopica  = Math.max(attive.filter(t=>t.sezione==='topica').length,  3);
-  const nBisogno = Math.max(attive.filter(t=>t.sezione==='bisogno').length + 3, 7);
-  const nLA      = Math.max(attive.filter(t=>t.sezione==='longacting').length, 2);
+  const nOraliReali  = attive.filter(t=>t.sezione==='orale').length;
+  const nTopicaReali = attive.filter(t=>t.sezione==='topica').length;
+  const nBisognoReali= attive.filter(t=>t.sezione==='bisogno').length;
+  const nLAReali     = attive.filter(t=>t.sezione==='longacting').length;
+
+  const nTopica  = Math.max(nTopicaReali,  2);
+  const nBisogno = Math.max(nBisognoReali + 2, 5);
+  const nLA      = Math.max(nLAReali, 2);
   const mmRigheFixed = (nTopica + nBisogno + nLA) * ROW_H;
   const mmPerOrale = disponibile - mmRigheFixed;
-  const nOraleCalc = Math.floor(mmPerOrale / ROW_H);
-  const nOrale = Math.max(nOraleCalc, attive.filter(t=>t.sezione==='orale').length, 8);
+  // nOrale: almeno quanti ce ne sono realmente, non forziamo un minimo fisso che sfora
+  const nOrale = Math.max(Math.floor(mmPerOrale / ROW_H), nOraliReali);
 
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>Foglio Unico di Terapia — ${pz.cognome} ${pz.nome}</title>

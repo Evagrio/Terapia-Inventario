@@ -2160,10 +2160,8 @@ function openModalFarmaco(pid, sezione) {
   ['8','13','15','20'].forEach(o => {
     const cb = document.getElementById('or' + o);
     const inp = document.getElementById('dose-or' + o);
-    const lbl = document.getElementById('dose-unit-label-' + o);
     if (cb) cb.checked = false;
     if (inp) { inp.value = ''; inp.style.display = 'none'; }
-    if (lbl) lbl.style.display = 'none';
   });
   document.getElementById('farm-data-inizio').value = new Date().toISOString().slice(0,10);
   aggiornaCampiSezione();

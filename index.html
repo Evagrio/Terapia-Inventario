@@ -1772,7 +1772,7 @@ function stampaFoglioB(pid) {
     if (!on) return `<td class="or-cell"></td>`;
     const num = doseNum(t.dose);
     const abbr = doseUnitAbbr(t);
-    return `<td class="or-cell"><span class="or-num">${num}</span>${abbr ? `<span class="or-unit">${abbr}</span>` : ''}</td>`;
+    return `<td class="or-cell"><span class="or-num">${num}</span></td>`;
   }).join('');
 
   // Righe per sezione con numero fisso di righe vuote

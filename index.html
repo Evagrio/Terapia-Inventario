@@ -704,6 +704,26 @@ select option { background:var(--surface2); }
         </div>
       </div>
 
+      <!-- Forma farmaceutica: sempre visibile in tutte le sezioni -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Forma farmaceutica <span style="color:var(--amber);font-size:0.75rem;">★ obbligatoria per stampa FUT</span></label>
+          <select id="farm-dose-unit" onchange="aggiornaLabelUnitaDose()">
+            <option value="">— seleziona —</option>
+            <option value="cp">cp — compressa</option>
+            <option value="gtt">gtt — gocce</option>
+            <option value="bust">bust — bustina</option>
+            <option value="sci">sci — sciroppo</option>
+            <option value="fl">fl — fiala</option>
+            <option value="cer">cer — cerotto</option>
+            <option value="supp">supp — supposta</option>
+            <option value="spray">spray</option>
+            <option value="ml">ml</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Via di somministrazione: solo per topica/IM/SC/EV -->
       <div class="form-row" id="grp-via-row">
         <div class="form-group" id="grp-via">
           <label>Via di somministrazione</label>
@@ -717,21 +737,6 @@ select option { background:var(--surface2); }
             <option value="sc">sc — sottocute</option>
             <option value="ev">ev — endovenosa</option>
             <option value="rett">rett — rettale</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Forma farmaceutica</label>
-          <select id="farm-dose-unit">
-            <option value="">— seleziona —</option>
-            <option value="cp">cp — compressa</option>
-            <option value="gtt">gtt — gocce</option>
-            <option value="bust">bust — bustina</option>
-            <option value="sci">sci — sciroppo</option>
-            <option value="fl">fl — fiala</option>
-            <option value="cer">cer — cerotto</option>
-            <option value="supp">supp — supposta</option>
-            <option value="spray">spray</option>
-            <option value="ml">ml</option>
           </select>
         </div>
       </div>

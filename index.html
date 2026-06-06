@@ -748,22 +748,18 @@ select option { background:var(--surface2); }
           <div class="orario-dose-row" id="odr-8">
             <label class="orario-check"><input type="checkbox" value="8" id="or8" onchange="toggleDoseOrario('8')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 8</span></label>
             <input type="number" id="dose-or8" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 8">
-            <span id="dose-unit-label-8" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
           </div>
           <div class="orario-dose-row" id="odr-13">
             <label class="orario-check"><input type="checkbox" value="13" id="or13" onchange="toggleDoseOrario('13')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 13</span></label>
             <input type="number" id="dose-or13" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 13">
-            <span id="dose-unit-label-13" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
           </div>
           <div class="orario-dose-row" id="odr-15">
             <label class="orario-check"><input type="checkbox" value="15" id="or15" onchange="toggleDoseOrario('15')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 15</span></label>
             <input type="number" id="dose-or15" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 15">
-            <span id="dose-unit-label-15" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
           </div>
           <div class="orario-dose-row" id="odr-20">
             <label class="orario-check"><input type="checkbox" value="20" id="or20" onchange="toggleDoseOrario('20')"> <span style="font-family:'Inconsolata',monospace;font-weight:600">Ore 20</span></label>
             <input type="number" id="dose-or20" min="0" step="0.5" placeholder="dose" style="display:none;width:90px;margin-left:12px" title="Dose ore 20">
-            <span id="dose-unit-label-20" style="display:none;font-family:'Inconsolata',monospace;font-size:0.78rem;color:var(--muted);margin-left:4px"></span>
           </div>
         </div>
       </div>
@@ -2188,20 +2184,14 @@ function aggiornaCampiSezione() {
 }
 
 function aggiornaLabelUnitaDose() {
-  const unit = document.getElementById('farm-dose-unit')?.value || '';
-  ['8','13','15','20'].forEach(o => {
-    const lbl = document.getElementById('dose-unit-label-' + o);
-    if (lbl) lbl.textContent = unit;
-  });
+  // label rimossi — la forma farmaceutica è nella select dedicata
 }
 
 function toggleDoseOrario(o) {
-  const cb    = document.getElementById('or' + o);
-  const inp   = document.getElementById('dose-or' + o);
-  const lbl   = document.getElementById('dose-unit-label-' + o);
+  const cb  = document.getElementById('or' + o);
+  const inp = document.getElementById('dose-or' + o);
   if (!cb || !inp) return;
   inp.style.display = cb.checked ? 'inline-block' : 'none';
-  if (lbl) lbl.style.display = cb.checked ? 'inline' : 'none';
   if (cb.checked) inp.focus();
 }
 
@@ -2246,14 +2236,12 @@ function editTerapia(tid, pid) {
   ['8','13','15','20'].forEach(o => {
     const cb  = document.getElementById('or' + o);
     const inp = document.getElementById('dose-or' + o);
-    const lbl = document.getElementById('dose-unit-label-' + o);
     const active = t.orari && t.orari.includes(o);
     if (cb)  cb.checked = active;
     if (inp) {
       inp.value = active && t.dosi && t.dosi[o] != null ? t.dosi[o] : '';
       inp.style.display = active ? 'inline-block' : 'none';
     }
-    if (lbl) lbl.style.display = active ? 'inline' : 'none';
   });
 
   aggiornaCampiSezione();

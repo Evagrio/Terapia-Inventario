@@ -1735,13 +1735,18 @@ function stampaFoglioB(pid) {
   };
 
   // Estrae unità abbreviata (es. "gtt", "cp", "bust", "sci")
-  const doseUnitAbbr = (unit) => {
-    if (!unit) return '';
+  const doseUnitAbbr = (unit, dose) => {
     const map = {'gocce':'gtt','gtt':'gtt','compressa':'cp','compresse':'cp','cp':'cp',
       'bustina':'bust','bustine':'bust','bust':'bust','sciroppo':'sci','sci':'sci',
       'fiala':'fl','fiale':'fl','fl':'fl','unità':'U','spray':'spr','cerotto':'cer',
-      'supposte':'supp','supposta':'supp','supp':'supp'};
-    return map[unit.toLowerCase()] || unit.substring(0,4);
+      'supposte':'supp','supposta':'supp','supp':'supp','ml':'ml','mg':'mg'};
+    if (unit) return map[unit.toLowerCase()] || unit.substring(0,4);
+    // fallback: estrae la parola non numerica dalla stringa dose
+    if (dose) {
+      const m = dose.match(/[a-zA-ZÀ-ú]+/);
+      if (m) return map[m[0].toLowerCase()] || m[0].substring(0,4);
+    }
+    return '';
   };
 
   // Celle orario: mostra numero + unità abbreviata sulle due righe
@@ -1766,7 +1771,7 @@ function stampaFoglioB(pid) {
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
           <td class="drug-cell">${t.farmaco.toUpperCase()}${fonte}</td>
-          <td class="forma-cell">${doseUnitAbbr(t.doseUnit)}</td>
+          <td class="forma-cell">${doseUnitAbbr(t.doseUnit, t.dose)}</td>
           ${buildOrariCells(t)}
           <td class="data-cell">${t.dataFine||''}</td>
           <td class="firma-cell"></td>
@@ -1900,9 +1905,9 @@ function stampaFoglioB(pid) {
       font-size:7pt; font-weight:bold; line-height:1.2;
       -webkit-print-color-adjust:exact; print-color-adjust:exact;
     }
-    /* Intestazione colonne orario: sfondo nero, testo bianco — massimo contrasto B/N */
+    /* Intestazione colonne orario: grigio scuro, testo bianco — contrasto forte ma non aggressivo */
     .terapia-table th.or-cell {
-      background:#000; color:#fff; border:1px solid #000;
+      background:#444; color:#fff; border:1px solid #000; font-size:8.5pt;
       -webkit-print-color-adjust:exact; print-color-adjust:exact;
     }
     .terapia-table td {
@@ -1987,7 +1992,7 @@ function stampaFoglioB(pid) {
         <tr>
           <th>DATA<br>INIZIO</th><th>FIRMA<br>MEDICO</th>
           <th>TERAPIA ORALE</th>
-          <th style="background:#f5f0e8;font-size:6pt;">FORMA</th>
+          <th style="font-size:6pt; border-left:2.5px solid #000;">FORMA</th>
           ${orariHeader}
           <th>DATA<br>SOSP.</th><th>FIRMA<br>MEDICO</th>
         </tr>

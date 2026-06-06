@@ -1728,6 +1728,13 @@ function stampaFoglioB(pid) {
   const attive  = terapie.filter(t=>t.pazienteId===pid && !t.dataFine);
   const contatori = loadO(SK.contatori);
   const nFoglio = contatori[pid] || 1;
+  // Catalogo farmaci CRA: fonte certa per udm/forma
+  const catalogoFUT = load('fcra_farmaci_cra');
+  const udmDaCatalogo = (t) => {
+    if (!t.farmacoCRAid) return null;
+    const f = catalogoFUT.find(x => x.id === t.farmacoCRAid);
+    return f ? (f.udm || null) : null;
+  };
   const oggi = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
   const ORARI = ['8','13','15','20'];
 
@@ -1738,17 +1745,22 @@ function stampaFoglioB(pid) {
     return m ? m[1].trim() : dose.split(' ')[0];
   };
 
-  // Estrae unità abbreviata (es. "gtt", "cp", "bust", "sci")
-  const doseUnitAbbr = (unit, dose) => {
-    const map = {'gocce':'gtt','gtt':'gtt','compressa':'cp','compresse':'cp','cp':'cp',
-      'bustina':'bust','bustine':'bust','bust':'bust','sciroppo':'sci','sci':'sci',
-      'fiala':'fl','fiale':'fl','fl':'fl','unità':'U','spray':'spr','cerotto':'cer',
-      'supposte':'supp','supposta':'supp','supp':'supp','ml':'ml','mg':'mg'};
-    if (unit) return map[unit.toLowerCase()] || unit.substring(0,4);
-    // fallback: estrae la parola non numerica dalla stringa dose
-    if (dose) {
-      const m = dose.match(/[a-zA-ZÀ-ú]+/);
-      if (m) return map[m[0].toLowerCase()] || m[0].substring(0,4);
+  // Restituisce la forma abbreviata: 1° catalogo udm, 2° doseUnit, 3° parse dose
+  const UDM_MAP = {'gocce':'gtt','gtt':'gtt','compressa':'cp','compresse':'cp','cp':'cp',
+    'bustina':'bust','bustine':'bust','bust':'bust','sciroppo':'sci','sci':'sci',
+    'fiala':'fl','fiala im':'fl','fiala ev':'fl','fiale':'fl','fl':'fl',
+    'unità':'U','spray':'spr','cerotto':'cer','supposte':'supp','supposta':'supp',
+    'supp':'supp','ml':'ml','soluzione orale':'sol','sol':'sol','mg':'mg','tubo':'top'};
+  const doseUnitAbbr = (t) => {
+    // Fonte 1: catalogo CRA (più affidabile)
+    const fromCat = udmDaCatalogo(t);
+    if (fromCat) return UDM_MAP[fromCat.toLowerCase()] || fromCat.substring(0,4);
+    // Fonte 2: doseUnit salvato nella terapia
+    if (t.doseUnit) return UDM_MAP[t.doseUnit.toLowerCase()] || t.doseUnit.substring(0,4);
+    // Fonte 3: parse dalla stringa dose (fallback)
+    if (t.dose) {
+      const m = t.dose.match(/[a-zA-ZÀ-ú]+/);
+      if (m) return UDM_MAP[m[0].toLowerCase()] || m[0].substring(0,4);
     }
     return '';
   };
@@ -1758,7 +1770,7 @@ function stampaFoglioB(pid) {
     const on = t.orari && t.orari.includes(o);
     if (!on) return `<td class="or-cell"></td>`;
     const num = doseNum(t.dose);
-    const abbr = doseUnitAbbr(t.doseUnit);
+    const abbr = doseUnitAbbr(t);
     return `<td class="or-cell"><span class="or-num">${num}</span>${abbr ? `<span class="or-unit">${abbr}</span>` : ''}</td>`;
   }).join('');
 
@@ -1775,7 +1787,7 @@ function stampaFoglioB(pid) {
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
           <td class="drug-cell">${t.farmaco.toUpperCase()}${fonte}</td>
-          <td class="forma-cell">${doseUnitAbbr(t.doseUnit, t.dose)}</td>
+          <td class="forma-cell">${doseUnitAbbr(t)}</td>
           ${buildOrariCells(t)}
           <td class="data-cell">${t.dataFine||''}</td>
           <td class="firma-cell"></td>

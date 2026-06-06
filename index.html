@@ -2993,7 +2993,7 @@ function stampaConvalida() {
   const nGiorni = new Date(parseInt(anno), meseIdx+1, 0).getDate();
   const ORARI = ['8','13','15','20'];
 
-  const contatori = JSON.parse(localStorage.getItem('farmaci_contatori') || '{}');
+  const contatori = JSON.parse(localStorage.getItem('fcra_contatori') || '{}');
 
   const buildFoglio = (pz) => {
     const nFoglio = contatori[pz.id] || 1;

@@ -1774,7 +1774,7 @@ function stampaFoglioB(pid) {
         return `<tr${cls}>
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
-          <td class="drug-cell">${t.farmaco.toUpperCase()}${fonte}${t.via ? '<span style="font-size:6pt;font-weight:normal;color:#333"> (' + t.via + ')</span>' : ''}</td>
+          <td class="drug-cell">${t.farmaco.toUpperCase()}${fonte}</td>
           <td class="forma-cell">${doseUnitAbbr(t.doseUnit, t.dose)}</td>
           ${buildOrariCells(t)}
           <td class="data-cell">${t.dataFine||''}</td>
@@ -1803,7 +1803,7 @@ function stampaFoglioB(pid) {
         return `<tr${cls}>
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
-          <td class="drug-cell" colspan="6">${t.farmaco.toUpperCase()}${fonte}${t.via ? ' (' + t.via + ')' : ''}${t.dose?' — '+t.dose:''}${t.indicazione?' — '+t.indicazione:''}</td>
+          <td class="drug-cell" colspan="6">${t.farmaco.toUpperCase()}${fonte}${t.dose?' — '+t.dose:''}${t.indicazione?' — '+t.indicazione:''}</td>
           <td class="data-cell">${t.dataFine||''}</td>
           <td class="firma-cell"></td>
         </tr>`;
@@ -3252,7 +3252,6 @@ function migraViaSomministrazione() {
 
 // INIT
 // ============================================================
-migraViaSomministrazione();
 checkLogin();
 // Riallinea collegamenti farmaco-CRA su terapie esistenti prive di collegamento
 riallineaCollegamenti();

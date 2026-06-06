@@ -446,7 +446,7 @@ select option { background:var(--surface2); }
 <div class="overlay" id="modal-farmaco-cra">
   <div class="modal">
     <div class="modal-head">
-      <span class="modal-title" id="modal-fcra-title">Nuovo farmaco CRA</span>
+      <span class="modal-title" id="modal-fcra-title">Scheda farmaco CRA</span>
       <button class="close-btn" onclick="closeModal('modal-farmaco-cra')">×</button>
     </div>
     <div class="modal-body">
@@ -684,7 +684,7 @@ select option { background:var(--surface2); }
 <div class="overlay" id="modal-farmaco">
   <div class="modal modal-lg">
     <div class="modal-head">
-      <span class="modal-title" id="modal-farm-title">Aggiungi farmaco</span>
+      <span class="modal-title" id="modal-farm-title">Terapia paziente</span>
       <button class="close-btn" onclick="closeModal('modal-farmaco')">×</button>
     </div>
     <div class="modal-body">
@@ -2146,7 +2146,7 @@ function eliminaPaziente(pid) {
 function openModalFarmaco(pid, sezione) {
   farmacoEditPzId = pid;
   farmacoEditId = null;
-  document.getElementById('modal-farm-title').textContent = 'Aggiungi farmaco';
+  document.getElementById('modal-farm-title').textContent = 'Terapia paziente — nuovo farmaco';
   ['farm-nome','farm-note','farm-indicazione','farm-dose-la'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
@@ -2212,10 +2212,17 @@ function editTerapia(tid, pid) {
   farmacoEditId   = tid;
   farmacoEditPzId = pid;
 
-  document.getElementById('modal-farm-title').textContent = 'Modifica farmaco';
+  document.getElementById('modal-farm-title').textContent = 'Terapia paziente — modifica farmaco';
   document.getElementById('farm-nome').value        = t.farmaco || '';
   document.getElementById('farm-sezione').value     = t.sezione || 'orale';
-  document.getElementById('farm-dose-unit').value   = t.doseUnit || '';
+  // Se doseUnit è vuoto, prova a precompilarlo dal catalogo CRA tramite farmacoCRAid
+  let doseUnitPrecomp = t.doseUnit || '';
+  if (!doseUnitPrecomp && t.farmacoCRAid) {
+    const catFarmaci = load('fcra_farmaci_cra');
+    const fCat = catFarmaci.find(x => x.id === t.farmacoCRAid);
+    if (fCat && fCat.udm) doseUnitPrecomp = fCat.udm;
+  }
+  document.getElementById('farm-dose-unit').value   = doseUnitPrecomp;
   document.getElementById('farm-via').value         = t.via || '';
   document.getElementById('farm-note').value        = t.note || '';
   document.getElementById('farm-data-inizio').value = t.dataInizio || '';
@@ -2689,7 +2696,7 @@ const SK_FCRA = 'fcra_farmaci_cra';
 
 function openModalFarmacioCRA(fid) {
   editFCRAid = fid || null;
-  document.getElementById('modal-fcra-title').textContent = fid ? 'Modifica farmaco' : 'Nuovo farmaco CRA';
+  document.getElementById('modal-fcra-title').textContent = fid ? 'Scheda farmaco CRA — modifica' : 'Scheda farmaco CRA — nuovo';
   if (fid) {
     const f = load(SK_FCRA).find(x=>x.id===fid);
     if (f) {

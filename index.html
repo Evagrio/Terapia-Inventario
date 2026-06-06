@@ -709,14 +709,14 @@ select option { background:var(--surface2); }
           <label>Via di somministrazione</label>
           <select id="farm-via">
             <option value="">— seleziona —</option>
-            <option>Orale</option>
-            <option>IM</option>
-            <option>SC</option>
-            <option>EV</option>
-            <option>Topica</option>
-            <option>Sublinguale</option>
-            <option>Transdermica</option>
-            <option>Inalatoria</option>
+            <option value="os">os — orale</option>
+            <option value="s.l.">s.l. — sublinguale</option>
+            <option value="td">td — transdermica</option>
+            <option value="inal">inal — inalatoria</option>
+            <option value="im">im — intramuscolo</option>
+            <option value="sc">sc — sottocute</option>
+            <option value="ev">ev — endovenosa</option>
+            <option value="rett">rett — rettale</option>
           </select>
         </div>
         <div class="form-group">
@@ -1774,7 +1774,7 @@ function stampaFoglioB(pid) {
         return `<tr${cls}>
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
-          <td class="drug-cell">${t.farmaco.toUpperCase()}${fonte}</td>
+          <td class="drug-cell">${t.farmaco.toUpperCase()}${fonte}${t.via ? '<span style="font-size:6pt;font-weight:normal;color:#333"> (' + t.via + ')</span>' : ''}</td>
           <td class="forma-cell">${doseUnitAbbr(t.doseUnit, t.dose)}</td>
           ${buildOrariCells(t)}
           <td class="data-cell">${t.dataFine||''}</td>
@@ -1803,7 +1803,7 @@ function stampaFoglioB(pid) {
         return `<tr${cls}>
           <td class="data-cell">${t.dataInizio||''}</td>
           <td class="firma-cell"></td>
-          <td class="drug-cell" colspan="6">${t.farmaco.toUpperCase()}${fonte}${t.dose?' — '+t.dose:''}${t.indicazione?' — '+t.indicazione:''}</td>
+          <td class="drug-cell" colspan="6">${t.farmaco.toUpperCase()}${fonte}${t.via ? ' (' + t.via + ')' : ''}${t.dose?' — '+t.dose:''}${t.indicazione?' — '+t.indicazione:''}</td>
           <td class="data-cell">${t.dataFine||''}</td>
           <td class="firma-cell"></td>
         </tr>`;
@@ -1898,7 +1898,7 @@ function stampaFoglioB(pid) {
       font-size:11pt; font-weight:bold; line-height:1.5;
       border:1.5px solid #000; padding:2mm 3mm;
     }
-    .hdr-pz .allergia { font-size:6.5pt; color:#000; font-weight:bold; margin-top:1.5mm; border:2px double #000; padding:0.5mm 1.5mm; display:block; }
+    .hdr-pz .allergia { font-size:7.5pt; color:#000; font-weight:bold; margin-top:1.5mm; border:3px double #000; padding:1mm 2mm; display:block; }
     .hdr-pz .pz-dob { font-size:7pt; font-weight:normal; margin-top:0.5mm; }
 
     /* GRIGLIA */
@@ -3223,8 +3223,36 @@ function eseguiCambioPassword() {
 })();
 
 // ============================================================
+
+// Migrazione valori "Via di somministrazione" dal formato vecchio alle abbreviazioni
+function migraViaSomministrazione() {
+  const MAP_VIA = {
+    'orale': 'os', 'os': 'os',
+    'sublinguale': 's.l.', 's.l.': 's.l.',
+    'transdermica': 'td', 'td': 'td',
+    'inalatoria': 'inal', 'inal': 'inal',
+    'im': 'im', 'intramuscolo': 'im', 'intramuscolare': 'im',
+    'sc': 'sc', 'sottocute': 'sc',
+    'ev': 'ev', 'endovenosa': 'ev', 'endovenoso': 'ev', 'iv': 'ev',
+    'rettale': 'rett', 'rett': 'rett',
+    'topica': 'td'   // topica → transdermica (più precisa)
+  };
+  const DONE_KEY = 'fcra_via_migr_v1';
+  if (localStorage.getItem(DONE_KEY)) return; // già eseguita
+  const terapie = load(SK.terapie);
+  let changed = false;
+  terapie.forEach(t => {
+    if (!t.via) return;
+    const abbr = MAP_VIA[t.via.toLowerCase().trim()];
+    if (abbr && abbr !== t.via) { t.via = abbr; changed = true; }
+  });
+  if (changed) save(SK.terapie, terapie);
+  localStorage.setItem(DONE_KEY, '1');
+}
+
 // INIT
 // ============================================================
+migraViaSomministrazione();
 checkLogin();
 // Riallinea collegamenti farmaco-CRA su terapie esistenti prive di collegamento
 riallineaCollegamenti();

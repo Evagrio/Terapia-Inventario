@@ -691,7 +691,11 @@ select option { background:var(--surface2); }
       <div class="form-row">
         <div class="form-group">
           <label>Nome farmaco *</label>
-          <input type="text" id="farm-nome" placeholder="es. Aloperidolo 2mg">
+          <input type="text" id="farm-nome" placeholder="es. Aloperidolo 2mg"
+                 list="farm-nome-list" autocomplete="off"
+                 oninput="onFarmNomeInput(this.value)">
+          <datalist id="farm-nome-list"></datalist>
+          <div id="farm-nome-link" style="font-size:0.72rem;margin-top:4px;min-height:1.1em;"></div>
         </div>
         <div class="form-group">
           <label>Sezione *</label>
@@ -2172,7 +2176,50 @@ function openModalFarmaco(pid, sezione) {
   });
   document.getElementById('farm-data-inizio').value = new Date().toISOString().slice(0,10);
   aggiornaCampiSezione();
+  _popolaFarmNomeDatalist();
+  document.getElementById('farm-nome-link').textContent = '';
   openModal('modal-farmaco');
+}
+
+// ── DATALIST: popola il suggerimento autocomplete dal catalogo CRA ────────────
+function _popolaFarmNomeDatalist() {
+  const dl = document.getElementById('farm-nome-list');
+  if (!dl) return;
+  const fcraList = load(SK_FCRA);
+  dl.innerHTML = fcraList
+    .slice()
+    .sort((a,b) => a.nome.localeCompare(b.nome,'it'))
+    .map(f => `<option value="${f.nome.replace(/"/g,'&quot;')}">`)
+    .join('');
+}
+
+// Aggiornato in tempo reale: riconosce il farmacoCRAid e mostra feedback visivo
+let _farmNomeDebounce = null;
+function onFarmNomeInput(val) {
+  clearTimeout(_farmNomeDebounce);
+  _farmNomeDebounce = setTimeout(() => {
+    const lnk = document.getElementById('farm-nome-link');
+    if (!lnk) return;
+    if (!val.trim()) { lnk.innerHTML = ''; return; }
+    const fcraList = load(SK_FCRA);
+    // Match esatto prima (l'utente ha scelto dal datalist)
+    const exact = fcraList.find(f => f.nome.toLowerCase().trim() === val.toLowerCase().trim());
+    if (exact) {
+      lnk.innerHTML = `<span style="color:var(--green)">🔗 Collegato a magazzino: <b>${exact.nome}</b></span>`;
+      return;
+    }
+    // Match tramite normalizzazione sinonimi
+    const normVal = _normFarmaco(val);
+    const soft = fcraList.find(f => {
+      const nf = _normFarmaco(f.nome);
+      return nf === normVal || (nf.length >= 4 && normVal.length >= 4 && (nf.includes(normVal) || normVal.includes(nf)));
+    });
+    if (soft) {
+      lnk.innerHTML = `<span style="color:var(--amber)">⚡ Riconosciuto come: <b>${soft.nome}</b> — collegamento automatico</span>`;
+    } else {
+      lnk.innerHTML = `<span style="color:var(--muted)">⚠ Non trovato in magazzino CRA — verrà salvato senza link</span>`;
+    }
+  }, 280);
 }
 
 function aggiornaCampiSezione() {
@@ -2250,6 +2297,19 @@ function editTerapia(tid, pid) {
   });
 
   aggiornaCampiSezione();
+  _popolaFarmNomeDatalist();
+  // mostra subito lo stato del link per la terapia che si sta modificando
+  const lnk = document.getElementById('farm-nome-link');
+  if (lnk) {
+    if (t.farmacoCRAid) {
+      const fc = load(SK_FCRA).find(f => f.id === t.farmacoCRAid);
+      lnk.innerHTML = fc
+        ? `<span style="color:var(--green)">🔗 Collegato a magazzino: <b>${fc.nome}</b></span>`
+        : `<span style="color:var(--amber)">⚠ ID magazzino non trovato (${t.farmacoCRAid})</span>`;
+    } else {
+      lnk.innerHTML = `<span style="color:var(--muted)">⚠ Non collegato a magazzino CRA</span>`;
+    }
+  }
   openModal('modal-farmaco');
 }
 
@@ -2323,14 +2383,14 @@ function salvaFarmaco() {
     dataCreazione: new Date().toISOString(),
   };
 
-  // collega farmaco CRA in magazzino: match robusto (esatto → inizia con → contiene)
+  // collega farmaco CRA in magazzino: match via normalizzazione sinonimi + fallback raw
   const fcraList = load(SK_FCRA);
-  const nomeN = nome.toLowerCase().trim();
-  const match = fcraList.find(f => f.nome.toLowerCase().trim() === nomeN)
-             || fcraList.find(f => nomeN.startsWith(f.nome.toLowerCase().trim()))
-             || fcraList.find(f => f.nome.toLowerCase().trim().startsWith(nomeN))
-             || fcraList.find(f => f.nome.toLowerCase().includes(nomeN) || nomeN.includes(f.nome.toLowerCase().trim()));
-  if (match) terapia.farmacoCRAid = match.id;
+  const nomeN  = _normFarmaco(nome);
+  const fcraIndex = fcraList.map(f => ({ f, norm: _normFarmaco(f.nome) }));
+  const mFound = fcraIndex.find(x => x.norm === nomeN)
+              || fcraIndex.find(x => x.norm.length >= 4 && nomeN.length >= 4 && (x.norm.includes(nomeN) || nomeN.includes(x.norm)))
+              || fcraIndex.find(x => x.f.nome.toLowerCase().trim() === nome.toLowerCase().trim());
+  if (mFound) terapia.farmacoCRAid = mFound.f.id;
 
   const terapie = load(SK.terapie);
   if (farmacoEditId) {
@@ -2358,21 +2418,161 @@ function eliminaTerapia(tid, pid) {
   toast('Farmaco rimosso');
 }
 
+// ── SINONIMI: mappa principio-attivo ↔ nome-commerciale e varianti ──────────
+// Ogni voce: [variante_terapia, ...] → parola-chiave presente nel catalogo CRA
+// Il matching usa queste chiavi per normalizzare ENTRAMBI i nomi prima del confronto.
+const _SINONIMI_FARMACO = [
+  // Antipsicotici
+  ['aripiprazolo','abilify'],
+  ['abilify maintena','aripiprazolo maintena'],
+  ['paliperidone','xeplion','invega'],
+  ['clozapina','leponex'],
+  ['quetiapina','seroquel'],
+  ['risperidone','risperdal'],
+  ['olanzapina','zyprexa','velotab'],
+  ['aloperidolo','haldol','serenase'],
+  ['clotiapina','entumin'],
+  ['promazina','talofen'],
+  ['clorpromazina','largactil'],
+  ['brexpiprazolo','rxulti','rexulti'],
+  // Benzodiazepine / ipnotici
+  ['delorazepam'],          // le varianti "(EN)" vengono già risolte togliendo parentesi
+  ['lorazepam','tavor'],
+  ['diazepam','valium'],
+  ['flurazepam','valdorm','dalmadorm','felison'],
+  ['clonazepam','rivotril'],
+  ['lormetazepam','minias'],
+  ['bromazepam','lexotan'],
+  ['zolpidem','stilnox'],
+  // Stabilizzatori umore / antiepilettici
+  ['litio carbonato','carbolithium','maniprex'],
+  ['litio resilient','litio solfato','resilient'],
+  ['valproato','depakin','depakin chrono','depakin cr','depakin rm'],
+  ['carbamazepina','tegretol'],
+  ['lamotrigina','lamictal'],
+  ['pregabalin','lyrica'],
+  ['gabapentin','neurontin'],
+  // Antidepressivi
+  ['sertralina','zoloft'],
+  ['paroxetina','seroxat'],
+  ['fluoxetina','prozac'],
+  ['fluvoxamina','fevarin'],
+  ['mirtazapina','remeron'],
+  ['venlafaxina','efexor'],
+  ['amitriptilina','laroxil'],
+  ['trazodone','trittico'],
+  ['vortioxetina','brintellix'],
+  ['agomelatina','valdoxan'],
+  // FANS / analgesici / antifebbrili
+  ['paracetamolo','tachipirina'],
+  ['ibuprofene','brufen','moment'],
+  ['nimesulide','aulin'],
+  ['diclofenac','voltaren'],
+  ['ketoprofene','ketodol','fastum'],
+  // Gastrointestinali
+  ['domperidone','motilium','plasil'],    // plasil=metoclopramide, ma usato sinonimicamente
+  ['metoclopramide','plasil'],
+  ['pantoprazolo','pantecta','pantorc'],
+  ['omeprazolo','omeprazen'],
+  ['loperamide','imodium'],
+  // Cardiovascolari / metabolici
+  ['atorvastatina','torvast'],
+  ['ramipril','triatec'],
+  ['amlodipina','norvasc'],
+  ['olmesartan','olmetec'],
+  ['bisoprololo','concor','lobivon','nebivololo'],
+  ['spironolattone','aldactone'],
+  ['isosorbide','carvasin'],
+  ['levotiroxina','eutirox','tirosint'],
+  ['idrossiurea','oncocarbide'],
+  // Altri
+  ['cetirizina','zirtec','kestine'],
+  ['ebastina','kestine'],
+  ['betametasone','bentelan'],
+  ['prednisone','deltacortene'],
+  ['metocarbamolo','muscoril'],
+  ['tocolchicoside','muscoril'],
+  ['scopolamina','buscopan'],
+  ['ergotamina','didergot'],
+  ['etilefrina','efortil'],
+  ['allopurinolo','zyloric'],
+  ['nitroglicerina','trinitrina'],
+  ['acido acetilsalicilico','aspirina','aspirinetta','cardioaspirina'],
+];
+
+// Normalizza un nome farmaco: minuscolo, spazi singoli, rimuove parentesi e contenuto,
+// rimuove suffissi di forma non-dosaggio, riduce sinonimi alla forma-base.
+function _normFarmaco(nome) {
+  let s = (nome || '').toLowerCase()
+    .replace(/\s+/g, ' ')          // spazi multipli → singolo
+    .replace(/\(.*?\)/g, '')       // rimuove parentesi e contenuto: "(leponex)" → ""
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // Normalizza suffissi forma farmaceutica frequenti
+  s = s
+    .replace(/\b(chrono|cr|ch|rp|rp\b|rm|er|mr|sr|xl|la|retard|prolonged|depot|decanoas?|decanoate?)\b/gi, '')
+    .replace(/\b(compresse?|cpr?|cp|cps?|capsule?|gocce?|gtt|fiale?|fl|fiala|bustine?|bust|sciroppo|sci|soluzione|crema|gel|cerotto?|cer|supp|supposte?|spray|pomata)\b/gi, '')
+    .replace(/\b(im|ev|sc|os|sl|per os|intramuscolo?|endovena)\b/gi, '')
+    .replace(/\b(\d+\s*mg\/ml|\d+\s*mg\/\d+\s*ml|\d+\s*ui\/ml)\b/gi, m => m.replace(/\s/g,'')) // normalizza concentrazioni
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // Espansioni pre-sinonimo per abbreviazioni ambigue
+  s = s.replace(/^en\b/, 'delorazepam');   // "EN gtt" → "delorazepam gtt"
+  s = s.replace(/\brxulti\b/, 'rexulti');  // normalizza typo frequente
+  s = s.replace(/\s{2,}/g, ' ');           // doppi spazi residui (es. "BRUFEN  600mg")
+
+  // Applica sinonimi: se il nome contiene una delle varianti, sostituisce con la prima del gruppo
+  for (const gruppo of _SINONIMI_FARMACO) {
+    const base = gruppo[0];
+    for (let i = 0; i < gruppo.length; i++) {
+      const alias = gruppo[i];
+      if (s.includes(alias)) {
+        s = s.replace(alias, base);
+        break;
+      }
+    }
+  }
+  return s.replace(/\s+/g, ' ').trim();
+}
+
 // Riallinea farmacoCRAid su tutte le terapie esistenti prive di collegamento
 function riallineaCollegamenti() {
   const terapie  = load(SK.terapie);
   const fcraList = load(SK_FCRA);
   let aggiornate = 0;
+
+  // Pre-calcola versioni normalizzate del catalogo (evita ricalcolo ad ogni iterazione)
+  const fcraIndex = fcraList.map(f => ({ f, norm: _normFarmaco(f.nome) }));
+
   terapie.forEach(t => {
-    if (t.farmacoCRAid) return; // già collegata
-    const nomeN = (t.farmaco || '').toLowerCase().trim();
-    if (!nomeN) return;
-    const match = fcraList.find(f => f.nome.toLowerCase().trim() === nomeN)
-               || fcraList.find(f => nomeN.startsWith(f.nome.toLowerCase().trim()))
-               || fcraList.find(f => f.nome.toLowerCase().trim().startsWith(nomeN))
-               || fcraList.find(f => f.nome.toLowerCase().includes(nomeN) || nomeN.includes(f.nome.toLowerCase().trim()));
-    if (match) { t.farmacoCRAid = match.id; aggiornate++; }
+    if (t.farmacoCRAid) return; // già collegata — non sovrascrivere
+    const nomeRaw = (t.farmaco || '').trim();
+    if (!nomeRaw) return;
+
+    const nomeN = _normFarmaco(nomeRaw);
+
+    // 1. Match esatto sui nomi normalizzati
+    let found = fcraIndex.find(x => x.norm === nomeN);
+
+    // 2. Uno contiene l'altro (normalizzati) — ma solo se la stringa più corta è ≥ 4 char
+    if (!found) found = fcraIndex.find(x =>
+      x.norm.length >= 4 && nomeN.length >= 4 &&
+      (x.norm.includes(nomeN) || nomeN.includes(x.norm))
+    );
+
+    // 3. Fallback: confronto sul nome RAW originale (vecchia logica, safety net)
+    if (!found) {
+      const rawN = nomeRaw.toLowerCase().trim();
+      found = fcraIndex.find(x => x.f.nome.toLowerCase().trim() === rawN)
+           || fcraIndex.find(x => rawN.startsWith(x.f.nome.toLowerCase().trim()) && x.f.nome.length >= 5)
+           || fcraIndex.find(x => x.f.nome.toLowerCase().trim().startsWith(rawN) && rawN.length >= 5);
+    }
+
+    if (found) { t.farmacoCRAid = found.f.id; aggiornate++; }
   });
+
   save(SK.terapie, terapie);
   return aggiornate;
 }

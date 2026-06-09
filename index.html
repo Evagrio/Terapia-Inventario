@@ -721,7 +721,8 @@ select option { background:var(--surface2); }
         <div class="form-group">
           <label>Nome farmaco *</label>
           <div style="position:relative">
-            <input type="text" id="farm-nome" placeholder="es. Aloperidolo 2mg" autocomplete="off"
+            <input type="text" id="farm-nome" placeholder="es. Aloperidolo 2mg"
+                   autocomplete="new-password" name="fcra_farmaco_search" spellcheck="false"
                    oninput="aggiornaSuggerimentiFarmaco(this.value)" onblur="setTimeout(()=>chiudiSuggerimentiFarmaco(),200)">
             <div id="farm-nome-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:400;background:var(--surface2);border:1px solid var(--gold);border-radius:0 0 8px 8px;max-height:180px;overflow-y:auto;box-shadow:0 6px 20px rgba(0,0,0,.5)"></div>
           </div>

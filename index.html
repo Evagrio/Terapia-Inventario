@@ -304,7 +304,6 @@ select option { background:var(--surface2); }
 .inv-chips { display:flex; flex-wrap:wrap; gap:5px; }
 .chip-urgent { font-size:0.78rem; padding:3px 10px; border-radius:20px; background:rgba(224,82,82,.15); border:1px solid rgba(224,82,82,.3); color:var(--text); }
 .chip-warn   { font-size:0.78rem; padding:3px 10px; border-radius:20px; background:rgba(232,145,58,.15); border:1px solid rgba(232,145,58,.3); color:var(--text); }
-.farm-nome-opt:hover { background:var(--gold-bg); color:var(--gold); }
 
 /* MOVIMENTO LOG */
 .mov-list { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
@@ -368,12 +367,12 @@ select option { background:var(--surface2); }
 <div id="tab-pazienti" class="container">
 
   <!-- BANNER ALERT FARMACI (visibile nella home) -->
-  <div id="home-alert-broken" class="inv-alert urgent" style="display:none;margin-bottom:14px">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <div class="inv-alert-ttl" style="margin-bottom:0">🔗 Terapie con collegamento magazzino mancante</div>
-      <button class="btn btn-ghost btn-sm" onclick="showTab('report')" style="font-size:0.7rem;padding:3px 10px">Vai a Report →</button>
+  <div id="home-alert-urgent" class="inv-alert urgent" style="display:none;margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div class="inv-alert-ttl" style="margin-bottom:0">🔗 Collegamento rotto — <span id="home-alert-urgent-count" style="font-family:'Inconsolata',monospace;font-size:0.7rem;background:var(--red-bg);border:1px solid var(--red);border-radius:10px;padding:1px 8px">0</span> terapie con farmacoCRAid non trovato</div>
+      <span style="font-size:0.73rem;color:var(--muted);cursor:pointer;text-decoration:underline" onclick="showTab('report');setTimeout(()=>showReportTab('incongruenze'),80)">Vai a Report → Incongruenze →</span>
     </div>
-    <div class="inv-chips" id="home-chips-broken" style="margin-top:8px"></div>
+    <div class="inv-chips" id="home-chips-urgent" style="margin-top:8px"></div>
   </div>
   <div id="home-alert-warn" class="inv-alert warn" style="display:none;margin-bottom:14px">
     <div class="inv-alert-ttl">⚠ Farmaci in ATTENZIONE — scorte per meno di 7 giorni</div>
@@ -421,12 +420,19 @@ select option { background:var(--surface2); }
 <div id="tab-inventario" class="container" style="display:none;">
 
   <div id="inv-alert-urgent" class="inv-alert urgent" style="display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
-      <div class="inv-alert-ttl" style="margin-bottom:0">⚠ Scorta = 0 con terapie attive</div>
-      <span id="inv-alert-urgent-count" style="font-family:'Inconsolata',monospace;font-size:0.7rem;background:var(--red);color:#fff;border-radius:10px;padding:1px 8px"></span>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+      <div class="inv-alert-ttl" style="margin-bottom:0">⚠ Scorta = 0 con terapie attive — <span id="inv-alert-urgent-count" style="font-family:'Inconsolata',monospace;font-size:0.7rem;background:var(--red-bg);border:1px solid var(--red);border-radius:10px;padding:1px 8px">0</span></div>
+      <span style="font-size:0.73rem;color:var(--muted)">Verifica scorta fisica e aggiorna o ordina</span>
     </div>
-    <div id="inv-chips-urgent"></div>
-    <div id="inv-chips-urgent-table" style="width:100%;overflow-x:auto;margin-top:8px"></div>
+    <table style="width:100%;border-collapse:collapse;font-size:0.78rem">
+      <thead><tr style="color:var(--muted);font-family:'Inconsolata',monospace;font-size:0.65rem;text-transform:uppercase;letter-spacing:.08em">
+        <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--border)">Farmaco</th>
+        <th style="text-align:center;padding:4px 8px;border-bottom:1px solid var(--border)">Scorta</th>
+        <th style="text-align:center;padding:4px 8px;border-bottom:1px solid var(--border)">Consumo/die</th>
+        <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--border)">Pazienti</th>
+      </tr></thead>
+      <tbody id="inv-chips-urgent"></tbody>
+    </table>
   </div>
   <div id="inv-alert-warn" class="inv-alert warn" style="display:none;">
     <div class="inv-alert-ttl">⬇ Scorte in esaurimento</div>
@@ -601,9 +607,10 @@ select option { background:var(--surface2); }
 <div id="tab-report" class="container" style="display:none;">
 
   <div class="nav-tabs" style="margin:0 -24px 20px;padding:0 24px;">
-    <div class="tab active" id="rtab-scorte"  onclick="showReportTab('scorte')">📦 Scorte magazzino</div>
-    <div class="tab"        id="rtab-consumi" onclick="showReportTab('consumi')">📈 Farmaci in uso</div>
-    <div class="tab"        id="rtab-storico" onclick="showReportTab('storico')">🗂 Storico mensile</div>
+    <div class="tab active" id="rtab-scorte"        onclick="showReportTab('scorte')">📦 Scorte magazzino</div>
+    <div class="tab"        id="rtab-consumi"       onclick="showReportTab('consumi')">📈 Farmaci in uso</div>
+    <div class="tab"        id="rtab-storico"       onclick="showReportTab('storico')">🗂 Storico mensile</div>
+    <div class="tab"        id="rtab-incongruenze"  onclick="showReportTab('incongruenze')">🔍 Incongruenze</div>
   </div>
 
   <div id="rpanel-scorte">
@@ -627,6 +634,20 @@ select option { background:var(--surface2); }
       <div><h2>Storico report mensili</h2><p style="font-size:0.75rem;color:var(--muted)" id="storico-count"></p></div>
     </div>
     <div id="report-storico-list"></div>
+  </div>
+
+  <div id="rpanel-incongruenze" style="display:none">
+    <div class="toolbar" style="margin-bottom:14px">
+      <div>
+        <h2>Incongruenze foglio terapia ↔ magazzino</h2>
+        <p style="font-size:0.75rem;color:var(--muted)">Terapie attive CRA — escluse le terapie al bisogno</p>
+      </div>
+      <div class="tbar-right">
+        <button class="btn btn-ghost btn-sm" onclick="renderReportIncongruenze()">🔄 Aggiorna</button>
+        <button class="btn btn-ghost btn-sm" onclick="stampaReportIncongruenze()">🖨 Stampa</button>
+      </div>
+    </div>
+    <div id="report-incongruenze-content"></div>
   </div>
 
 </div>
@@ -701,10 +722,12 @@ select option { background:var(--surface2); }
           <label>Nome farmaco *</label>
           <div style="position:relative">
             <input type="text" id="farm-nome" placeholder="es. Aloperidolo 2mg" autocomplete="off"
-              oninput="farmNomeInput(this)" onblur="setTimeout(()=>farmNomeHideDropdown(),200)">
-            <div id="farm-nome-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:500;background:var(--surface2);border:1px solid var(--gold);border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4)"></div>
+                   oninput="aggiornaSuggerimentiFarmaco(this.value)" onblur="setTimeout(()=>chiudiSuggerimentiFarmaco(),200)">
+            <div id="farm-nome-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:400;background:var(--surface2);border:1px solid var(--gold);border-radius:0 0 8px 8px;max-height:180px;overflow-y:auto;box-shadow:0 6px 20px rgba(0,0,0,.5)"></div>
           </div>
-          <div id="farm-nome-link" style="font-size:0.75rem;margin-top:5px;min-height:1.1em"></div>
+          <div id="farm-link-badge" style="display:none;margin-top:5px;font-family:'Inconsolata',monospace;font-size:0.68rem;background:var(--green-bg);color:var(--green);border:1px solid rgba(77,184,122,.3);border-radius:8px;padding:3px 10px;display:inline-flex;align-items:center;gap:6px">
+            🔗 <span id="farm-link-badge-txt"></span>
+          </div>
         </div>
         <div class="form-group">
           <label>Sezione *</label>
@@ -1031,34 +1054,42 @@ function statoFarmacoGiorni(farm) {
 // BANNER HOME — aggiorna alert farmaci + report mensile
 // ============================================================
 function aggiornaBannerHome() {
-  // — Banner "Collegamento rotto" (terapie attive senza farmacoCRAid valido nel catalogo) —
+  // Banner A: collegamento rotto (farmacoCRAid punta a ID non esistente)
   const terapie  = load(SK.terapie);
-  const fcraList = load(SK_FCRA);
+  const farmaci  = load(SK_FCRA);
   const pazienti = load(SK.pazienti);
-  const fcraIds  = new Set(fcraList.map(f => f.id));
-  const oggi     = new Date().toISOString().split('T')[0];
+  const farmMap  = {};
+  farmaci.forEach(f => farmMap[f.id] = f);
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
 
-  // Terapie attive (no dataFine scaduta) con farmacoCRAid assente o puntante a un ID non esistente
-  const rotte = terapie.filter(t => {
-    if (t.dataFine && t.dataFine < oggi) return false; // terapia terminata
-    const mancante = !t.farmacoCRAid || !fcraIds.has(t.farmacoCRAid);
-    return mancante;
-  });
-
-  const bb = document.getElementById('home-alert-broken');
-  const cb = document.getElementById('home-chips-broken');
-  if (bb) bb.style.display = rotte.length ? '' : 'none';
-  if (cb) {
-    cb.innerHTML = rotte.map(t => {
-      const pz = pazienti.find(p => p.id === t.pazienteId);
-      const nomePz = pz ? (pz.cognome + ' ' + (pz.nome||'')).trim() : 'Paz. sconosciuto';
-      return `<span class="chip-urgent" style="cursor:pointer" onclick="apriSchedaDaHome('${t.pazienteId}')" title="Apri scheda per collegare">${nomePz} · ${t.farmaco}</span>`;
-    }).join('');
+  function isAttivaNonBisogno(t) {
+    if (t.sezione === 'bisogno') return false;
+    const pz = pazienti.find(p => p.id === t.pazienteId);
+    if (pz && (pz.terapiaSospesa === true || pz.terapiaSospesa === 'true')) return false;
+    if (t.dataInizio) { const d = new Date(t.dataInizio); d.setHours(0,0,0,0); if (d > oggi) return false; }
+    if (t.dataFine)   { const d = new Date(t.dataFine);   d.setHours(0,0,0,0); if (d < oggi) return false; }
+    return true;
   }
 
-  // — Banner warn scorte —
-  const farmaci = load(SK_FCRA);
-  const warn    = farmaci.filter(f => statoFarmacoGiorni(f).stato === 'warn');
+  const rotti = terapie.filter(t =>
+    t.fonte === 'CRA' && isAttivaNonBisogno(t) &&
+    t.farmacoCRAid && !farmMap[t.farmacoCRAid]
+  );
+
+  const bu = document.getElementById('home-alert-urgent');
+  const cu = document.getElementById('home-chips-urgent');
+  const cntU = document.getElementById('home-alert-urgent-count');
+
+  if (bu) bu.style.display = rotti.length ? '' : 'none';
+  if (cntU) cntU.textContent = rotti.length;
+  if (cu) cu.innerHTML = rotti.map(t => {
+    const pz = pazienti.find(p => p.id === t.pazienteId);
+    const pzNome = pz ? `${pz.cognome} ${pz.nome}` : t.pazienteId;
+    return `<span class="chip-urgent" style="cursor:pointer" title="Apri scheda paziente" onclick="apriSchedaPaziente('${t.pazienteId}')">${pzNome} — ${t.farmaco} <span style="opacity:.6;font-size:0.7rem">[${t.farmacoCRAid}]</span></span>`;
+  }).join('');
+
+  // Banner B: farmaci in attenzione (scorte basse) — rimane visibile
+  const warn = farmaci.filter(f => statoFarmacoGiorni(f).stato === 'warn');
   const bw = document.getElementById('home-alert-warn');
   const cw = document.getElementById('home-chips-warn');
   if (bw) bw.style.display = warn.length ? '' : 'none';
@@ -1069,12 +1100,6 @@ function aggiornaBannerHome() {
 
   // banner report mensile
   controllaReportMensile();
-}
-
-// Helper: naviga direttamente alla scheda paziente dalla home
-function apriSchedaDaHome(pazienteId) {
-  showTab('pazienti');
-  setTimeout(() => renderScheda(pazienteId), 50);
 }
 
 // ============================================================
@@ -1181,13 +1206,14 @@ function generaESalvaReportMensile(mostraToast, chiaveForzata) {
 // REPORT TAB — sub-navigazione
 // ============================================================
 function showReportTab(tab) {
-  ['scorte','consumi','storico'].forEach(t => {
+  ['scorte','consumi','storico','incongruenze'].forEach(t => {
     document.getElementById('rpanel-' + t).style.display = t === tab ? '' : 'none';
     document.getElementById('rtab-' + t).classList.toggle('active', t === tab);
   });
-  if (tab === 'scorte')  renderReportScorte();
-  if (tab === 'consumi') renderReportConsumi();
-  if (tab === 'storico') renderReportStorico();
+  if (tab === 'scorte')       renderReportScorte();
+  if (tab === 'consumi')      renderReportConsumi();
+  if (tab === 'storico')      renderReportStorico();
+  if (tab === 'incongruenze') renderReportIncongruenze();
 }
 
 // ============================================================
@@ -1368,6 +1394,236 @@ function eliminaReport(k) {
   save(SK_REPORTS, reports);
   renderReportStorico();
   toast('Report eliminato');
+}
+
+// ============================================================
+// RENDER REPORT INCONGRUENZE
+// ============================================================
+function renderReportIncongruenze() {
+  const el = document.getElementById('report-incongruenze-content');
+  const pazienti = load(SK.pazienti);
+  const terapie  = load(SK.terapie);
+  const farmaci  = load(SK_FCRA);
+
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  const farmMap = {};
+  farmaci.forEach(f => farmMap[f.id] = f);
+
+  // Helper: terapia attiva non-bisogno
+  function isAttivaNonBisogno(t) {
+    if (t.sezione === 'bisogno') return false;
+    const pz = pazienti.find(p => p.id === t.pazienteId);
+    if (pz && (pz.terapiaSospesa === true || pz.terapiaSospesa === 'true')) return false;
+    if (t.dataInizio) { const d = new Date(t.dataInizio); d.setHours(0,0,0,0); if (d > oggi) return false; }
+    if (t.dataFine)   { const d = new Date(t.dataFine);   d.setHours(0,0,0,0); if (d < oggi) return false; }
+    return true;
+  }
+
+  // INC-1: farmacoCRAid = vuoto o non presente in magazzino
+  const inc1 = terapie.filter(t =>
+    t.fonte === 'CRA' && isAttivaNonBisogno(t) &&
+    (!t.farmacoCRAid || !farmMap[t.farmacoCRAid])
+  );
+
+  // INC-2: farmaco con scorta = 0 ma ha terapie attive
+  const fIdInUso = {};
+  terapie.forEach(t => {
+    if (t.fonte === 'CRA' && isAttivaNonBisogno(t) && t.farmacoCRAid && farmMap[t.farmacoCRAid]) {
+      if (!fIdInUso[t.farmacoCRAid]) fIdInUso[t.farmacoCRAid] = [];
+      fIdInUso[t.farmacoCRAid].push(t);
+    }
+  });
+  const inc2 = farmaci.filter(f => fIdInUso[f.id] && (f.scorta === 0 || f.scorta === null || f.scorta === undefined));
+
+  // INC-3: farmacoCRAid non-vuoto ma ID non esiste nel magazzino (link rotto esplicito)
+  const inc3 = terapie.filter(t =>
+    t.fonte === 'CRA' && isAttivaNonBisogno(t) &&
+    t.farmacoCRAid && !farmMap[t.farmacoCRAid]
+  );
+
+  // Farmaci scorta critica (< 3gg) con terapie attive
+  const incCrit = farmaci.filter(f => {
+    if (!fIdInUso[f.id]) return false;
+    const { stato } = statoFarmacoGiorni(f);
+    return stato === 'urgent';
+  });
+  const incWarn = farmaci.filter(f => {
+    if (!fIdInUso[f.id]) return false;
+    const { stato } = statoFarmacoGiorni(f);
+    return stato === 'warn';
+  });
+
+  const totProblemi = inc1.length + inc2.length + inc3.length + incCrit.length + incWarn.length;
+
+  // ── Render badges riepilogo ──
+  function badgePz(t) {
+    const pz = pazienti.find(p => p.id === t.pazienteId);
+    return pz ? `${pz.cognome} ${pz.nome}` : t.pazienteId;
+  }
+
+  function righeInc1() {
+    if (!inc1.length) return '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:14px">✅ Nessuna</td></tr>';
+    return inc1.map(t => {
+      const pznome = badgePz(t);
+      const fid = t.farmacoCRAid ? `<span style="font-family:'Inconsolata',monospace;font-size:0.72rem;color:var(--red)">${t.farmacoCRAid} ⚠ non trovato</span>` : '<span style="color:var(--muted);font-size:0.75rem">(vuoto)</span>';
+      return `<tr>
+        <td><strong>${pznome}</strong></td>
+        <td>${t.farmaco}</td>
+        <td><span style="font-family:'Inconsolata',monospace;font-size:0.73rem;background:var(--blue-bg);color:var(--blue);padding:1px 6px;border-radius:4px">${t.sezione}</span></td>
+        <td style="font-family:'Inconsolata',monospace;font-size:0.77rem;color:var(--blue)">${t.dose||'—'}</td>
+        <td>${fid}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function righeInc2() {
+    if (!inc2.length) return '<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:14px">✅ Nessuna</td></tr>';
+    return inc2.map(f => {
+      const tt = fIdInUso[f.id] || [];
+      const consumo = calcolaConsumoCRA(f.id);
+      const pzList = tt.map(t => badgePz(t)).join(', ');
+      return `<tr>
+        <td><strong>${f.nome}</strong></td>
+        <td><span class="stato-pill stato-urgent">0 ${f.udm||'u'}</span></td>
+        <td style="font-family:'Inconsolata',monospace;font-size:0.77rem;color:var(--red)">${consumo.toFixed(1)} ${f.udm||'u'}/die</td>
+        <td style="font-size:0.78rem;color:var(--muted)">${pzList}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function righeInc3() {
+    if (!inc3.length) return '<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:14px">✅ Nessuna</td></tr>';
+    return inc3.map(t => {
+      const pznome = badgePz(t);
+      return `<tr>
+        <td><strong>${pznome}</strong></td>
+        <td>${t.farmaco}</td>
+        <td style="font-family:'Inconsolata',monospace;font-size:0.73rem;color:var(--red)">${t.farmacoCRAid}</td>
+        <td><span class="stato-pill stato-urgent">ID non trovato</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function righeScorte(lista, classe) {
+    if (!lista.length) return '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:14px">✅ Nessuna</td></tr>';
+    return lista.map(f => {
+      const { giorni } = statoFarmacoGiorni(f);
+      const scorta = Math.round(calcolaScorta(f));
+      const tt = fIdInUso[f.id] || [];
+      const pzList = tt.map(t => badgePz(t)).join(', ');
+      return `<tr>
+        <td><strong>${f.nome}</strong></td>
+        <td><span class="stato-pill ${classe}">${scorta} ${f.udm||'u'}</span></td>
+        <td style="font-family:'Inconsolata',monospace;font-size:0.77rem">${calcolaConsumoCRA(f.id).toFixed(1)} ${f.udm||'u'}/die</td>
+        <td style="font-family:'Inconsolata',monospace;font-size:0.77rem">${giorni !== null ? giorni + ' gg' : '—'}</td>
+        <td style="font-size:0.78rem;color:var(--muted)">${pzList}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const oggi_str = new Date().toLocaleDateString('it-IT', {day:'2-digit',month:'2-digit',year:'numeric'});
+
+  el.innerHTML = `
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+    <div style="background:var(--red-bg);border:1px solid var(--red);border-radius:10px;padding:12px 18px;display:flex;flex-direction:column;align-items:center;min-width:110px">
+      <span style="font-family:'Inconsolata',monospace;font-size:1.6rem;font-weight:700;color:var(--red);line-height:1">${inc2.length + inc3.length}</span>
+      <span style="font-size:0.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;text-align:center">Scorta 0 / link rotto</span>
+    </div>
+    <div style="background:var(--amber-bg);border:1px solid var(--amber);border-radius:10px;padding:12px 18px;display:flex;flex-direction:column;align-items:center;min-width:110px">
+      <span style="font-family:'Inconsolata',monospace;font-size:1.6rem;font-weight:700;color:var(--amber);line-height:1">${inc1.length}</span>
+      <span style="font-size:0.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;text-align:center">Terapie senza link</span>
+    </div>
+    <div style="background:var(--red-bg);border:1px solid var(--red);border-radius:10px;padding:12px 18px;display:flex;flex-direction:column;align-items:center;min-width:110px">
+      <span style="font-family:'Inconsolata',monospace;font-size:1.6rem;font-weight:700;color:var(--red);line-height:1">${incCrit.length}</span>
+      <span style="font-size:0.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;text-align:center">Critici (&lt; 3 gg)</span>
+    </div>
+    <div style="background:var(--amber-bg);border:1px solid var(--amber);border-radius:10px;padding:12px 18px;display:flex;flex-direction:column;align-items:center;min-width:110px">
+      <span style="font-family:'Inconsolata',monospace;font-size:1.6rem;font-weight:700;color:var(--amber);line-height:1">${incWarn.length}</span>
+      <span style="font-size:0.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;text-align:center">Attenzione (&lt; 7 gg)</span>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center">
+      <span style="font-size:0.72rem;color:var(--muted)">Aggiornato al ${oggi_str}</span>
+    </div>
+  </div>
+
+  ${totProblemi === 0 ? `<div class="empty-state"><div class="icon">✅</div><p>Nessuna incongruenza rilevata</p></div>` : ''}
+
+  <!-- SEZIONE A: Scorta = 0 con terapie attive -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:18px">
+    <div style="background:var(--red-bg);border-bottom:1px solid var(--border);padding:11px 16px;display:flex;align-items:center;gap:10px">
+      <span style="font-family:'Inconsolata',monospace;font-size:0.65rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--red)">A — Scorta = 0 con terapie attive</span>
+      <span style="font-family:'Inconsolata',monospace;font-size:0.7rem;background:var(--red-bg);color:var(--red);border:1px solid var(--red);border-radius:10px;padding:1px 8px">${inc2.length}</span>
+      <span style="margin-left:auto;font-size:0.73rem;color:var(--muted)">Verifica scorta fisica e aggiorna o ordina</span>
+    </div>
+    <table class="report-table">
+      <thead><tr><th>Farmaco</th><th>Scorta</th><th>Consumo/die</th><th>Pazienti</th></tr></thead>
+      <tbody>${righeInc2()}</tbody>
+    </table>
+  </div>
+
+  <!-- SEZIONE B: Link rotti (farmacoCRAid punta a ID non esistente) -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:18px">
+    <div style="background:var(--red-bg);border-bottom:1px solid var(--border);padding:11px 16px;display:flex;align-items:center;gap:10px">
+      <span style="font-family:'Inconsolata',monospace;font-size:0.65rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--red)">B — Collegamento rotto (farmacoCRAid non trovato)</span>
+      <span style="font-family:'Inconsolata',monospace;font-size:0.7rem;background:var(--red-bg);color:var(--red);border:1px solid var(--red);border-radius:10px;padding:1px 8px">${inc3.length}</span>
+      <span style="margin-left:auto;font-size:0.73rem;color:var(--muted)">Aprire scheda terapia → 🔗 e ricollegare</span>
+    </div>
+    <table class="report-table">
+      <thead><tr><th>Paziente</th><th>Farmaco in terapia</th><th>farmacoCRAid indicato</th><th>Stato</th></tr></thead>
+      <tbody>${righeInc3()}</tbody>
+    </table>
+  </div>
+
+  <!-- SEZIONE C: Terapie CRA senza link -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:18px">
+    <div style="background:var(--amber-bg);border-bottom:1px solid var(--border);padding:11px 16px;display:flex;align-items:center;gap:10px">
+      <span style="font-family:'Inconsolata',monospace;font-size:0.65rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)">C — Terapie CRA attive senza collegamento magazzino</span>
+      <span style="font-family:'Inconsolata',monospace;font-size:0.7rem;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber);border-radius:10px;padding:1px 8px">${inc1.length}</span>
+      <span style="margin-left:auto;font-size:0.73rem;color:var(--muted)">Il consumo non viene scalato — scorta sovrastimata</span>
+    </div>
+    <table class="report-table">
+      <thead><tr><th>Paziente</th><th>Farmaco</th><th>Sezione</th><th>Dose</th><th>farmacoCRAid</th></tr></thead>
+      <tbody>${righeInc1()}</tbody>
+    </table>
+  </div>
+
+  <!-- SEZIONE D: Farmaci critici con terapie -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:18px">
+    <div style="background:var(--red-bg);border-bottom:1px solid var(--border);padding:11px 16px;display:flex;align-items:center;gap:10px">
+      <span style="font-family:'Inconsolata',monospace;font-size:0.65rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--red)">D — Farmaci CRITICI (scorta &lt; 3 giorni) con terapie attive</span>
+      <span style="font-family:'Inconsolata',monospace;font-size:0.7rem;background:var(--red-bg);color:var(--red);border:1px solid var(--red);border-radius:10px;padding:1px 8px">${incCrit.length}</span>
+    </div>
+    <table class="report-table">
+      <thead><tr><th>Farmaco</th><th>Scorta residua</th><th>Consumo/die</th><th>Giorni rim.</th><th>Pazienti</th></tr></thead>
+      <tbody>${righeScorte(incCrit,'stato-urgent')}</tbody>
+    </table>
+  </div>
+
+  <!-- SEZIONE E: Farmaci in attenzione -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:4px">
+    <div style="background:var(--amber-bg);border-bottom:1px solid var(--border);padding:11px 16px;display:flex;align-items:center;gap:10px">
+      <span style="font-family:'Inconsolata',monospace;font-size:0.65rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)">E — Farmaci in ATTENZIONE (scorta 3–7 giorni) con terapie attive</span>
+      <span style="font-family:'Inconsolata',monospace;font-size:0.7rem;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber);border-radius:10px;padding:1px 8px">${incWarn.length}</span>
+    </div>
+    <table class="report-table">
+      <thead><tr><th>Farmaco</th><th>Scorta residua</th><th>Consumo/die</th><th>Giorni rim.</th><th>Pazienti</th></tr></thead>
+      <tbody>${righeScorte(incWarn,'stato-warn')}</tbody>
+    </table>
+  </div>`;
+}
+
+// ============================================================
+// STAMPA REPORT INCONGRUENZE
+// ============================================================
+function stampaReportIncongruenze() {
+  const el = document.getElementById('report-incongruenze-content');
+  if (!el || !el.innerHTML.trim()) { renderReportIncongruenze(); }
+  const oggi = new Date().toLocaleDateString('it-IT', {day:'2-digit',month:'long',year:'numeric'});
+  _apriStampaPulita(
+    'Incongruenze Foglio Terapia ↔ Magazzino',
+    'FarmaciaCRA — Cascina Germoglio — ' + oggi,
+    document.getElementById('report-incongruenze-content').innerHTML
+  );
 }
 
 // ============================================================
@@ -2186,6 +2442,88 @@ function eliminaPaziente(pid) {
 // ============================================================
 // MODAL FARMACO
 // ============================================================
+// ============================================================
+// AUTOCOMPLETE NOME FARMACO NEL MODAL TERAPIA
+// ============================================================
+let _farmAutoSelected = null; // ID farmaco selezionato dal suggerimento
+
+function aggiornaSuggerimentiFarmaco(val) {
+  const dd = document.getElementById('farm-nome-dropdown');
+  const badge = document.getElementById('farm-link-badge');
+  const badgeTxt = document.getElementById('farm-link-badge-txt');
+  if (!dd) return;
+
+  const q = (val || '').toLowerCase().trim();
+
+  // Aggiorna badge se già selezionato
+  if (_farmAutoSelected) {
+    const fcraList = load(SK_FCRA);
+    const f = fcraList.find(x => x.id === _farmAutoSelected);
+    if (f && f.nome.toLowerCase().trim() === q) {
+      if (badge) badge.style.display = 'inline-flex';
+      if (badgeTxt) badgeTxt.textContent = 'Collegato a: ' + f.nome;
+    } else {
+      _farmAutoSelected = null;
+      if (badge) badge.style.display = 'none';
+    }
+  } else {
+    if (badge) badge.style.display = 'none';
+  }
+
+  if (q.length < 2) { dd.style.display = 'none'; return; }
+
+  const fcraList = load(SK_FCRA);
+  const matches = fcraList.filter(f =>
+    f.nome.toLowerCase().includes(q) || q.includes(f.nome.toLowerCase().trim())
+  ).slice(0, 10);
+
+  if (!matches.length) { dd.style.display = 'none'; return; }
+
+  dd.style.display = '';
+  dd.innerHTML = matches.map(f => {
+    const consumo = calcolaConsumoCRA(f.id);
+    const { stato, giorni } = statoFarmacoGiorni(f);
+    const statoHtml = stato === 'urgent'
+      ? `<span style="color:var(--red);font-size:0.65rem">⚠ ${giorni !== null ? giorni + ' gg' : 'esaurito'}</span>`
+      : stato === 'warn'
+      ? `<span style="color:var(--amber);font-size:0.65rem">⬇ ${giorni} gg</span>`
+      : `<span style="color:var(--green);font-size:0.65rem">✓ ok</span>`;
+    return `<div onclick="selezionaFarmacoSuggerito('${f.id}','${f.nome.replace(/'/g,'&#39;')}')"
+      style="padding:8px 12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid var(--border);font-size:0.82rem"
+      onmouseenter="this.style.background='var(--surface)'" onmouseleave="this.style.background=''">
+      <span><strong>${f.nome}</strong> <span style="color:var(--muted);font-size:0.72rem;font-family:'Inconsolata',monospace">${f.forma||''}</span></span>
+      <span style="display:flex;align-items:center;gap:8px">${statoHtml} <span style="color:var(--gold);font-size:0.65rem;font-family:'Inconsolata',monospace">🔗 collega</span></span>
+    </div>`;
+  }).join('');
+}
+
+function selezionaFarmacoSuggerito(fid, fnome) {
+  const input = document.getElementById('farm-nome');
+  const dd = document.getElementById('farm-nome-dropdown');
+  const badge = document.getElementById('farm-link-badge');
+  const badgeTxt = document.getElementById('farm-link-badge-txt');
+  if (input) input.value = fnome;
+  _farmAutoSelected = fid;
+  if (dd) dd.style.display = 'none';
+  if (badge) badge.style.display = 'inline-flex';
+  if (badgeTxt) badgeTxt.textContent = 'Collegato a: ' + fnome;
+  // precompila doseUnit dal catalogo
+  const fcraList = load(SK_FCRA);
+  const f = fcraList.find(x => x.id === fid);
+  if (f && f.udm) {
+    const sel = document.getElementById('farm-dose-unit');
+    if (sel) {
+      const opt = [...sel.options].find(o => o.value === f.udm);
+      if (opt) sel.value = f.udm;
+    }
+  }
+}
+
+function chiudiSuggerimentiFarmaco() {
+  const dd = document.getElementById('farm-nome-dropdown');
+  if (dd) dd.style.display = 'none';
+}
+
 function openModalFarmaco(pid, sezione) {
   farmacoEditPzId = pid;
   farmacoEditId = null;
@@ -2206,98 +2544,14 @@ function openModalFarmaco(pid, sezione) {
     if (inp) { inp.value = ''; inp.style.display = 'none'; }
   });
   document.getElementById('farm-data-inizio').value = new Date().toISOString().slice(0,10);
-  // reset stato autocomplete
-  const nomeInpReset = document.getElementById('farm-nome');
-  if (nomeInpReset) { nomeInpReset.dataset.farmacoCRAid = ''; }
-  const lnkReset = document.getElementById('farm-nome-link');
-  if (lnkReset) lnkReset.innerHTML = '';
-  const ddReset = document.getElementById('farm-nome-dropdown');
-  if (ddReset) ddReset.style.display = 'none';
-  aggiornaCampiSezione();
-  openModal('modal-farmaco');
-}
-
-// ============================================================
-// AUTOCOMPLETE NOME FARMACO — dropdown con match catalogo CRA
-// ============================================================
-let _farmNomeTimer = null;
-
-function farmNomeInput(inp) {
-  const dd = document.getElementById('farm-nome-dropdown');
-  const lnk = document.getElementById('farm-nome-link');
-  clearTimeout(_farmNomeTimer);
-  const val = inp.value.trim();
-
-  if (val.length < 2) {
-    if (dd) dd.style.display = 'none';
-    if (lnk) lnk.innerHTML = '';
-    return;
-  }
-
-  _farmNomeTimer = setTimeout(() => {
-    const fcraList = load(SK_FCRA);
-    const normVal  = _normFarmaco(val);
-    const valLow   = val.toLowerCase();
-
-    // Filtra: match su nome normalizzato o su stringa grezza (case-insensitive)
-    const matches = fcraList.filter(f => {
-      const nf = _normFarmaco(f.nome);
-      const raw = f.nome.toLowerCase();
-      return raw.includes(valLow) || nf.includes(normVal) || normVal.includes(nf);
-    }).slice(0, 10); // max 10 suggerimenti
-
-    if (!dd) return;
-
-    if (!matches.length) {
-      dd.style.display = 'none';
-      if (lnk) lnk.innerHTML = `<span style="color:var(--muted)">⚠ Non trovato in magazzino CRA — verrà salvato senza collegamento</span>`;
-      return;
-    }
-
-    dd.innerHTML = matches.map(f => {
-      const consumo = calcolaConsumoCRA(f.id);
-      const { stato } = statoFarmacoGiorni(f);
-      const dot = stato === 'urgent' ? '🔴' : stato === 'warn' ? '🟡' : '🟢';
-      const scorta = Math.round(calcolaScorta(f));
-      return `<div class="farm-nome-opt" data-id="${f.id}" data-nome="${f.nome.replace(/"/g,'&quot;')}"
-        style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:0.82rem"
-        onmousedown="farmNomeSelect('${f.id}', this.dataset.nome)">
-        <span>${dot} <strong>${f.nome}</strong></span>
-        <span style="font-family:'Inconsolata',monospace;font-size:0.7rem;color:var(--muted)">${scorta} ${f.udm||'u'} · ${consumo > 0 ? consumo.toFixed(1)+'/die' : 'no terapie'}</span>
-      </div>`;
-    }).join('');
-    dd.style.display = '';
-
-    // Aggiorna link in tempo reale
-    const exact = fcraList.find(f => f.nome.toLowerCase().trim() === valLow);
-    if (exact) {
-      if (lnk) lnk.innerHTML = `<span style="color:var(--green)">🔗 Collegato: <b>${exact.nome}</b></span>`;
-    } else {
-      const soft = matches[0];
-      if (soft) {
-        if (lnk) lnk.innerHTML = `<span style="color:var(--amber)">⚡ Collegamento automatico: <b>${soft.nome}</b></span>`;
-      } else {
-        if (lnk) lnk.innerHTML = `<span style="color:var(--muted)">⚠ Non trovato in magazzino CRA</span>`;
-      }
-    }
-  }, 220);
-}
-
-function farmNomeSelect(fcraId, nome) {
-  const inp = document.getElementById('farm-nome');
-  const dd  = document.getElementById('farm-nome-dropdown');
-  const lnk = document.getElementById('farm-nome-link');
-  if (inp) inp.value = nome;
-  if (dd)  dd.style.display = 'none';
-  // salva il collegamento scelto come attributo temporaneo per salvaFarmaco
-  if (inp) inp.dataset.farmacoCRAid = fcraId;
-  const fc = load(SK_FCRA).find(f => f.id === fcraId);
-  if (lnk && fc) lnk.innerHTML = `<span style="color:var(--green)">🔗 Collegato: <b>${fc.nome}</b></span>`;
-}
-
-function farmNomeHideDropdown() {
+  // reset autocomplete
+  _farmAutoSelected = null;
+  const badge = document.getElementById('farm-link-badge');
+  if (badge) badge.style.display = 'none';
   const dd = document.getElementById('farm-nome-dropdown');
   if (dd) dd.style.display = 'none';
+  aggiornaCampiSezione();
+  openModal('modal-farmaco');
 }
 
 function aggiornaCampiSezione() {
@@ -2379,10 +2633,8 @@ function editTerapia(tid, pid) {
 }
 
 function salvaFarmaco() {
-  const nomeInp = document.getElementById('farm-nome');
-  const nome    = nomeInp.value.trim();
+  const nome    = document.getElementById('farm-nome').value.trim();
   if (!nome) { alert('Il nome del farmaco è obbligatorio'); return; }
-  const _preselCRAid = nomeInp.dataset.farmacoCRAid || null; // scelto dalla dropdown
 
   const sezione = document.getElementById('farm-sezione').value;
   const unit    = document.getElementById('farm-dose-unit').value;
@@ -2450,10 +2702,10 @@ function salvaFarmaco() {
     dataCreazione: new Date().toISOString(),
   };
 
-  // collega farmaco CRA: priorità 1 = scelta esplicita dalla dropdown; priorità 2 = match automatico
+  // collega farmaco CRA in magazzino: priorità alla selezione esplicita dall'autocomplete
   const fcraList = load(SK_FCRA);
-  if (_preselCRAid && fcraList.find(f => f.id === _preselCRAid)) {
-    terapia.farmacoCRAid = _preselCRAid;
+  if (_farmAutoSelected && fcraList.find(f => f.id === _farmAutoSelected)) {
+    terapia.farmacoCRAid = _farmAutoSelected;
   } else {
     const nomeN = nome.toLowerCase().trim();
     const match = fcraList.find(f => f.nome.toLowerCase().trim() === nomeN)
@@ -2462,6 +2714,7 @@ function salvaFarmaco() {
                || fcraList.find(f => f.nome.toLowerCase().includes(nomeN) || nomeN.includes(f.nome.toLowerCase().trim()));
     if (match) terapia.farmacoCRAid = match.id;
   }
+  _farmAutoSelected = null;
 
   const terapie = load(SK.terapie);
   if (farmacoEditId) {
@@ -2740,50 +2993,50 @@ function renderInventario() {
   `;
   document.getElementById('inv-count').textContent = lista.length + ' farmac' + (lista.length===1?'o':'i');
 
-  // alert banner — Scorta=0 con terapie attive
-  const oggi = new Date().toISOString().split('T')[0];
-  const scorteZeroAttive = lista.filter(f => {
-    const s = calcolaScorta(f);
-    const c = calcolaConsumoCRA(f.id);
-    return Math.round(s) === 0 && c > 0;
-  });
-  document.getElementById('inv-alert-urgent').style.display = scorteZeroAttive.length ? '' : 'none';
-  const cntEl = document.getElementById('inv-alert-urgent-count');
-  if (cntEl) cntEl.textContent = scorteZeroAttive.length;
-  // chips compatte
-  document.getElementById('inv-chips-urgent').innerHTML = '';
-  // tabella dettaglio
-  const tabellaEl = document.getElementById('inv-chips-urgent-table');
-  if (tabellaEl) {
-    if (scorteZeroAttive.length) {
-      const righe = scorteZeroAttive.map(f => {
-        const consumo  = calcolaConsumoCRA(f.id);
-        const pz = getTerapieFarmacoCRA(f.id).map(t => {
-          const paz = load(SK.pazienti).find(p => p.id === t.pazienteId);
-          return paz ? (paz.cognome + ' ' + (paz.nome||'')).trim() : '?';
-        }).join(', ');
-        return `<tr>
-          <td style="padding:5px 10px;font-weight:700">${f.nome}</td>
-          <td style="padding:5px 10px;font-family:'Inconsolata',monospace"><span style="background:var(--red);color:#fff;border-radius:10px;padding:1px 8px;font-size:0.7rem">0 ${f.udm||'u'}</span></td>
-          <td style="padding:5px 10px;font-family:'Inconsolata',monospace;color:var(--amber)">${consumo.toFixed(1)} ${f.udm||'u'}/die</td>
-          <td style="padding:5px 10px;color:var(--muted);font-size:0.8rem">${pz}</td>
-        </tr>`;
-      }).join('');
-      tabellaEl.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:0.82rem">
-        <thead><tr style="border-bottom:1px solid var(--border)">
-          <th style="padding:4px 10px;text-align:left;font-family:'Inconsolata',monospace;font-size:0.68rem;color:var(--muted);font-weight:600;letter-spacing:.08em">FARMACO</th>
-          <th style="padding:4px 10px;text-align:left;font-family:'Inconsolata',monospace;font-size:0.68rem;color:var(--muted);font-weight:600;letter-spacing:.08em">SCORTA</th>
-          <th style="padding:4px 10px;text-align:left;font-family:'Inconsolata',monospace;font-size:0.68rem;color:var(--muted);font-weight:600;letter-spacing:.08em">CONSUMO/DIE</th>
-          <th style="padding:4px 10px;text-align:left;font-family:'Inconsolata',monospace;font-size:0.68rem;color:var(--muted);font-weight:600;letter-spacing:.08em">PAZIENTI</th>
-        </tr></thead>
-        <tbody>${righe}</tbody>
-      </table>`;
-    } else {
-      tabellaEl.innerHTML = '';
-    }
+  // alert banner
+  // Banner URGENT: farmaci scorta=0 che hanno terapie attive (logica INC-2)
+  const terapieTutte = load(SK.terapie);
+  const pazientiTutti = load(SK.pazienti);
+  const oggiInv = new Date(); oggiInv.setHours(0,0,0,0);
+  function isAttivaNonBisognoInv(t) {
+    if (t.sezione === 'bisogno') return false;
+    const pz = pazientiTutti.find(p => p.id === t.pazienteId);
+    if (pz && (pz.terapiaSospesa === true || pz.terapiaSospesa === 'true')) return false;
+    if (t.dataInizio) { const d = new Date(t.dataInizio); d.setHours(0,0,0,0); if (d > oggiInv) return false; }
+    if (t.dataFine)   { const d = new Date(t.dataFine);   d.setHours(0,0,0,0); if (d < oggiInv) return false; }
+    return true;
   }
+  const fIdInUsoInv = {};
+  terapieTutte.forEach(t => {
+    if (t.fonte === 'CRA' && isAttivaNonBisognoInv(t) && t.farmacoCRAid) {
+      if (!fIdInUsoInv[t.farmacoCRAid]) fIdInUsoInv[t.farmacoCRAid] = [];
+      fIdInUsoInv[t.farmacoCRAid].push(t);
+    }
+  });
+  const inc2Inv = lista.filter(f => fIdInUsoInv[f.id] && (f.scorta === 0 || f.scorta === null || f.scorta === undefined));
+
+  const urgentiEl = document.getElementById('inv-alert-urgent');
+  const urgentiCnt = document.getElementById('inv-alert-urgent-count');
+  const urgentiBody = document.getElementById('inv-chips-urgent');
+  if (urgentiEl) urgentiEl.style.display = inc2Inv.length ? '' : 'none';
+  if (urgentiCnt) urgentiCnt.textContent = inc2Inv.length;
+  if (urgentiBody) urgentiBody.innerHTML = inc2Inv.map(f => {
+    const consumo = calcolaConsumoCRA(f.id);
+    const pzList  = (fIdInUsoInv[f.id] || []).map(t => {
+      const pz = pazientiTutti.find(p => p.id === t.pazienteId);
+      return pz ? `${pz.cognome} ${pz.nome}` : t.pazienteId;
+    }).filter((v,i,a) => a.indexOf(v)===i).join(', ');
+    const udm = f.udm || 'u';
+    return `<tr>
+      <td style="padding:5px 8px;font-weight:700">${f.nome}</td>
+      <td style="padding:5px 8px;text-align:center"><span style="font-family:'Inconsolata',monospace;font-size:0.72rem;background:var(--red-bg);color:var(--red);border:1px solid rgba(224,82,82,.3);border-radius:10px;padding:1px 8px">0 ${udm}</span></td>
+      <td style="padding:5px 8px;text-align:center;font-family:'Inconsolata',monospace;color:var(--red)">${consumo > 0 ? consumo.toFixed(1) + ' ' + udm + '/die' : '—'}</td>
+      <td style="padding:5px 8px;color:var(--muted);font-size:0.75rem">${pzList}</td>
+    </tr>`;
+  }).join('');
+
   const chipWrn = lista.filter(f=>statoFarmaco(f)==='warn').map(f=>`<span class="chip-warn">${f.nome}</span>`).join('');
-  document.getElementById('inv-alert-warn').style.display   = warn ? '' : 'none';
+  document.getElementById('inv-alert-warn').style.display   = warn    ? '' : 'none';
   document.getElementById('inv-chips-warn').innerHTML   = chipWrn;
 
   const grid = document.getElementById('inv-grid');

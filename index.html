@@ -310,6 +310,7 @@ select option { background:var(--surface2); }
 .mov-row { display:flex; justify-content:space-between; align-items:center; background:var(--surface2); border-radius:8px; padding:8px 12px; font-size:0.78rem; }
 .mov-tipo { font-family:'Inconsolata',monospace; font-size:0.65rem; font-weight:600; text-transform:uppercase; }
 .mov-tipo.carico    { color:var(--green); }
+.mov-tipo.scarico   { color:var(--red); }
 .mov-tipo.rettifica { color:var(--amber); }
 .mov-q { font-family:'Inconsolata',monospace; font-weight:700; }
 .mov-q.pos { color:var(--green); }
@@ -529,7 +530,7 @@ select option { background:var(--surface2); }
 <div class="overlay" id="modal-carico">
   <div class="modal">
     <div class="modal-head">
-      <span class="modal-title">Carico scorte</span>
+      <span class="modal-title">📦 Carico scorte</span>
       <button class="close-btn" onclick="closeModal('modal-carico')">×</button>
     </div>
     <div class="modal-body">
@@ -537,16 +538,18 @@ select option { background:var(--surface2); }
       <div class="form-row">
         <div class="form-group">
           <label>Numero confezioni ricevute *</label>
-          <input type="number" id="carico-nconf" min="1" placeholder="es. 3" >
+          <input type="number" id="carico-nconf" min="1" placeholder="es. 3">
         </div>
         <div class="form-group">
           <label>Unità per confezione</label>
           <input type="number" id="carico-xconf" min="1" readonly style="opacity:.6">
         </div>
       </div>
-      <!-- carico-totale e carico-note rimossi dall'interfaccia -->
+      <div class="form-group">
+        <label>Note (fornitore, lotto, DDT…)</label>
+        <input type="text" id="carico-note" placeholder="Opzionale">
+      </div>
       <input type="hidden" id="carico-totale">
-      <input type="hidden" id="carico-note">
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modal-carico')">Annulla</button>
@@ -555,8 +558,36 @@ select option { background:var(--surface2); }
   </div>
 </div>
 
-<!-- MODAL RETTIFICA -->
-<div class="overlay" id="modal-rettifica">
+<!-- MODAL SCARICO -->
+<div class="overlay" id="modal-scarico">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <span class="modal-title">📤 Scarico scorte</span>
+      <button class="close-btn" onclick="closeModal('modal-scarico')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.82rem;color:var(--muted)" id="scarico-farm-label"></p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Confezioni da scaricare *</label>
+          <input type="number" id="scarico-nconf" min="1" value="1" placeholder="es. 1">
+        </div>
+        <div class="form-group">
+          <label>Unità per confezione</label>
+          <input type="number" id="scarico-xconf" min="1" readonly style="opacity:.6">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Causale scarico *</label>
+        <input type="text" id="scarico-note" placeholder="es. farmaco scaduto, somministrazione extra, rottura…">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-scarico')">Annulla</button>
+      <button class="btn btn-red" onclick="eseguiScarico()">Conferma scarico</button>
+    </div>
+  </div>
+</div>
   <div class="modal">
     <div class="modal-head">
       <span class="modal-title">Rettifica inventario</span>
@@ -2915,6 +2946,7 @@ function eseguiImport() {
 
 let caricoFarmacoId  = null;
 let rettificaFarmacoId = null;
+let scaricoFarmacoId = null;
 let editFCRAid = null;
 
 // ---------- calcolo scorta residua ----------
@@ -3102,7 +3134,7 @@ function renderInventario() {
       </div>
       <div class="inv-card-foot">
         <button class="btn btn-gold btn-sm" onclick="openModalCarico('${f.id}')">+ Carico</button>
-        <button class="btn btn-ghost btn-sm" onclick="openModalRettifica('${f.id}')">⚖ Rettifica</button>
+        <button class="btn btn-red btn-sm" onclick="openModalScarico('${f.id}')">− Scarico</button>
         <button class="btn btn-ghost btn-sm" onclick="openModalFarmacioCRA('${f.id}')">✏️</button>
         <button class="btn btn-ghost btn-sm" title="${f.alertSospeso?'Riattiva alert':'Silenzia alert'}" onclick="toggleAlertSospeso('${f.id}')">${f.alertSospeso ? '🔔' : '🔕'}</button>
         <button class="btn btn-ghost btn-sm" onclick="eliminaFarmacioCRA('${f.id}')">🗑</button>
@@ -3260,6 +3292,61 @@ function eseguiCarico() {
   closeModal('modal-carico');
   renderInventario();
   toast(`Carico registrato: +${totale} ${f.udm||'unità'} di ${f.nome}`);
+}
+
+// ---------- SCARICO ----------
+function openModalScarico(fid) {
+  scaricoFarmacoId = fid;
+  const f = load(SK_FCRA).find(x => x.id === fid);
+  if (!f) return;
+  const scorta = Math.round(calcolaScorta(f));
+  const conf = f.xconf || 1;
+  document.getElementById('scarico-farm-label').textContent =
+    `${f.nome} · ${f.forma||''} · scorta attuale stimata: ${scorta} ${f.udm||'unità'} (${(scorta/conf).toFixed(1)} conf)`;
+  document.getElementById('scarico-nconf').value = '1';
+  document.getElementById('scarico-xconf').value = conf;
+  document.getElementById('scarico-note').value = '';
+  openModal('modal-scarico');
+}
+
+function eseguiScarico() {
+  const nconf = parseInt(document.getElementById('scarico-nconf').value);
+  const nota  = document.getElementById('scarico-note').value.trim();
+  if (!nconf || nconf < 1) { alert('Inserire il numero di confezioni da scaricare'); return; }
+  if (!nota) { alert('La causale dello scarico è obbligatoria'); return; }
+
+  const f = load(SK_FCRA).find(x => x.id === scaricoFarmacoId);
+  if (!f) return;
+
+  const scorta_ora = calcolaScorta(f);
+  const totale = nconf * (f.xconf || 1);
+  const nuovaScorta = Math.max(0, scorta_ora - totale);
+  const oggi = new Date().toISOString().slice(0, 10);
+
+  const farmaci = load(SK_FCRA);
+  const idx = farmaci.findIndex(x => x.id === scaricoFarmacoId);
+  farmaci[idx].scorta = nuovaScorta;
+  farmaci[idx].lastSync = oggi;
+  save(SK_FCRA, farmaci);
+
+  const movimenti = load(SK.movimenti);
+  movimenti.unshift({
+    id: uid(),
+    data: oggi,
+    tipo: 'scarico',
+    farmacoId: scaricoFarmacoId,
+    farmacoNome: f.nome,
+    quantita: -totale,
+    nconf,
+    scorta_precedente: Math.round(scorta_ora),
+    scorta_nuova: Math.round(nuovaScorta),
+    note: nota,
+  });
+  save(SK.movimenti, movimenti);
+
+  closeModal('modal-scarico');
+  renderInventario();
+  toast(`Scarico registrato: −${totale} ${f.udm||'unità'} di ${f.nome}`);
 }
 
 // ---------- RETTIFICA ----------

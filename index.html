@@ -1281,6 +1281,7 @@ function renderReportConsumi() {
     const scorta    = Math.round(calcolaScorta(f));
     const consMese  = Math.round(consumo * 30);
     const conf      = f.xconf || 1;
+    const daOrdinare = consumo > 0 ? Math.ceil(consMese / conf) : 0;
     const { stato, giorni } = statoFarmacoGiorni(f);
     const pillClass = stato === 'urgent' ? 'stato-urgent' : stato === 'warn' ? 'stato-warn' : 'stato-ok';
     const giorniStr = giorni !== null ? giorni + ' gg' : '—';
@@ -1290,6 +1291,7 @@ function renderReportConsumi() {
       <td class="num" style="color:${scortaColor};font-weight:700">${scorta} ${f.udm||'u'}</td>
       <td class="num">${consumo > 0 ? consumo.toFixed(1) + ' ' + (f.udm||'u') + '/die' : '—'}</td>
       <td class="num">${consMese > 0 ? consMese + ' ' + (f.udm||'u') : '—'}</td>
+      <td class="num" style="color:var(--gold);font-weight:700">${daOrdinare > 0 ? daOrdinare + ' conf' : '—'}</td>
       <td class="num"><span class="stato-pill ${pillClass}">${giorniStr}</span></td>
     </tr>`;
   }).join('');
@@ -1305,9 +1307,10 @@ function renderReportConsumi() {
           <th>Scorta a magazzino</th>
           <th>Consumo/die</th>
           <th>Consumo mensile stimato</th>
+          <th>Confezioni da ordinare</th>
           <th>Giorni residui</th>
         </tr></thead>
-        <tbody>${inUso.length ? buildRighe(inUso) : '<tr><td colspan="5" class="empty-row">Nessun farmaco con consumo attivo</td></tr>'}</tbody>
+        <tbody>${inUso.length ? buildRighe(inUso) : '<tr><td colspan="6" class="empty-row">Nessun farmaco con consumo attivo</td></tr>'}</tbody>
       </table>
     </div>
     ${nonInUso.length ? `
@@ -1316,7 +1319,7 @@ function renderReportConsumi() {
         Farmaci a magazzino non in uso (${nonInUso.length})
       </div>
       <table class="report-table">
-        <thead><tr><th>Farmaco</th><th>Scorta a magazzino</th><th colspan="3" style="color:var(--dim)">Nessuna terapia attiva collegata</th></tr></thead>
+        <thead><tr><th>Farmaco</th><th>Scorta a magazzino</th><th colspan="4" style="color:var(--dim)">Nessuna terapia attiva collegata</th></tr></thead>
         <tbody>${buildRighe(nonInUso)}</tbody>
       </table>
     </div>` : ''}`;
@@ -1670,6 +1673,7 @@ function stampaReportConsumi() {
     const scorta  = Math.round(calcolaScorta(f));
     const consMese = Math.round(consumo * 30);
     const conf = f.xconf || 1;
+    const daOrdinare = Math.ceil(consMese / conf);
     const { stato } = statoFarmacoGiorni(f);
     const scortaStyle = stato === 'urgent' ? 'color:#c0392b;font-weight:bold' : stato === 'warn' ? 'color:#e67e22;font-weight:bold' : '';
     return `<tr>
@@ -1677,6 +1681,7 @@ function stampaReportConsumi() {
       <td style="text-align:right;${scortaStyle}">${scorta} ${f.udm||'u'}</td>
       <td style="text-align:right">${consumo.toFixed(1)} ${f.udm||'u'}/die</td>
       <td style="text-align:right">${consMese} ${f.udm||'u'}</td>
+      <td style="text-align:right;font-weight:bold">${daOrdinare} conf</td>
     </tr>`;
   }).join('');
   _apriStampaPulita('Farmaci in Uso — Consumo Mensile', oggi, `
@@ -1686,6 +1691,7 @@ function stampaReportConsumi() {
         <th style="border:1px solid #000;padding:2mm 3mm;text-align:right">Scorta a magazzino</th>
         <th style="border:1px solid #000;padding:2mm 3mm;text-align:right">Consumo/die</th>
         <th style="border:1px solid #000;padding:2mm 3mm;text-align:right">Consumo mensile</th>
+        <th style="border:1px solid #000;padding:2mm 3mm;text-align:right">Conf. da ordinare</th>
       </tr></thead>
       <tbody>${righe}</tbody>
     </table>`);

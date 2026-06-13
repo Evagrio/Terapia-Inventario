@@ -944,7 +944,7 @@ const LOGO_B64 = "iVBORw0KGgoAAAANSUhEUgAABSAAAAEFCAYAAADzO0mHAAAAAXNSR0IArs4c6Q
 // ============================================================
 // VERSIONE APP — aggiornare ad ogni rilascio (visibile nel footer)
 // ============================================================
-const APP_VERSION = 'v1.1 — 12/06/2026';
+const APP_VERSION = 'v1.2 — 13/06/2026';
 
 // ============================================================
 // STORAGE
@@ -3290,7 +3290,9 @@ function eseguiCarico() {
   const scorta_ora = calcolaScorta(f);
   const totale = nconf * (f.xconf||1);
   const nuovaScorta = scorta_ora + totale;
-  const oggi = new Date().toISOString().slice(0,10);
+  const _ora = new Date();
+  const oggi = _ora.toISOString().slice(0,10);
+  const timestamp = _ora.toISOString();
 
   // aggiorna farmaco
   const farmaci = load(SK_FCRA);
@@ -3304,6 +3306,7 @@ function eseguiCarico() {
   movimenti.unshift({
     id: uid(),
     data: oggi,
+    timestamp,
     tipo: 'carico',
     farmacoId: caricoFarmacoId,
     farmacoNome: f.nome,
@@ -3345,7 +3348,9 @@ function eseguiScarico() {
   const scorta_ora = calcolaScorta(f);
   const totale = nconf * (f.xconf || 1);
   const nuovaScorta = Math.max(0, scorta_ora - totale);
-  const oggi = new Date().toISOString().slice(0, 10);
+  const _ora2 = new Date();
+  const oggi = _ora2.toISOString().slice(0, 10);
+  const timestamp = _ora2.toISOString();
 
   const farmaci = load(SK_FCRA);
   const idx = farmaci.findIndex(x => x.id === scaricoFarmacoId);
@@ -3357,6 +3362,7 @@ function eseguiScarico() {
   movimenti.unshift({
     id: uid(),
     data: oggi,
+    timestamp,
     tipo: 'scarico',
     farmacoId: scaricoFarmacoId,
     farmacoNome: f.nome,
@@ -3396,7 +3402,9 @@ function eseguiRettifica() {
   const f = load(SK_FCRA).find(x=>x.id===rettificaFarmacoId);
   const vecchia = Math.round(calcolaScorta(f));
   const diff = nuova - vecchia;
-  const oggi = new Date().toISOString().slice(0,10);
+  const _ora3 = new Date();
+  const oggi = _ora3.toISOString().slice(0,10);
+  const timestamp = _ora3.toISOString();
 
   const farmaci = load(SK_FCRA);
   const idx = farmaci.findIndex(x=>x.id===rettificaFarmacoId);
@@ -3406,7 +3414,7 @@ function eseguiRettifica() {
 
   const movimenti = load(SK.movimenti);
   movimenti.unshift({
-    id: uid(), data: oggi, tipo: 'rettifica',
+    id: uid(), data: oggi, timestamp, tipo: 'rettifica',
     farmacoId: rettificaFarmacoId, farmacoNome: f.nome,
     quantita: diff, scorta_precedente: vecchia, scorta_nuova: nuova,
     note: nota,
@@ -3435,7 +3443,7 @@ function openModalMovimenti() {
         </div>
         <div style="display:flex;gap:14px;align-items:center">
           <span class="mov-q ${m.quantita>=0?'pos':'neg'}">${segno}${m.quantita}</span>
-          <span class="mov-data">${m.data||'—'}</span>
+          <span class="mov-data">${m.timestamp ? new Date(m.timestamp).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + new Date(m.timestamp).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}) : (m.data||'—')}</span>
         </div>
       </div>`;
     }).join('') + '</div>';
@@ -3449,7 +3457,7 @@ function stampaMovimenti() {
   const oggi = new Date().toLocaleDateString('it-IT');
   const righe = movimenti.map(m => `
     <tr>
-      <td>${m.data||'—'}</td>
+      <td>${m.timestamp ? new Date(m.timestamp).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}) + '<br><span style=\"color:#777;font-size:7pt\">' + new Date(m.timestamp).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}) + '</span>' : (m.data||'—')}</td>
       <td>${m.tipo.toUpperCase()}</td>
       <td>${m.farmacoNome||'—'}</td>
       <td style="text-align:right">${m.quantita>=0?'+':''}${m.quantita}</td>

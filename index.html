@@ -637,6 +637,16 @@ select option { background:var(--surface2); }
       <button class="close-btn" onclick="closeModal('modal-movimenti')">×</button>
     </div>
     <div class="modal-body" style="max-height:65vh;overflow-y:auto;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+        <select id="mov-filter-tipo" onchange="renderMovimenti()" style="padding:6px 10px;">
+          <option value="">Tutti i tipi</option>
+          <option value="carico">Carico</option>
+          <option value="scarico">Scarico</option>
+          <option value="rettifica">Rettifica</option>
+        </select>
+        <input type="text" id="mov-filter-farmaco" placeholder="Cerca farmaco…" oninput="renderMovimenti()" style="width:180px;">
+        <span id="mov-count" style="color:var(--muted);font-size:0.78rem;margin-left:auto;"></span>
+      </div>
       <div id="log-movimenti-content"></div>
     </div>
     <div class="modal-foot">
@@ -944,7 +954,7 @@ const LOGO_B64 = "iVBORw0KGgoAAAANSUhEUgAABSAAAAEFCAYAAADzO0mHAAAAAXNSR0IArs4c6Q
 // ============================================================
 // VERSIONE APP — aggiornare ad ogni rilascio (visibile nel footer)
 // ============================================================
-const APP_VERSION = 'v1.3 — 14/06/2026';
+const APP_VERSION = 'v1.4 — 14/06/2026';
 
 // ============================================================
 // STORAGE
@@ -3427,34 +3437,53 @@ function eseguiRettifica() {
 }
 
 // ---------- LOG MOVIMENTI ----------
-function openModalMovimenti() {
-  const movimenti = load(SK.movimenti);
-  const el = document.getElementById('log-movimenti-content');
+function filtraMovimenti(movimenti) {
+  const fTipo = (document.getElementById('mov-filter-tipo') || {}).value || '';
+  const fFarm = ((document.getElementById('mov-filter-farmaco') || {}).value || '').toLowerCase().trim();
+  return movimenti.filter(m => {
+    if (fTipo && m.tipo !== fTipo) return false;
+    if (fFarm && !(m.farmacoNome || '').toLowerCase().includes(fFarm)) return false;
+    return true;
+  });
+}
+
+function renderMovimenti() {
+  const movimenti = filtraMovimenti(load(SK.movimenti));
+  const el  = document.getElementById('log-movimenti-content');
+  const cnt = document.getElementById('mov-count');
+  if (cnt) cnt.textContent = movimenti.length + (movimenti.length === 1 ? ' movimento' : ' movimenti');
   if (!movimenti.length) {
-    el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">Nessun movimento registrato</p>';
-  } else {
-    el.innerHTML = '<div class="mov-list">' + movimenti.map(m => {
-      const segno = m.quantita >= 0 ? '+' : '';
-      return `<div class="mov-row">
-        <div>
-          <span class="mov-tipo ${m.tipo}">${m.tipo.toUpperCase()}</span>
-          <span style="margin-left:8px;font-weight:700">${m.farmacoNome||'—'}</span>
-          ${m.note ? `<span style="color:var(--muted);font-size:0.72rem;margin-left:6px">· ${m.note}</span>` : ''}
-        </div>
-        <div style="display:flex;gap:14px;align-items:center">
-          <span class="mov-q ${m.quantita>=0?'pos':'neg'}">${segno}${m.quantita}</span>
-          <span class="mov-data">${m.timestamp ? new Date(m.timestamp).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + new Date(m.timestamp).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}) : (m.data||'—')}</span>
-        </div>
-      </div>`;
-    }).join('') + '</div>';
+    el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">Nessun movimento corrisponde ai filtri</p>';
+    return;
   }
+  el.innerHTML = '<div class="mov-list">' + movimenti.map(m => {
+    const segno = m.quantita >= 0 ? '+' : '';
+    return `<div class="mov-row">
+      <div>
+        <span class="mov-tipo ${m.tipo}">${m.tipo.toUpperCase()}</span>
+        <span style="margin-left:8px;font-weight:700">${m.farmacoNome||'—'}</span>
+        ${m.note ? `<span style="color:var(--muted);font-size:0.72rem;margin-left:6px">· ${m.note}</span>` : ''}
+      </div>
+      <div style="display:flex;gap:14px;align-items:center">
+        <span class="mov-q ${m.quantita>=0?'pos':'neg'}">${segno}${m.quantita}</span>
+        <span class="mov-data">${m.timestamp ? new Date(m.timestamp).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + new Date(m.timestamp).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}) : (m.data||'—')}</span>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function openModalMovimenti() {
+  renderMovimenti();
   openModal('modal-movimenti');
 }
 
 function stampaMovimenti() {
-  const movimenti = load(SK.movimenti);
+  const movimenti = filtraMovimenti(load(SK.movimenti));
   const farmaci   = load(SK_FCRA);
   const oggi = new Date().toLocaleDateString('it-IT');
+  const _ft = (document.getElementById('mov-filter-tipo') || {}).value || '';
+  const _ff = ((document.getElementById('mov-filter-farmaco') || {}).value || '').trim();
+  const filtroLabel = [_ft ? 'tipo: ' + _ft : '', _ff ? 'farmaco: ' + _ff : ''].filter(Boolean).join(' · ') || 'nessun filtro';
   const righe = movimenti.map(m => `
     <tr>
       <td>${m.timestamp ? new Date(m.timestamp).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}) + '<br><span style=\"color:#777;font-size:7pt\">' + new Date(m.timestamp).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}) + '</span>' : (m.data||'—')}</td>
@@ -3475,7 +3504,7 @@ function stampaMovimenti() {
     @page{size:A4;margin:10mm;}
   </style></head><body>
   <h1>Log Movimenti Magazzino — Farmaci CRA</h1>
-  <p>Stampato il: ${oggi} · ${movimenti.length} movimenti</p>
+  <p>Stampato il: ${oggi} · ${movimenti.length} movimenti · Filtro: ${filtroLabel}</p>
   <table><thead><tr><th>Data</th><th>Tipo</th><th>Farmaco</th><th>Quantità</th><th>Note</th></tr></thead>
   <tbody>${righe}</tbody></table>
   <script>window.onload=()=>window.print()<\/script></body></html>`);

@@ -356,6 +356,7 @@ select option { background:var(--surface2); }
     <div class="htab" id="htab-report" onclick="showTab('report')">Report</div>
   </div>
   <div class="hdr-right">
+    <button class="btn btn-ghost btn-sm" onclick="openModalMovimenti()" title="Log movimenti magazzino">📋 Log movimenti</button>
     <button class="btn btn-ghost btn-sm" onclick="esportaBackup()" title="Esporta backup dati">💾 Backup</button>
     <label class="btn btn-ghost btn-sm" style="cursor:pointer" title="Importa backup dati">
       📥 Importa <input type="file" id="import-file" accept=".json" style="display:none" onchange="importaBackup(this)">
@@ -460,7 +461,6 @@ select option { background:var(--surface2); }
     <div class="tbar-right">
       <input type="text" id="search-inv" placeholder="Cerca farmaco…" style="width:200px" oninput="renderInventario()">
       <button class="btn btn-gold" onclick="openModalFarmacioCRA()">+ Nuovo farmaco</button>
-      <button class="btn btn-ghost btn-sm" onclick="openModalMovimenti()">📋 Log movimenti</button>
     </div>
   </div>
 
@@ -944,7 +944,7 @@ const LOGO_B64 = "iVBORw0KGgoAAAANSUhEUgAABSAAAAEFCAYAAADzO0mHAAAAAXNSR0IArs4c6Q
 // ============================================================
 // VERSIONE APP — aggiornare ad ogni rilascio (visibile nel footer)
 // ============================================================
-const APP_VERSION = 'v1.2 — 13/06/2026';
+const APP_VERSION = 'v1.3 — 14/06/2026';
 
 // ============================================================
 // STORAGE

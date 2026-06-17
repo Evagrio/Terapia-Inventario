@@ -338,10 +338,6 @@ select option { background:var(--surface2); }
     <h1>Farmacia<em style="color:var(--text);font-size:1.1rem;">CRA</em></h1>
     <p>Accesso protetto ai dati locali</p>
     <input type="password" id="login-password" placeholder="Password" onkeydown="if(event.key==='Enter')loginApp()">
-    <label style="display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--muted);margin-top:10px;cursor:pointer;justify-content:center">
-      <input type="checkbox" id="ricorda-device" style="width:auto;accent-color:var(--gold)">
-      Ricorda su questo computer
-    </label>
     <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:12px" onclick="loginApp()">Entra</button>
     <div class="login-error" id="login-error"></div>
     <p style="font-size:.68rem;margin-top:18px;margin-bottom:0;color:var(--dim)">Contatta l'amministratore per la password.</p>
@@ -954,7 +950,7 @@ const LOGO_B64 = "iVBORw0KGgoAAAANSUhEUgAABSAAAAEFCAYAAADzO0mHAAAAAXNSR0IArs4c6Q
 // ============================================================
 // VERSIONE APP — aggiornare ad ogni rilascio (visibile nel footer)
 // ============================================================
-const APP_VERSION = 'v1.4 — 14/06/2026';
+const APP_VERSION = 'v1.5 — 15/06/2026';
 
 // ============================================================
 // STORAGE
@@ -966,7 +962,8 @@ const SK = {
   movimenti:  'fcra_movimenti',
 };
 
-const DEVICE_KEY    = 'fcra_device_trusted';
+const DEVICE_KEY    = 'fcra_device_trusted';   // legacy: ricordo persistente, non più usato (solo per pulizia)
+const SESSION_KEY   = 'fcra_session';          // sessione di finestra (sessionStorage)
 const PWD_KEY       = 'fcra_password';
 const DEFAULT_PWD   = 'farmacia2026';
 
@@ -1019,10 +1016,7 @@ function loginApp() {
   const pwd = document.getElementById('login-password').value;
   const err = document.getElementById('login-error');
   if (pwd === getPassword()) {
-    if (document.getElementById('ricorda-device') &&
-        document.getElementById('ricorda-device').checked) {
-      localStorage.setItem(DEVICE_KEY, 'true');
-    }
+    sessionStorage.setItem(SESSION_KEY, '1');
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('login-password').value = '';
     err.textContent = '';
@@ -1038,11 +1032,13 @@ function isMobile() {
 }
 
 function checkLogin() {
+  // Pulizia del ricordo persistente legacy: non deve più sbloccare l'app.
+  localStorage.removeItem(DEVICE_KEY);
   if (isMobile()) {
     document.getElementById('login-screen').style.display = 'none';
     return;
   }
-  if (localStorage.getItem(DEVICE_KEY) === 'true') {
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
     document.getElementById('login-screen').style.display = 'none';
     return;
   }
@@ -1051,6 +1047,7 @@ function checkLogin() {
 
 function logoutApp() {
   if (isMobile()) return;
+  sessionStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(DEVICE_KEY);
   document.getElementById('login-password').value = '';
   document.getElementById('login-screen').style.display = 'flex';

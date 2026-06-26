@@ -318,7 +318,6 @@ select option { background:var(--surface2); }
 .mov-tipo { font-family:'Inconsolata',monospace; font-size:0.65rem; font-weight:600; text-transform:uppercase; }
 .mov-tipo.carico    { color:var(--green); }
 .mov-tipo.scarico   { color:var(--red); }
-.mov-tipo.rettifica { color:var(--amber); }
 .mov-tipo.inventario { color:var(--amber); }
 .mov-q { font-family:'Inconsolata',monospace; font-weight:700; }
 .mov-q.pos { color:var(--green); }
@@ -640,7 +639,6 @@ select option { background:var(--surface2); }
           <option value="carico">Carico</option>
           <option value="scarico">Scarico</option>
           <option value="inventario">Inventario</option>
-          <option value="rettifica">Rettifica (storico)</option>
         </select>
         <input type="text" id="mov-filter-farmaco" placeholder="Cerca farmaco…" oninput="renderMovimenti()" style="width:180px;">
         <span id="mov-count" style="color:var(--muted);font-size:0.78rem;margin-left:auto;"></span>
@@ -952,7 +950,7 @@ const LOGO_B64 = "iVBORw0KGgoAAAANSUhEUgAABSAAAAEFCAYAAADzO0mHAAAAAXNSR0IArs4c6Q
 // ============================================================
 // VERSIONE APP — aggiornare ad ogni rilascio (visibile nel footer)
 // ============================================================
-const APP_VERSION = 'v1.6 — 26/06/2026';
+const APP_VERSION = 'v1.8 — 26/06/2026';
 
 // ============================================================
 // STORAGE

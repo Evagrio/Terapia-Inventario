@@ -319,6 +319,7 @@ select option { background:var(--surface2); }
 .mov-tipo.carico    { color:var(--green); }
 .mov-tipo.scarico   { color:var(--red); }
 .mov-tipo.rettifica { color:var(--amber); }
+.mov-tipo.inventario { color:var(--amber); }
 .mov-q { font-family:'Inconsolata',monospace; font-weight:700; }
 .mov-q.pos { color:var(--green); }
 .mov-q.neg { color:var(--red); }
@@ -598,7 +599,7 @@ select option { background:var(--surface2); }
 <div class="overlay" id="modal-rettifica">
   <div class="modal" style="max-width:480px">
     <div class="modal-head">
-      <span class="modal-title">⚖ Rettifica inventario</span>
+      <span class="modal-title">⚖ Inventario</span>
       <button class="close-btn" onclick="closeModal('modal-rettifica')">×</button>
     </div>
     <div class="modal-body">
@@ -614,13 +615,13 @@ select option { background:var(--surface2); }
         </div>
       </div>
       <div class="form-group">
-        <label>Motivazione rettifica *</label>
+        <label>Motivazione inventario *</label>
         <input type="text" id="rett-note" placeholder="es. conta fisica mensile, farmaco scaduto…">
       </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modal-rettifica')">Annulla</button>
-      <button class="btn btn-red" onclick="eseguiRettifica()">Applica rettifica</button>
+      <button class="btn btn-red" onclick="eseguiRettifica()">Conferma inventario</button>
     </div>
   </div>
 </div>
@@ -638,7 +639,8 @@ select option { background:var(--surface2); }
           <option value="">Tutti i tipi</option>
           <option value="carico">Carico</option>
           <option value="scarico">Scarico</option>
-          <option value="rettifica">Rettifica</option>
+          <option value="inventario">Inventario</option>
+          <option value="rettifica">Rettifica (storico)</option>
         </select>
         <input type="text" id="mov-filter-farmaco" placeholder="Cerca farmaco…" oninput="renderMovimenti()" style="width:180px;">
         <span id="mov-count" style="color:var(--muted);font-size:0.78rem;margin-left:auto;"></span>
@@ -950,7 +952,7 @@ const LOGO_B64 = "iVBORw0KGgoAAAANSUhEUgAABSAAAAEFCAYAAADzO0mHAAAAAXNSR0IArs4c6Q
 // ============================================================
 // VERSIONE APP — aggiornare ad ogni rilascio (visibile nel footer)
 // ============================================================
-const APP_VERSION = 'v1.5 — 15/06/2026';
+const APP_VERSION = 'v1.6 — 26/06/2026';
 
 // ============================================================
 // STORAGE
@@ -3165,7 +3167,7 @@ function renderInventario() {
       <div class="inv-card-foot">
         <button class="btn btn-gold btn-sm" onclick="openModalCarico('${f.id}')">+ Carico</button>
         <button class="btn btn-red btn-sm" onclick="openModalScarico('${f.id}')">− Scarico</button>
-        <button class="btn btn-ghost btn-sm" onclick="openModalRettifica('${f.id}')">⚖ Rettifica</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModalRettifica('${f.id}')">⚖ Inventario</button>
         <button class="btn btn-ghost btn-sm" onclick="openModalFarmacioCRA('${f.id}')">✏️</button>
         <button class="btn btn-ghost btn-sm" title="${f.alertSospeso?'Riattiva alert':'Silenzia alert'}" onclick="toggleAlertSospeso('${f.id}')">${f.alertSospeso ? '🔔' : '🔕'}</button>
         <button class="btn btn-ghost btn-sm" onclick="eliminaFarmacioCRA('${f.id}')">🗑</button>
@@ -3404,7 +3406,7 @@ function eseguiRettifica() {
   const nuova = parseFloat(document.getElementById('rett-scorta').value);
   const nota  = document.getElementById('rett-note').value.trim();
   if (isNaN(nuova)||nuova<0) { alert('Inserire la scorta reale'); return; }
-  if (!nota) { alert('La motivazione della rettifica è obbligatoria'); return; }
+  if (!nota) { alert('La motivazione dell\'inventario è obbligatoria'); return; }
 
   const f = load(SK_FCRA).find(x=>x.id===rettificaFarmacoId);
   const vecchia = Math.round(calcolaScorta(f));
@@ -3421,7 +3423,7 @@ function eseguiRettifica() {
 
   const movimenti = load(SK.movimenti);
   movimenti.unshift({
-    id: uid(), data: oggi, timestamp, tipo: 'rettifica',
+    id: uid(), data: oggi, timestamp, tipo: 'inventario',
     farmacoId: rettificaFarmacoId, farmacoNome: f.nome,
     quantita: diff, scorta_precedente: vecchia, scorta_nuova: nuova,
     note: nota,
@@ -3430,7 +3432,7 @@ function eseguiRettifica() {
 
   closeModal('modal-rettifica');
   renderInventario();
-  toast(`Rettifica registrata: ${diff>=0?'+':''}${diff} ${f.udm||'unità'} su ${f.nome}`);
+  toast(`Inventario registrato: ${diff>=0?'+':''}${diff} ${f.udm||'unità'} su ${f.nome}`);
 }
 
 // ---------- LOG MOVIMENTI ----------
